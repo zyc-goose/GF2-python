@@ -104,7 +104,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Draw a sample signal trace
         GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue
         GL.glBegin(GL.GL_LINE_STRIP)
-        for i in range(10):
+        for i in range(5):
             x = (i * 20) + 10
             x_next = (i * 20) + 30
             if i % 2 == 0:
@@ -141,15 +141,21 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def on_mouse(self, event):
         """Handle mouse events."""
-        text = ""
-        if event.ButtonDown():
-            self.last_mouse_x = event.GetX()
-            self.last_mouse_y = event.GetY()
-            text = "".join(["Mouse button pressed at: ", str(event.GetX()),
-                            ", ", str(event.GetY())])
-        if event.ButtonUp():
-            text = "".join(["Mouse button released at: ", str(event.GetX()),
-                            ", ", str(event.GetY())])
+        text = "".join(["X: ", str(event.GetX()), " Y: ", str(event.GetY())])
+        if event.GetClickCount() >= 2:
+            self.zoom = 1
+            self.init_gl()
+            self.init = True
+            text = "Mouse double clicked"
+        else:
+            if event.ButtonDown():
+                self.last_mouse_x = event.GetX()
+                self.last_mouse_y = event.GetY()
+                text = "".join(["Mouse button pressed at: ", str(event.GetX()),
+                                ", ", str(event.GetY())])
+            if event.ButtonUp():
+                text = "".join(["Mouse button released at: ", str(event.GetX()),
+                                ", ", str(event.GetY())])
         if event.Leaving():
             text = "".join(["Mouse left canvas at: ", str(event.GetX()),
                             ", ", str(event.GetY())])
