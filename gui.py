@@ -63,6 +63,10 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.pan_y = 0
         self.last_mouse_x = 0  # previous mouse x position
         self.last_mouse_y = 0  # previous mouse y position
+        # Newly defined variables
+        self.current_x = 0
+        self.current_y = 0
+        self.run = 0
 
         # Initialise variables for zooming
         self.zoom = 1
@@ -85,7 +89,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glLoadIdentity()
         GL.glTranslated(self.pan_x, self.pan_y, 0.0)
-        GL.glScaled(self.zoom, self.zoom, self.zoom)
+        GL.glScaled(self.zoom, 1, self.zoom)
 
     def render(self, text):
         """Handle all drawing operations."""
@@ -99,21 +103,26 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
         # Draw specified text at position (10, 10)
-        self.render_text(text, 10, 10)
+        self.render_text(text, 10/self.zoom, 10)
 
-        # Draw a sample signal trace
-        GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue
-        GL.glBegin(GL.GL_LINE_STRIP)
-        for i in range(5):
-            x = (i * 20) + 10
-            x_next = (i * 20) + 30
-            if i % 2 == 0:
-                y = 75
-            else:
-                y = 100
-            GL.glVertex2f(x, y)
-            GL.glVertex2f(x_next, y)
-        GL.glEnd()
+        if self.run == 1:
+            # Draw a sample signal trace
+            GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue
+            GL.glBegin(GL.GL_LINE_STRIP)
+            n = 5
+            start = 10
+            end = n*20*self.zoom
+            step = (end-start)/n
+            for i in range(n):
+                x = start+i*step
+                x_next = start+(i+1)*step
+                if i % 2 == 0:
+                    y = 75
+                else:
+                    y = 100
+                GL.glVertex2f(x/self.zoom, y)
+                GL.glVertex2f(x_next/self.zoom, y)
+            GL.glEnd()
 
         # We have been drawing to the back buffer, flush the graphics pipeline
         # and swap the back buffer to the front
@@ -141,9 +150,16 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def on_mouse(self, event):
         """Handle mouse events."""
-        text = "".join(["X: ", str(event.GetX()), " Y: ", str(event.GetY())])
+        self.current_x = event.GetX()
+        self.current_y = event.GetY()
+        size = self.GetClientSize()
+        self.current_y = size.height-self.current_y
+        text = "".join(["X: ", str(self.current_x), " Y: ", str(self.current_y)])
         if event.GetClickCount() >= 2:
+            # Double Click reset to original place
             self.zoom = 1
+            self.pan_x = 0
+            self.pan_y = 0
             self.init_gl()
             self.init = True
             text = "Mouse double clicked"
@@ -172,6 +188,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             self.zoom *= (1.0 + (
                 event.GetWheelRotation() / (20 * event.GetWheelDelta())))
             self.init = False
+            GL.glViewport(self.current_x, self.current_y, size.width, size.height)
+            GL.glScaled(self.zoom, self.zoom, self.zoom)
             text = "".join(["Negative mouse wheel rotation. Zoom is now: ",
                             str(self.zoom)])
         if event.GetWheelRotation() > 0:
@@ -271,7 +289,7 @@ class Gui(wx.Frame):
         if Id == wx.ID_EXIT:
             self.Close(True)
         if Id == wx.ID_ABOUT:
-            wx.MessageBox("Logic Simulator\nCreated by Mojisola Agboola\n2017",
+            wx.MessageBox("Logic Simulator\nBrian's Version\n2018",
                           "About Logsim", wx.ICON_INFORMATION | wx.OK)
 
     def on_spin(self, event):
@@ -283,6 +301,7 @@ class Gui(wx.Frame):
     def on_run_button(self, event):
         """Handle the event when the user clicks the run button."""
         text = "Run button pressed."
+        self.canvas.run = 1
         self.canvas.render(text)
 
     def on_text_box(self, event):
