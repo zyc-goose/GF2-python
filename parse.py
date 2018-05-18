@@ -42,8 +42,7 @@ class Parser:
         # skeleton code. When complete, should return False when there are
         # errors in the circuit definition file.
         return True
-    def top_down_parse(self):
-	return True
 
     def error_display(self):
-	return True
+        """Display error messages on terminal."""
+        return True
