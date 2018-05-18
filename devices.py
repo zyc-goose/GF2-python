@@ -160,10 +160,10 @@ class Devices:
         """
         device = self.get_device(device_id)
         if device is not None:
-            device.inputs.setdefault(input_id)
+            device.inputs.setdefault(input_id) # {input_id : None} -> dict
             return True
         else:
-            return False
+            return False # device not found
 
     def add_output(self, device_id, output_id, signal=0):
         """Add the specified output to the specified device.
@@ -175,7 +175,7 @@ class Devices:
             device.outputs[output_id] = signal
             return True
         else:
-            return False
+            return False # device not found
 
     def get_signal_name(self, device_id, port_id):
         """Return the name string of the specified signal.
