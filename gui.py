@@ -113,7 +113,10 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             n = self.cycles
             start = 10
             end = max(n*20*self.zoom, start)
-            step = (end-start)/n
+            if n != 0:
+                step = (end-start)/n
+            else:
+                step = 0
             for i in range(n):
                 x = start+i*step
                 x_next = start+(i+1)*step
@@ -265,8 +268,9 @@ class Gui(wx.Frame):
 
         # Newly defined Widgets
         self.sampleList = ['G1','G2','G3']
-        self.cont_button = wx.Button(self, wx.ID_ANY, "Add Cycles")
-        self.cb = wx.ComboBox(self, choices=self.sampleList)
+        self.cont_button = wx.Button(self,wx.ID_ANY,"Add")
+        self.del_button = wx.Button(self, wx.ID_ANY, "Delete")
+        self.cb = wx.ComboBox(self,wx.ID_ANY,size=(200,40),choices=self.sampleList,style=wx.CB_DROPDOWN)
         self.text2 = wx.StaticText(self, wx.ID_ANY, "Signal")
         self.switch_button = wx.Button(self, wx.ID_ANY, "Switch")
 
@@ -276,12 +280,14 @@ class Gui(wx.Frame):
         self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
         self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
         self.cont_button.Bind(wx.EVT_BUTTON, self.on_cont_button)
+        self.del_button.Bind(wx.EVT_BUTTON, self.on_del_button)
         self.switch_button.Bind(wx.EVT_BUTTON, self.on_switch_button)
 
         # Configure sizers for layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
         side_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer_second = wx.BoxSizer(wx.VERTICAL)
+        double_butt = wx.BoxSizer(wx.HORIZONTAL)
 
         main_sizer.Add(main_sizer_second, 5, wx.EXPAND | wx.RIGHT | wx.TOP | wx.LEFT, 5)
         main_sizer_second.Add(self.canvas, 5, wx.EXPAND | wx.BOTTOM, 5)
@@ -290,7 +296,9 @@ class Gui(wx.Frame):
         side_sizer.Add(self.text, 1, wx.TOP, 10)
         side_sizer.Add(self.spin, 1, wx.ALL, 5)
         side_sizer.Add(self.run_button, 1, wx.ALL, 5)
-        side_sizer.Add(self.cont_button, 1, wx.ALL, 5)
+        side_sizer.Add(double_butt, 1, wx.ALL, 5)
+        double_butt.Add(self.cont_button, 1, wx.ALL, 5)
+        double_butt.Add(self.del_button, 1, wx.ALL, 5)
         side_sizer.Add(self.text2, 1, wx.TOP, 12)
         side_sizer.Add(self.cb, 1, wx.ALL, 5)
         side_sizer.Add(self.switch_button, 1, wx.ALL, 5)
@@ -331,6 +339,14 @@ class Gui(wx.Frame):
         text = "Add Cycles button pressed."
         self.canvas.run = 1
         self.canvas.cycles += self.spin.GetValue()
+        self.canvas.render(text)
+
+    def on_del_button(self, event):
+        text = "Delete Cycles button pressed."
+        self.canvas.run = 1
+        self.canvas.cycles -= self.spin.GetValue()
+        if self.canvas.cycles<0:
+            self.canvas.cycles=0
         self.canvas.render(text)
 
     def on_switch_button(self, event):
