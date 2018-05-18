@@ -68,6 +68,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.current_y = 0
         self.run = 0
         self.cycles = 0
+        self.signals = ['S1']
 
         # Initialise variables for zooming
         self.zoom = 1
@@ -107,26 +108,11 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.render_text(text, 10/self.zoom, 10)
 
         if self.run == 1:
-            # Draw a sample signal trace
-            GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue
-            GL.glBegin(GL.GL_LINE_STRIP)
-            n = self.cycles
-            start = 10
-            end = max(n*20*self.zoom, start)
-            if n != 0:
-                step = (end-start)/n
-            else:
-                step = 0
-            for i in range(n):
-                x = start+i*step
-                x_next = start+(i+1)*step
-                if i % 2 == 0:
-                    y = 75
-                else:
-                    y = 100
-                GL.glVertex2f(x/self.zoom, y)
-                GL.glVertex2f(x_next/self.zoom, y)
-            GL.glEnd()
+            position = 0
+            for s in self.signals:
+                self.render_clk(self.cycles, position)
+                self.render_text(s, 10/self.zoom, 80+position*50)
+                position = position+1
 
         # We have been drawing to the back buffer, flush the graphics pipeline
         # and swap the back buffer to the front
@@ -220,6 +206,27 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             else:
                 GLUT.glutBitmapCharacter(font, ord(character))
 
+    def render_clk(self, cycles, pos):
+        # Draw a sample signal trace
+        GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue
+        GL.glBegin(GL.GL_LINE_STRIP)
+        start = 30
+        end = max(cycles*20*self.zoom, start)
+        if cycles != 0:
+            step = (end-start)/cycles
+        else:
+            step = 0
+        for i in range(cycles):
+            x = start+i*step
+            x_next = start+(i+1)*step
+            if i % 2 == 0:
+                y = 75+pos*50
+            else:
+                y = 100+pos*50
+            GL.glVertex2f(x/self.zoom, y)
+            GL.glVertex2f(x_next/self.zoom, y)
+        GL.glEnd()
+
 
 class Gui(wx.Frame):
     """Configure the main window and all the widgets.
@@ -267,12 +274,14 @@ class Gui(wx.Frame):
                                     style=wx.TE_PROCESS_ENTER)
 
         # Newly defined Widgets
-        self.sampleList = ['G1','G2','G3']
+        self.sampleList = ['S1','S2']           # In the future use monitor.monitors_dictionary
         self.cont_button = wx.Button(self,wx.ID_ANY,"Add")
         self.del_button = wx.Button(self, wx.ID_ANY, "Delete")
-        self.cb = wx.ComboBox(self,wx.ID_ANY,size=(200,40),choices=self.sampleList,style=wx.CB_DROPDOWN)
+        self.cb = wx.ComboBox(self,wx.ID_ANY,size=(100,20),choices=self.sampleList,style=wx.CB_DROPDOWN)
         self.text2 = wx.StaticText(self, wx.ID_ANY, "Signal")
         self.switch_button = wx.Button(self, wx.ID_ANY, "Switch")
+        self.sig_add_button = wx.Button(self,wx.ID_ANY,"Add")
+        self.sig_del_button = wx.Button(self, wx.ID_ANY, "Delete")
 
         # Bind events to widgets
         self.Bind(wx.EVT_MENU, self.on_menu)
@@ -282,12 +291,16 @@ class Gui(wx.Frame):
         self.cont_button.Bind(wx.EVT_BUTTON, self.on_cont_button)
         self.del_button.Bind(wx.EVT_BUTTON, self.on_del_button)
         self.switch_button.Bind(wx.EVT_BUTTON, self.on_switch_button)
+        self.sig_add_button.Bind(wx.EVT_BUTTON, self.on_sig_add_button)
+        self.sig_del_button.Bind(wx.EVT_BUTTON, self.on_sig_del_button)
 
         # Configure sizers for layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
         side_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer_second = wx.BoxSizer(wx.VERTICAL)
         double_butt = wx.BoxSizer(wx.HORIZONTAL)
+        double_butt_2 = wx.BoxSizer(wx.HORIZONTAL)
+
 
         main_sizer.Add(main_sizer_second, 5, wx.EXPAND | wx.RIGHT | wx.TOP | wx.LEFT, 5)
         main_sizer_second.Add(self.canvas, 5, wx.EXPAND | wx.BOTTOM, 5)
@@ -296,13 +309,16 @@ class Gui(wx.Frame):
         side_sizer.Add(self.text, 1, wx.TOP, 10)
         side_sizer.Add(self.spin, 1, wx.ALL, 5)
         side_sizer.Add(self.run_button, 1, wx.ALL, 5)
-        side_sizer.Add(double_butt, 1, wx.ALL, 5)
+        side_sizer.Add(double_butt, 1, wx.ALL, 0)
         double_butt.Add(self.cont_button, 1, wx.ALL, 5)
         double_butt.Add(self.del_button, 1, wx.ALL, 5)
-        side_sizer.Add(self.text2, 1, wx.TOP, 12)
-        side_sizer.Add(self.cb, 1, wx.ALL, 5)
+        side_sizer.Add(self.text2, 1, wx.TOP, 10)
+        side_sizer.Add(self.cb, 1, wx.ALL, 0)
         side_sizer.Add(self.switch_button, 1, wx.ALL, 5)
-        side_sizer.Add(self.text_box, 1, wx.ALL, 5)
+        side_sizer.Add(double_butt_2, 1, wx.ALL, 0)
+        double_butt_2.Add(self.sig_add_button, 1, wx.ALL, 5)
+        double_butt_2.Add(self.sig_del_button, 1, wx.ALL, 5)
+        side_sizer.Add(self.text_box, 1, wx.TOP, 10)
 
         self.SetSizeHints(600, 600)
         self.SetSizer(main_sizer)
@@ -353,3 +369,24 @@ class Gui(wx.Frame):
         text = "Toggle button pressed."
         # Wait until parser finished
 
+    def on_sig_add_button(self, event):
+        signal = self.sampleList[self.cb.GetSelection()]
+        if self.canvas.run != 1:
+            text = 'You should run the simulation first'
+        elif signal not in self.canvas.signals:
+            self.canvas.signals.append(signal)
+            text = "Add Signal: " + signal
+        else:
+            text = "Button no effect!"
+        self.canvas.render(text)
+
+    def on_sig_del_button(self, event):
+        signal = self.sampleList[self.cb.GetSelection()]
+        if self.canvas.run != 1:
+            text = 'You should run the simulation first'
+        elif signal in self.canvas.signals:
+            self.canvas.signals.remove(signal)
+            text = "Delete Signal: " + signal
+        else:
+            text = "Button no effect!"
+        self.canvas.render(text)
