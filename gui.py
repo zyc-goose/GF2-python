@@ -63,6 +63,11 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.pan_y = 0
         self.last_mouse_x = 0  # previous mouse x position
         self.last_mouse_y = 0  # previous mouse y position
+        # Newly defined variables
+        self.current_x = 0
+        self.current_y = 0
+        self.run = 0
+        self.cycles = 0
 
         # Initialise variables for zooming
         self.zoom = 1
@@ -85,7 +90,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glLoadIdentity()
         GL.glTranslated(self.pan_x, self.pan_y, 0.0)
-        GL.glScaled(self.zoom, self.zoom, self.zoom)
+        GL.glScaled(self.zoom, 1, self.zoom)
 
     def render(self, text):
         """Handle all drawing operations."""
@@ -99,21 +104,26 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
         # Draw specified text at position (10, 10)
-        self.render_text(text, 10, 10)
+        self.render_text(text, 10/self.zoom, 10)
 
-        # Draw a sample signal trace
-        GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue
-        GL.glBegin(GL.GL_LINE_STRIP)
-        for i in range(10):
-            x = (i * 20) + 10
-            x_next = (i * 20) + 30
-            if i % 2 == 0:
-                y = 75
-            else:
-                y = 100
-            GL.glVertex2f(x, y)
-            GL.glVertex2f(x_next, y)
-        GL.glEnd()
+        if self.run == 1:
+            # Draw a sample signal trace
+            GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue
+            GL.glBegin(GL.GL_LINE_STRIP)
+            n = self.cycles
+            start = 10
+            end = max(n*20*self.zoom, start)
+            step = (end-start)/n
+            for i in range(n):
+                x = start+i*step
+                x_next = start+(i+1)*step
+                if i % 2 == 0:
+                    y = 75
+                else:
+                    y = 100
+                GL.glVertex2f(x/self.zoom, y)
+                GL.glVertex2f(x_next/self.zoom, y)
+            GL.glEnd()
 
         # We have been drawing to the back buffer, flush the graphics pipeline
         # and swap the back buffer to the front
@@ -141,15 +151,28 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def on_mouse(self, event):
         """Handle mouse events."""
-        text = ""
-        if event.ButtonDown():
-            self.last_mouse_x = event.GetX()
-            self.last_mouse_y = event.GetY()
-            text = "".join(["Mouse button pressed at: ", str(event.GetX()),
-                            ", ", str(event.GetY())])
-        if event.ButtonUp():
-            text = "".join(["Mouse button released at: ", str(event.GetX()),
-                            ", ", str(event.GetY())])
+        self.current_x = event.GetX()
+        self.current_y = event.GetY()
+        size = self.GetClientSize()
+        self.current_y = size.height-self.current_y
+        text = "".join(["X: ", str(self.current_x), " Y: ", str(self.current_y)])
+        if event.GetClickCount() >= 2:
+            # Double Click reset to original place
+            self.zoom = 1
+            self.pan_x = 0
+            self.pan_y = 0
+            self.init_gl()
+            self.init = True
+            text = "Mouse double clicked"
+        else:
+            if event.ButtonDown():
+                self.last_mouse_x = event.GetX()
+                self.last_mouse_y = event.GetY()
+                text = "".join(["Mouse button pressed at: ", str(event.GetX()),
+                                ", ", str(event.GetY())])
+            if event.ButtonUp():
+                text = "".join(["Mouse button released at: ", str(event.GetX()),
+                                ", ", str(event.GetY())])
         if event.Leaving():
             text = "".join(["Mouse left canvas at: ", str(event.GetX()),
                             ", ", str(event.GetY())])
@@ -166,6 +189,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             self.zoom *= (1.0 + (
                 event.GetWheelRotation() / (20 * event.GetWheelDelta())))
             self.init = False
+            GL.glViewport(self.current_x, self.current_y, size.width, size.height)
+            GL.glScaled(self.zoom, self.zoom, self.zoom)
             text = "".join(["Negative mouse wheel rotation. Zoom is now: ",
                             str(self.zoom)])
         if event.GetWheelRotation() > 0:
@@ -238,22 +263,37 @@ class Gui(wx.Frame):
         self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
                                     style=wx.TE_PROCESS_ENTER)
 
+        # Newly defined Widgets
+        self.sampleList = ['G1','G2','G3']
+        self.cont_button = wx.Button(self, wx.ID_ANY, "Add Cycles")
+        self.cb = wx.ComboBox(self, choices=self.sampleList)
+        self.text2 = wx.StaticText(self, wx.ID_ANY, "Signal")
+        self.switch_button = wx.Button(self, wx.ID_ANY, "Switch")
+
         # Bind events to widgets
         self.Bind(wx.EVT_MENU, self.on_menu)
         self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
         self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
         self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
+        self.cont_button.Bind(wx.EVT_BUTTON, self.on_cont_button)
+        self.switch_button.Bind(wx.EVT_BUTTON, self.on_switch_button)
 
         # Configure sizers for layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
         side_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer_second = wx.BoxSizer(wx.VERTICAL)
 
-        main_sizer.Add(self.canvas, 5, wx.EXPAND | wx.ALL, 5)
+        main_sizer.Add(main_sizer_second, 5, wx.EXPAND | wx.RIGHT | wx.TOP | wx.LEFT, 5)
+        main_sizer_second.Add(self.canvas, 5, wx.EXPAND | wx.BOTTOM, 5)
         main_sizer.Add(side_sizer, 1, wx.ALL, 5)
 
         side_sizer.Add(self.text, 1, wx.TOP, 10)
         side_sizer.Add(self.spin, 1, wx.ALL, 5)
         side_sizer.Add(self.run_button, 1, wx.ALL, 5)
+        side_sizer.Add(self.cont_button, 1, wx.ALL, 5)
+        side_sizer.Add(self.text2, 1, wx.TOP, 12)
+        side_sizer.Add(self.cb, 1, wx.ALL, 5)
+        side_sizer.Add(self.switch_button, 1, wx.ALL, 5)
         side_sizer.Add(self.text_box, 1, wx.ALL, 5)
 
         self.SetSizeHints(600, 600)
@@ -265,7 +305,7 @@ class Gui(wx.Frame):
         if Id == wx.ID_EXIT:
             self.Close(True)
         if Id == wx.ID_ABOUT:
-            wx.MessageBox("Logic Simulator\nCreated by Mojisola Agboola\n2017",
+            wx.MessageBox("Logic Simulator\nBrian's Version\n2018",
                           "About Logsim", wx.ICON_INFORMATION | wx.OK)
 
     def on_spin(self, event):
@@ -277,6 +317,8 @@ class Gui(wx.Frame):
     def on_run_button(self, event):
         """Handle the event when the user clicks the run button."""
         text = "Run button pressed."
+        self.canvas.run = 1
+        self.canvas.cycles = self.spin.GetValue()
         self.canvas.render(text)
 
     def on_text_box(self, event):
@@ -284,3 +326,14 @@ class Gui(wx.Frame):
         text_box_value = self.text_box.GetValue()
         text = "".join(["New text box value: ", text_box_value])
         self.canvas.render(text)
+
+    def on_cont_button(self, event):
+        text = "Add Cycles button pressed."
+        self.canvas.run = 1
+        self.canvas.cycles += self.spin.GetValue()
+        self.canvas.render(text)
+
+    def on_switch_button(self, event):
+        text = "Toggle button pressed."
+        # Wait until parser finished
+
