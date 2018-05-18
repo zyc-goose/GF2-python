@@ -43,7 +43,7 @@ class Parser:
         # errors in the circuit definition file.
         return True
     def top_down_parse(self):
-	return True
+        return True
 
     def error_display(self):
-	return True
+        return True
