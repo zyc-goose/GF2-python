@@ -266,7 +266,7 @@ class Gui(wx.Frame):
         # Newly defined Widgets
         self.sampleList = ['G1','G2','G3']
         self.cont_button = wx.Button(self, wx.ID_ANY, "Add Cycles")
-        self.cb = wx.ComboBox(self, choices=self.sampleList)
+        self.cb = wx.ComboBox(self,wx.ID_ANY,size=(200,40),choices=self.sampleList,style=wx.CB_DROPDOWN)
         self.text2 = wx.StaticText(self, wx.ID_ANY, "Signal")
         self.switch_button = wx.Button(self, wx.ID_ANY, "Switch")
 
@@ -292,7 +292,7 @@ class Gui(wx.Frame):
         side_sizer.Add(self.run_button, 1, wx.ALL, 5)
         side_sizer.Add(self.cont_button, 1, wx.ALL, 5)
         side_sizer.Add(self.text2, 1, wx.TOP, 12)
-        side_sizer.Add(self.cb, 1, wx.ALL, 5)
+        side_sizer.Add(self.cb, 0.7, wx.ALL, 5)
         side_sizer.Add(self.switch_button, 1, wx.ALL, 5)
         side_sizer.Add(self.text_box, 1, wx.ALL, 5)
 
