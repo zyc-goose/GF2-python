@@ -35,7 +35,7 @@ class Parser:
 
     def __init__(self, names, devices, network, monitors, scanner):
         """Initialise constants."""
-        self.symbol_type = self.symbol_id = None
+        self.symbol_type, self.symbol_id = None
         self.move_to_next_symbol()
         self.error_code = self.NO_ERROR
         self.error_count = 0
@@ -89,9 +89,10 @@ class Parser:
         while not self.is_EOF():
             if not self.statement():
                 self.error_display()
-                self.error_code = self.NO_ERROR # restore to normal state
+                self.error_code = self.NO_ERROR  # restore to normal state
                 while (not self.is_left_paren()) and (not self.is_EOF()):
-                    self.move_to_next_symbol() # move to next '(' to resume parsing
+                    # move to next '(' to resume parsing
+                    self.move_to_next_symbol()
         if self.error_count > 0:
             return False
         return True
@@ -99,17 +100,17 @@ class Parser:
     def is_left_paren(self):
         """Check whether current symbol is '('."""
         return self.symbol_type == scanner.PUNCTUATION and \
-               names.get_name_string(self.symbol_id) == '('
+            names.get_name_string(self.symbol_id) == '('
 
     def is_right_paren(self):
         """Check whether current symbol is ')'."""
         return self.symbol_type == scanner.PUNCTUATION and \
-               names.get_name_string(self.symbol_id) == ')'
+            names.get_name_string(self.symbol_id) == ')'
 
     def is_dot(self):
         """Check whether current symbol is ')'."""
         return self.symbol_type == scanner.PUNCTUATION and \
-               names.get_name_string(self.symbol_id) == '.'
+            names.get_name_string(self.symbol_id) == '.'
 
     def is_keyword(self):
         """Check whether current symbol is a keyword."""
@@ -117,6 +118,7 @@ class Parser:
 
     def is_identifier(self):
         """Check whether current symbol is an identifier."""
+        """i.e. any valid identifier excluding keywords"""
         return self.symbol_type == scanner.IDENTIFIER
 
     def is_number(self):
@@ -146,11 +148,15 @@ class Parser:
             self.error_code = self.EXPECT_LEFT_PAREN
             return False
         self.move_to_next_symbol()
+
+        # Check inside the statement
         if not (self.device() or self.connect() or self.monitor()):
             if self.error_code == self.NO_ERROR:
                 self.error_code = self.UNKNOWN_FUNCTION_NAME
             return False
         self.move_to_next_symbol()
+
+        # Check the last parenthesis
         if not self.is_right_paren():
             self.error_code = self.EXPECT_RIGHT_PAREN
             return False
@@ -160,8 +166,12 @@ class Parser:
     def device(self):
         """Parse a device definition."""
         if not (self.is_keyword() and self.is_target_name('DEVICE')):
-            return False # no error code
+            return False  # not a device, pass on to connect
         self.move_to_next_symbol()
+
+        # Will need to split this function into small functions?
+
+        # The first symbol must be a device name
         if not self.is_identifier():
             if self.is_keyword():
                 if self.get_name_string() in ('is', 'are'):
@@ -179,6 +189,8 @@ class Parser:
         self.existing_device_ids.add(self.symbol_id)
         new_device_ids = [self.symbol_id]
         self.move_to_next_symbol()
+
+        # Record all other device names
         while self.is_identifier():
             if self.symbol_id in self.existing_device_ids:
                 self.error_code = self.DEVICE_REDEFINED
@@ -186,19 +198,27 @@ class Parser:
             self.existing_device_ids.add(self.symbol_id)
             new_device_ids.append(self.symbol_id)
             self.move_to_next_symbol()
-        if not (self.is_keyword() and (self.get_name_string() in ('is', 'are'))):
+
+        # Expecting one keyword is/are
+        # is_keyword() necessary here?
+        if not (self.get_name_string() in ('is', 'are')):
             self.error_code = self.EXPECT_KEYWORD_IS_ARE
             return False
         self.move_to_next_symbol()
+
+        # Expecting device type, should be an identifier
         if self.is_right_paren():
             self.error_code = self.DEVICE_TYPE_ABSENT
             return False
         elif not self.is_identifier():
             self.error_code = self.EXPECT_DEVICE_TYPE
             return False
+
+        # Classify device type
         device_type = self.get_name_string()
         qualifier = None
-        if device_type in ('CLOCK','SWITCH','AND','NAND','OR','NOR'):
+        if device_type in ('CLOCK', 'SWITCH', 'AND', 'NAND', 'OR', 'NOR'):
+            # Check and update the qualifier
             self.move_to_next_symbol()
             if not self.is_number():
                 self.error_code = self.EXPECT_QUALIFIER
@@ -206,7 +226,8 @@ class Parser:
             qualifier = self.symbol_id
             self.move_to_next_symbol()
             return True
-        elif device_type in ('DTYPE','XOR'):
+        elif device_type in ('DTYPE', 'XOR'):
+            # Check there is no qualifier
             self.move_to_next_symbol()
             if self.is_number():
                 self.error_code = self.EXPECT_NO_QUALIFIER
@@ -220,12 +241,13 @@ class Parser:
         """Parse a device terminal and return (devicd_id, port_id).
         Return (None, None) if error occurs."""
         if not self.is_identifier():
-            return None, None # no error code at this point
+            return None, None  # no error code at this point
         device_id = self.symbol_id
         if device_id not in self.existing_device_ids:
             self.error_code = self.DEVICE_UNDEFINED
             return None, None
         self.move_to_next_symbol()
+
         if self.is_dot():
             self.move_to_next_symbol()
             if not self.is_identifier():
@@ -237,23 +259,26 @@ class Parser:
             port_id = None
         return device_id, port_id
 
-
     def connect(self):
         """Parse a connection."""
         if not (self.is_keyword() and self.is_target_name('CONNECT')):
-            return False # no error code
+            return False  # not a connect, pass on to monitor
         self.move_to_next_symbol()
+
+        # Check first device port
         first_device_id, first_port_id = self.device_terminal()
-        if first_device_id is None: # error occurs
+        if first_device_id is None:  # error occurs
             if self.error_code == self.NO_ERROR:
                 self.error_code = self.EXPECT_DEVICE_TERMINAL_NAME
             return False
+        # Check keyword 'to
         if not (self.is_keyword() and self.is_target_name('to')):
             self.error_code = self.EXPECT_KEYWORD_TO
             return False
         self.move_to_next_symbol()
+        # Check second device port
         second_device_id, second_port_id = self.device_terminal()
-        if second_device_id is None: # error occurs
+        if second_device_id is None:  # error occurs
             if self.error_code == self.NO_ERROR:
                 self.error_code = self.EXPECT_DEVICE_TERMINAL_NAME
             return False
@@ -262,16 +287,19 @@ class Parser:
     def monitor(self):
         """Parse a series of monitors."""
         if not (self.is_keyword() and self.is_target_name('MONITOR')):
-            return False # no error code
+            return False  # not a monitor, pass back to statement
         self.move_to_next_symbol()
+
+        # Check first device port
         device_id, port_id = self.device_terminal()
-        if device_id is None: # error occurs
+        if device_id is None:  # error occurs
             if self.error_code == self.NO_ERROR:
                 if self.is_right_paren():
                     self.error_code = self.EMPTY_MONITOR_LIST
                 else:
                     self.error_code = self.EXPECT_DEVICE_NAME
             return False
+        # Check all the other device ports
         while True:
             device_id, port_id = self.device_terminal()
             if device_id is None:
