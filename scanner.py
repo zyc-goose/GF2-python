@@ -32,6 +32,12 @@ class Scanner:
 
     def __init__(self, path, names):
         """Open specified file and initialise reserved words and IDs."""
+        [self.KEYWORD,
+         self.IDENTIFIER,
+         self.NUMBER,
+         self.PUNCTUATION,
+         self.SYNTAX_ERROR,
+         self.EOF] = range(6)
 
     def get_symbol(self):
         """Return the symbol type and ID of the next sequence of characters.
