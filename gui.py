@@ -282,6 +282,7 @@ class Gui(wx.Frame):
         self.switch_button = wx.Button(self, wx.ID_ANY, "Switch")
         self.sig_add_button = wx.Button(self,wx.ID_ANY,"Add")
         self.sig_del_button = wx.Button(self, wx.ID_ANY, "Delete")
+        self.clear_button = wx.Button(self, wx.ID_ANY, "Clear")
 
         # Bind events to widgets
         self.Bind(wx.EVT_MENU, self.on_menu)
@@ -293,6 +294,7 @@ class Gui(wx.Frame):
         self.switch_button.Bind(wx.EVT_BUTTON, self.on_switch_button)
         self.sig_add_button.Bind(wx.EVT_BUTTON, self.on_sig_add_button)
         self.sig_del_button.Bind(wx.EVT_BUTTON, self.on_sig_del_button)
+        self.clear_button.Bind(wx.EVT_BUTTON, self.on_clear_button)
 
         # Configure sizers for layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -318,7 +320,8 @@ class Gui(wx.Frame):
         side_sizer.Add(double_butt_2, 1, wx.ALL, 0)
         double_butt_2.Add(self.sig_add_button, 1, wx.ALL, 5)
         double_butt_2.Add(self.sig_del_button, 1, wx.ALL, 5)
-        side_sizer.Add(self.text_box, 1, wx.TOP, 10)
+        side_sizer.Add(self.clear_button, 1, wx.ALL, 5)
+        # side_sizer.Add(self.text_box, 1, wx.TOP, 10)
 
         self.SetSizeHints(600, 600)
         self.SetSizer(main_sizer)
@@ -389,4 +392,10 @@ class Gui(wx.Frame):
             text = "Delete Signal: " + signal
         else:
             text = "Button no effect!"
+        self.canvas.render(text)
+
+    def on_clear_button(self, event):
+        text = 'Clear the Canvas'
+        self.canvas.signals = []
+        self.canvas.cycles = self.spin.GetValue()
         self.canvas.render(text)
