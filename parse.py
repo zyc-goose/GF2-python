@@ -50,7 +50,27 @@ class Parser:
             'DTYPE'  : devices.DTYPE,
             'XOR'    : devices.XOR
         }
-        [] = names.unique_error_codes(13)
+        [self.NO_ERROR,
+         self.EXPECT_KEYWORD_IS_ARE,
+         self.EXPECT_DEVICE_TYPE,
+         self.EMPTY_DEVICE_LIST,
+         self.EXPECT_DEVICE_NAME,
+         self.DEVICE_TYPE_ABSENT,
+         self.EXPECT_PORT_NAME,
+         self.EXPECT_KEYWORD_TO,
+         self.UNKNOWN_DEVICE_TYPE,
+         self.EMPTY_FILE,
+         self.DEVICE_REDEFINED,
+         self.UNKNOWN_FUNCTION_NAME,
+         self.KEYWORD_AS_DEVICE_NAME,
+         self.EXPECT_DEVICE_TERMINAL_NAME,
+         self.EXPECT_NO_QUALIFIER,
+         self.EXPECT_QUALIFIER,
+         self.DEVICE_UNDEFINED,
+         self.EXPECT_RIGHT_PAREN,
+         self.INVALID_DEVICE_NAME,
+         self.EMPTY_MONITOR_LIST,
+         self.EXPECT_LEFT_PAREN] = names.unique_error_codes(21)
 
     def move_to_next_symbol(self):
         """Get next symbol from scanner."""
