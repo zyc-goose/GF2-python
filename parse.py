@@ -51,26 +51,26 @@ class Parser:
             'XOR'    : devices.XOR
         }
         [self.NO_ERROR,
-         self.EXPECT_KEYWORD_IS_ARE,
-         self.EXPECT_DEVICE_TYPE,
-         self.EMPTY_DEVICE_LIST,
-         self.EXPECT_DEVICE_NAME,
-         self.DEVICE_TYPE_ABSENT,
-         self.EXPECT_PORT_NAME,
-         self.EXPECT_KEYWORD_TO,
-         self.UNKNOWN_DEVICE_TYPE,
-         self.EMPTY_FILE,
          self.DEVICE_REDEFINED,
-         self.UNKNOWN_FUNCTION_NAME,
-         self.KEYWORD_AS_DEVICE_NAME,
-         self.EXPECT_DEVICE_TERMINAL_NAME,
-         self.EXPECT_NO_QUALIFIER,
-         self.EXPECT_QUALIFIER,
+         self.DEVICE_TYPE_ABSENT,
          self.DEVICE_UNDEFINED,
+         self.EMPTY_DEVICE_LIST,
+         self.EMPTY_FILE,
+         self.EMPTY_MONITOR_LIST,
+         self.EXPECT_DEVICE_NAME,
+         self.EXPECT_DEVICE_TERMINAL_NAME,
+         self.EXPECT_DEVICE_TYPE,
+         self.EXPECT_KEYWORD_IS_ARE,
+         self.EXPECT_KEYWORD_TO,
+         self.EXPECT_LEFT_PAREN,
+         self.EXPECT_NO_QUALIFIER,
+         self.EXPECT_PORT_NAME,
+         self.EXPECT_QUALIFIER,
          self.EXPECT_RIGHT_PAREN,
          self.INVALID_DEVICE_NAME,
-         self.EMPTY_MONITOR_LIST,
-         self.EXPECT_LEFT_PAREN] = names.unique_error_codes(21)
+         self.KEYWORD_AS_DEVICE_NAME,
+         self.UNKNOWN_DEVICE_TYPE,
+         self.UNKNOWN_FUNCTION_NAME] = names.unique_error_codes(21)
 
     def move_to_next_symbol(self):
         """Get next symbol from scanner."""
@@ -83,6 +83,9 @@ class Parser:
         # errors in the circuit definition file.
         return True
         ##################################################
+        assert self.symbol_type is None and self.symbol_id is None, \
+            "parse_network() should only be called once"
+        self.move_to_next_symbol() # initialise first symbol
         if self.is_EOF():
             self.error_code = self.EMPTY_FILE
             return False
