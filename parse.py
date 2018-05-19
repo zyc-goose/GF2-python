@@ -37,7 +37,7 @@ class Parser:
         """Initialise constants."""
         self.move_to_next_symbol()
         self.error_code = self.NO_ERROR
-
+        self.existing_device_ids = set()
 
     def move_to_next_symbol(self):
         """Get next symbol from scanner."""
@@ -87,29 +87,81 @@ class Parser:
         """Check whether current symbol is EOF."""
         return self.symbol_type == scanner.EOF
 
+    def is_target_name(self, target_name):
+        """Check if the name string corresponding to self.symbol_id
+        is the same as target_name."""
+        if not isinstance(target_name, str):
+            raise TypeError('target_name should be a str')
+        return self.get_name_string() == target_name
+
+    def get_name_string(self):
+        """Get the name string of self.symbol_id."""
+        if not isinstance(self.symbol_id, int):
+            raise TypeError('self.symbol_id should be an int')
+        return self.names.get_name_string(self.symbol_id)
+
     def statement(self):
         """Parse a statement, which starts with '(' and ends with ')'."""
-        if self.is_left_paren():
-            self.move_to_next_symbol()
-            if self.device() or self.connect() or self.monitor():
-                self.move_to_next_symbol()
-                if self.is_right_paren():
-                    self.move_to_next_symbol()
-                    return True
-                else:
-                    self.error_code = self.EXPECT_RIGHT_PAREN
-                    return False
-            else:
-                if self.error_code == self.NO_ERROR:
-                    self.error_code = self.UNKNOWN_FUNCTION_NAME
-                return False
-        else:
+        if not self.is_left_paren():
             self.error_code = self.EXPECT_LEFT_PAREN
             return False
+        self.move_to_next_symbol()
+        if not (self.device() or self.connect() or self.monitor()):
+            if self.error_code == self.NO_ERROR:
+                self.error_code = self.UNKNOWN_FUNCTION_NAME
+            return False
+        self.move_to_next_symbol()
+        if not self.is_right_paren():
+            self.error_code = self.EXPECT_RIGHT_PAREN
+            return False
+        self.move_to_next_symbol()
+        return True
 
     def device(self):
         """Parse a device definition."""
-        
+        if not (self.is_keyword() and self.is_target_name('DEVICE')):
+            return False # no error code
+        self.move_to_next_symbol()
+        if not self.is_identifier():
+            self.error_code = self.EXPECT_IDENTIFIER
+            return False
+        if self.symbol_id in self.existing_device_ids:
+            self.error_code = self.DEVICE_REDEFINITION
+            return False
+        self.existing_device_ids.add(self.symbol_id)
+        new_device_ids = [self.symbol_id]
+        self.move_to_next_symbol()
+        while self.is_identifier():
+            if self.symbol_id in self.existing_device_ids:
+                self.error_code = self.DEVICE_REDEFINITION
+                return False
+            self.existing_device_ids.add(self.symbol_id)
+            new_device_ids.append(self.symbol_id)
+            self.move_to_next_symbol()
+        if not (self.is_keyword() and (self.get_name_string() in ('is', 'are'))):
+            self.error_code = self.EXPECT_IS_ARE
+            return False
+        self.move_to_next_symbol()
+        device_type = self.get_name_string()
+        qualifier = None
+        if device_type in ('CLOCK','SWITCH','AND','NAND','OR','NOR'):
+            self.move_to_next_symbol()
+            if not self.is_number():
+                self.error_code = self.EXPECT_QUALIFIER
+                return False
+            qualifier = self.symbol_id
+            self.move_to_next_symbol()
+            return True
+        elif device_type in ('DTYPE','XOR'):
+            self.move_to_next_symbol()
+            if self.is_number():
+                self.error_code = self.EXPECT_NO_QUALIFIER
+                return False
+            return True
+        else:
+            self.error_code = self.UNKNOWN_DEVICE_TYPE
+            return False
+
 
 
     def error_display(self):
