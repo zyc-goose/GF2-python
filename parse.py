@@ -35,9 +35,22 @@ class Parser:
 
     def __init__(self, names, devices, network, monitors, scanner):
         """Initialise constants."""
+        self.symbol_type = self.symbol_id = None
         self.move_to_next_symbol()
         self.error_code = self.NO_ERROR
+        self.error_count = 0
         self.existing_device_ids = set()
+        self.device_type_to_id = {
+            'CLOCK'  : devices.CLOCK,
+            'SWITCH' : devices.SWITCH,
+            'AND'    : devices.AND,
+            'NAND'   : devices.NAND,
+            'OR'     : devices.OR,
+            'NOR'    : devices.NOR,
+            'DTYPE'  : devices.DTYPE,
+            'XOR'    : devices.XOR
+        }
+        [] = names.unique_error_codes(13)
 
     def move_to_next_symbol(self):
         """Get next symbol from scanner."""
@@ -48,12 +61,19 @@ class Parser:
         # For now just return True, so that userint and gui can run in the
         # skeleton code. When complete, should return False when there are
         # errors in the circuit definition file.
+        return True
+        ##################################################
+        if self.is_EOF():
+            self.error_code = self.EMPTY_FILE
+            return False
         while not self.is_EOF():
             if not self.statement():
                 self.error_display()
                 self.error_code = self.NO_ERROR # restore to normal state
                 while (not self.is_left_paren()) and (not self.is_EOF()):
-                    self.move_to_next_symbol()
+                    self.move_to_next_symbol() # move to next '(' to resume parsing
+        if self.error_count > 0:
+            return False
         return True
 
     def is_left_paren(self):
@@ -123,25 +143,39 @@ class Parser:
             return False # no error code
         self.move_to_next_symbol()
         if not self.is_identifier():
-            self.error_code = self.EXPECT_IDENTIFIER
+            if self.is_keyword():
+                if self.get_name_string() in ('is', 'are'):
+                    self.error_code = self.EMPTY_DEVICE_LIST
+                else:
+                    self.error_code = self.KEYWORD_AS_DEVICE_NAME
+            elif self.is_right_paren():
+                self.error_code = self.EMPTY_DEVICE_LIST
+            else:
+                self.error_code = self.INVALID_DEVICE_NAME
             return False
         if self.symbol_id in self.existing_device_ids:
-            self.error_code = self.DEVICE_REDEFINITION
+            self.error_code = self.DEVICE_REDEFINED
             return False
         self.existing_device_ids.add(self.symbol_id)
         new_device_ids = [self.symbol_id]
         self.move_to_next_symbol()
         while self.is_identifier():
             if self.symbol_id in self.existing_device_ids:
-                self.error_code = self.DEVICE_REDEFINITION
+                self.error_code = self.DEVICE_REDEFINED
                 return False
             self.existing_device_ids.add(self.symbol_id)
             new_device_ids.append(self.symbol_id)
             self.move_to_next_symbol()
         if not (self.is_keyword() and (self.get_name_string() in ('is', 'are'))):
-            self.error_code = self.EXPECT_IS_ARE
+            self.error_code = self.EXPECT_KEYWORD_IS_ARE
             return False
         self.move_to_next_symbol()
+        if self.is_right_paren():
+            self.error_code = self.DEVICE_TYPE_ABSENT
+            return False
+        elif not self.is_identifier():
+            self.error_code = self.EXPECT_DEVICE_TYPE
+            return False
         device_type = self.get_name_string()
         qualifier = None
         if device_type in ('CLOCK','SWITCH','AND','NAND','OR','NOR'):
@@ -162,7 +196,68 @@ class Parser:
             self.error_code = self.UNKNOWN_DEVICE_TYPE
             return False
 
+    def device_terminal(self):
+        """Parse a device terminal and return (devicd_id, port_id).
+        Return (None, None) if error occurs."""
+        if not self.is_identifier():
+            return None, None # no error code at this point
+        device_id = self.symbol_id
+        if device_id not in self.existing_device_ids:
+            self.error_code = self.DEVICE_UNDEFINED
+            return None, None
+        self.move_to_next_symbol()
+        if self.is_dot():
+            self.move_to_next_symbol()
+            if not self.is_identifier():
+                self.error_code = self.EXPECT_PORT_NAME
+                return None, None
+            port_id = self.symbol_id
+            self.move_to_next_symbol()
+        else:
+            port_id = None
+        return device_id, port_id
 
+
+    def connect(self):
+        """Parse a connection."""
+        if not (self.is_keyword() and self.is_target_name('CONNECT')):
+            return False # no error code
+        self.move_to_next_symbol()
+        first_device_id, first_port_id = self.device_terminal()
+        if first_device_id is None: # error occurs
+            if self.error_code == self.NO_ERROR:
+                self.error_code = self.EXPECT_DEVICE_TERMINAL_NAME
+            return False
+        if not (self.is_keyword() and self.is_target_name('to')):
+            self.error_code = self.EXPECT_KEYWORD_TO
+            return False
+        self.move_to_next_symbol()
+        second_device_id, second_port_id = self.device_terminal()
+        if second_device_id is None: # error occurs
+            if self.error_code == self.NO_ERROR:
+                self.error_code = self.EXPECT_DEVICE_TERMINAL_NAME
+            return False
+        return True
+
+    def monitor(self):
+        """Parse a series of monitors."""
+        if not (self.is_keyword() and self.is_target_name('MONITOR')):
+            return False # no error code
+        self.move_to_next_symbol()
+        device_id, port_id = self.device_terminal()
+        if device_id is None: # error occurs
+            if self.error_code == self.NO_ERROR:
+                if self.is_right_paren():
+                    self.error_code = self.EMPTY_MONITOR_LIST
+                else:
+                    self.error_code = self.EXPECT_DEVICE_NAME
+            return False
+        while True:
+            device_id, port_id = self.device_terminal()
+            if device_id is None:
+                if self.error_code == self.NO_ERROR:
+                    return True
+                return False
 
     def error_display(self):
         """Display error messages on terminal."""
