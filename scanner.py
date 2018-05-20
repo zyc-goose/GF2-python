@@ -44,7 +44,7 @@ class Scanner:
         self.NAME,
         self.NUMBER,
         self.PUNCTUATION,
-        self.ERROR
+        self.SYNTAX_ERROR
         self.EOF]
 
         keywords_list = [
@@ -69,7 +69,8 @@ class Scanner:
 
         error_list = [
         'Unrecogonized character',
-        'Number starting with 0']           '''any more errors?'''
+        'Number starting with 0'
+        'Unterminated comment']           '''any more errors?'''
         wwtf = names.lookup(error_list)
 
         self.current_character = ""
@@ -101,10 +102,27 @@ class Scanner:
         else:
             return int(number)
 
-    def skip_comment(self, input_file):
+    def skip_comment(self):
         self.current_character = self.advance()
+        if self.current_character == '/':
+            while (self.current_character != '/n') or (self.current_character != ''):
+                self.current_character = self.advance()
+            self.get_symbol(self.names)
+        elif self.current_character == '*':
+            self.current_character = self.advance()
+            next_character = self.advance()
+            while  (self.current_character != '*') or (next_character != '/') or (next_character == ''):
+                self.current_character = next_character
+                next_character = self.advance()
+            if next_character == '':
+                symbol_type = self.SYNTAX_ERROR
+                symbol_id = self.names.query('Unterminated comment')
+            else self.get_symbol(self.names)
+        else:
+            symbol_type = self.SYNTAX_ERROR
+            symbol_id = self.names.query('Unrecogonized character')
 
-    def get_symbol(self, names):
+    def get_symbol(self):
         """Return the symbol type and ID of the next sequence of characters.
 
         If the current character is not recognised, both symbol type and ID
@@ -125,7 +143,7 @@ class Scanner:
             symbol_type = self.NUMBER
             symbol_id = self.get_number()
             if symbol_id == -1:
-                symbol_type = self.ERROR
+                symbol_type = self.SYNTAX_ERROR
                 symbol_id = self.names.query('Number starting with 0')
         elif (self.current_character == '(') or (self.current_character == ')') or (self.current_character == '.')
             symbol_type = self.PUNCTUATION
@@ -136,7 +154,7 @@ class Scanner:
         elif self.current_character == '/':
             self.skip_comment()
         else: # not a valid character
-            symbol_type = self.ERROR
+            symbol_type = self.SYNTAX_ERROR
             symbol_id = self.names.query('Unrecogonized character')
 
         return [symbol_type, symbol_id]
