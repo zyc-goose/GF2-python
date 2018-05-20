@@ -35,21 +35,8 @@ class Parser:
 
     def __init__(self, names, devices, network, monitors, scanner):
         """Initialise constants."""
-        self.symbol_type, self.symbol_id = None
-        self.move_to_next_symbol()
-        self.error_code = self.NO_ERROR
-        self.error_count = 0
-        self.existing_device_ids = set()
-        self.device_type_to_id = {
-            'CLOCK'  : devices.CLOCK,
-            'SWITCH' : devices.SWITCH,
-            'AND'    : devices.AND,
-            'NAND'   : devices.NAND,
-            'OR'     : devices.OR,
-            'NOR'    : devices.NOR,
-            'DTYPE'  : devices.DTYPE,
-            'XOR'    : devices.XOR
-        }
+        self.symbol_type, self.symbol_id = None, None
+
         [self.NO_ERROR,
          self.DEVICE_REDEFINED,
          self.DEVICE_TYPE_ABSENT,
@@ -71,6 +58,23 @@ class Parser:
          self.KEYWORD_AS_DEVICE_NAME,
          self.UNKNOWN_DEVICE_TYPE,
          self.UNKNOWN_FUNCTION_NAME] = names.unique_error_codes(21)
+
+        self.error_code = self.NO_ERROR
+        self.error_count = 0
+
+        self.existing_device_ids = set()
+        self.device_with_qualifier = {
+            'CLOCK'  : devices.CLOCK,
+            'SWITCH' : devices.SWITCH,
+            'AND'    : devices.AND,
+            'NAND'   : devices.NAND,
+            'OR'     : devices.OR,
+            'NOR'    : devices.NOR
+        }
+        self.device_no_qualifier = {
+            'DTYPE'  : devices.DTYPE,
+            'XOR'    : devices.XOR
+        }
 
     def move_to_next_symbol(self):
         """Get next symbol from scanner."""
@@ -143,6 +147,8 @@ class Parser:
         """Get the name string of self.symbol_id."""
         if not isinstance(self.symbol_id, int):
             raise TypeError('self.symbol_id should be an int')
+        if self.is_number():
+            return str(self.symbol_id)
         return self.names.get_name_string(self.symbol_id)
 
     def statement(self):
@@ -172,9 +178,38 @@ class Parser:
             return False  # not a device, pass on to connect
         self.move_to_next_symbol()
 
-        # Will need to split this function into small functions?
-
         # The first symbol must be a device name
+        device_id = self.get_first_device_id()
+        if device_id is None: # parse failed
+            return False
+        new_device_ids = [device_id]
+
+        # Record all other device names
+        while True:
+            device_id = self.get_optional_device_id()
+            if device_id is None:
+                if self.error_code == self.NO_ERROR:
+                    break
+                return False
+            new_device_ids.append(device_id)
+
+        # Expecting one keyword is/are
+        if not self.check_keyword_is_are():
+            return False
+        self.move_to_next_symbol()
+
+        # Expecting device type (and possibly a qualifier)
+        device_kind, qualifier = self.get_device_type()
+        if device_kind is None: # error occured
+            return False
+
+        return True
+
+
+    def get_first_device_id(self):
+        """Parse the first device name by force.
+        If successful, return device_id.
+        If failed, generate error code and return None."""
         if not self.is_identifier():
             if self.is_keyword():
                 if self.get_name_string() in ('is', 'are'):
@@ -185,60 +220,79 @@ class Parser:
                 self.error_code = self.EMPTY_DEVICE_LIST
             else:
                 self.error_code = self.INVALID_DEVICE_NAME
-            return False
+            return None
+        # current symbol is identifier
         if self.symbol_id in self.existing_device_ids:
             self.error_code = self.DEVICE_REDEFINED
-            return False
-        self.existing_device_ids.add(self.symbol_id)
-        new_device_ids = [self.symbol_id]
+            return None
+        device_id = self.symbol_id
+        self.existing_device_ids.add(device_id)
         self.move_to_next_symbol()
+        return device_id
 
-        # Record all other device names
-        while self.is_identifier():
-            if self.symbol_id in self.existing_device_ids:
-                self.error_code = self.DEVICE_REDEFINED
-                return False
-            self.existing_device_ids.add(self.symbol_id)
-            new_device_ids.append(self.symbol_id)
-            self.move_to_next_symbol()
-
-        # Expecting one keyword is/are
-        # is_keyword() necessary here?
-        if not (self.get_name_string() in ('is', 'are')):
-            self.error_code = self.EXPECT_KEYWORD_IS_ARE
-            return False
+    def get_optional_device_id(self):
+        """Parse a device name optionally.
+        If successful, return device_id.
+        If failed, return None and (may) generate error code."""
+        if not self.is_identifier():
+            return None # no error code since it's optional
+        # current symbol is identifier
+        if self.symbol_id in self.existing_device_ids:
+            self.error_code = self.DEVICE_REDEFINED
+            return None
+        device_id = self.symbol_id
+        self.existing_device_ids.add(device_id)
         self.move_to_next_symbol()
+        return device_id
 
-        # Expecting device type, should be an identifier
+    def check_keyword_is_are(self):
+        """Check whether current symbol is keyword 'is' or 'are'."""
+        if not self.is_keyword():
+            self.error_code = self.INVALID_DEVICE_NAME
+            return False
+        if self.get_name_string() not in ('is', 'are'):
+            if self.get_name_string() in self.device_with_qualifier:
+                self.error_code = self.EXPECT_KEYWORD_IS_ARE_BEFORE_TYPE
+            elif self.get_name_string() in self.device_no_qualifier:
+                self.error_code = self.EXPECT_KEYWORD_IS_ARE_BEFORE_TYPE
+            else:
+                self.error_code = self.KEYWORD_AS_DEVICE_NAME
+            return False
+        return True
+
+    def get_device_type(self):
+        """Parse device type (and qualifier).
+        Return (None, None) if failed."""
         if self.is_right_paren():
             self.error_code = self.DEVICE_TYPE_ABSENT
-            return False
-        elif not self.is_identifier():
-            self.error_code = self.EXPECT_DEVICE_TYPE
-            return False
-
+            return None, None
+        elif not self.is_keyword():
+            self.error_code = self.INVALID_DEVICE_TYPE
+            return None, None
         # Classify device type
-        device_type = self.get_name_string()
-        qualifier = None
-        if device_type in ('CLOCK', 'SWITCH', 'AND', 'NAND', 'OR', 'NOR'):
+        device_type_str = self.get_name_string()
+        if device_type_str in self.device_with_qualifier:
             # Check and update the qualifier
             self.move_to_next_symbol()
             if not self.is_number():
                 self.error_code = self.EXPECT_QUALIFIER
-                return False
+                return None, None
+            device_kind = self.device_with_qualifier[device_type_str]
             qualifier = self.symbol_id
             self.move_to_next_symbol()
-            return True
-        elif device_type in ('DTYPE', 'XOR'):
+            return device_kind, qualifier
+        elif device_type_str in self.device_no_qualifier:
             # Check there is no qualifier
             self.move_to_next_symbol()
             if self.is_number():
                 self.error_code = self.EXPECT_NO_QUALIFIER
-                return False
-            return True
+                return None, None
+            device_kind = self.device_no_qualifier[device_type_str]
+            qualifier = None
+            return device_kind, qualifier
         else:
-            self.error_code = self.UNKNOWN_DEVICE_TYPE
-            return False
+            self.error_code = self.INVALID_DEVICE_TYPE
+            return None, None
 
     def device_terminal(self):
         """Parse a device terminal and return (devicd_id, port_id).
@@ -274,7 +328,7 @@ class Parser:
             if self.error_code == self.NO_ERROR:
                 self.error_code = self.EXPECT_DEVICE_TERMINAL_NAME
             return False
-        # Check keyword 'to
+        # Check keyword 'to'
         if not (self.is_keyword() and self.is_target_name('to')):
             self.error_code = self.EXPECT_KEYWORD_TO
             return False
