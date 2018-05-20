@@ -38,9 +38,13 @@ class Names:
                         the name ID. Returns None if the ID is not present.
     """
 
+    '''preset keywords, these should not be modified'''
+
     def __init__(self):
         """Initialise names list."""
         self.error_code_count = 0  # how many error codes have been declared
+        name_list = []
+
 
     def unique_error_codes(self, num_error_codes):
         """Return a list of unique integer error codes."""
@@ -55,15 +59,31 @@ class Names:
 
         If the name string is not present in the names list, return None.
         """
+        if name_string in self.name_list:
+            return self.name_list.index(name_string)
+        else:
+            return None
 
     def lookup(self, name_string_list):
         """Return a list of name IDs for each name string in name_string_list.
 
         If the name string is not present in the names list, add it.
         """
+        name_id_list = []
+        for name_string in name_string_list:
+            if name_string  not in self.name_list:
+                self.name_list.append(name_string)
+            name_id_list.append(self.name_list.index(name_string))
+
+        return name_id_list
 
     def get_name_string(self, name_id):
         """Return the corresponding name string for name_id.
 
         If the name_id is not an index in the names list, return None.
         """
+
+        if name_id < len(self.name_list):
+            return self.name_list[name_id]
+        else:
+            return None
