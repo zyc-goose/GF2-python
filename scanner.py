@@ -8,7 +8,6 @@ Classes
 Scanner - reads definition file and translates characters into symbols.
 """
 
-
 class Scanner:
 
     """Read circuit definition file and translate the characters into symbols.
@@ -30,19 +29,114 @@ class Scanner:
                       returns the symbol type and ID.
     """
 
-    def __init__(self, path, names):
-        """Open specified file and initialise reserved words and IDs."""
-        [self.KEYWORD,
-         self.IDENTIFIER,
-         self.NUMBER,
-         self.PUNCTUATION,
-         self.SYNTAX_ERROR,
-         self.EOF] = range(6)
 
-    def get_symbol(self):
+    def __init__(self, path, names):    '''name is an instance of Names'''
+        """Open specified file and initialise reserved words and IDs."""
+        try:
+            self.input_file = open(path)
+        except  FileNotFoundError:
+            print("can't find file under this name")
+
+        self.names = names
+
+        symbol_type_list = [
+        self.KEYWORD,
+        self.NAME,
+        self.NUMBER,
+        self.PUNCTUATION,
+        self.ERROR
+        self.EOF]
+
+        keywords_list = [
+        'DEVICE',
+        'CONNECT',
+        'MONITOR',
+        'CLOCK',
+        'SWITCH',
+        'AND',
+        'NAND',
+        'OR',
+        'NOR',
+        'DTYPE',
+        'XOR',
+        'is',
+        'are',
+        'to',
+        '(',
+        ')',
+        '.']
+        wtf = names.lookup(keywords_list)   '''check later'''
+
+        error_list = [
+        'Unrecogonized character',
+        'Number starting with 0']           '''any more errors?'''
+        wwtf = names.lookup(error_list)
+
+        self.current_character = ""
+
+    def skip_spaces(self):
+        '''move to the next non-whitespace character'''
+        self.current_character = self.advance()
+        while self.current_character.isspace():
+            self.current_character = self.advance()
+
+    def advance(self):
+        return self.input_file.read(1)
+
+    def get_name(self):
+        name = ''
+        while self.current_character.isalnum() and self.current_character != "":
+            number = number + self.current_character
+            self.current_character = self.advance()
+        return name
+
+    def get_number(self):   '''handle cases of '00001' '''
+        number = self.current_character
+        while self.current_character.isdigit() and self.current_character != "":
+            number = number + self.current_character
+            self.current_character = self.advance()
+
+        if number[0] == '0' and len(number) != 1:
+            return -1
+        else:
+            return int(number)
+
+    def skip_comment(self, input_file):
+        self.current_character = self.advance()
+
+    def get_symbol(self, names):
         """Return the symbol type and ID of the next sequence of characters.
 
         If the current character is not recognised, both symbol type and ID
         are assigned None. Note: this function is called again (recursively)
         if it encounters a comment or end of line.
         """
+
+        self.skip_spaces() # current character now not whitespace
+        if self.current_character.isalpha():
+            name_string = self.get_name()
+            if name_string in self.keywords_list:
+                symbol_type = self.KEYWORD
+                symbol_id = Names.query(name_string)
+            else:
+                symbol_type = self.NAME
+                symbol_id = self.names.lookup(name_string)
+        elif self.current_character.isdigit(): # a number cannot start with 0
+            symbol_type = self.NUMBER
+            symbol_id = self.get_number()
+            if symbol_id == -1:
+                symbol_type = self.ERROR
+                symbol_id = self.names.query('Number starting with 0')
+        elif (self.current_character == '(') or (self.current_character == ')') or (self.current_character == '.')
+            symbol_type = self.PUNCTUATION
+            symbol_id = Names.query(self.current_character)
+        elif self.current_character == ''
+            symbol_type = self.EOF
+            symbol_id = 3154
+        elif self.current_character == '/':
+            self.skip_comment()
+        else: # not a valid character
+            symbol_type = self.ERROR
+            symbol_id = self.names.query('Unrecogonized character')
+
+        return [symbol_type, symbol_id]
