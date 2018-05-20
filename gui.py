@@ -11,6 +11,7 @@ Gui - configures the main window and all the widgets.
 import wx
 import wx.glcanvas as wxcanvas
 from OpenGL import GL, GLUT
+from PIL import Image
 
 from names import Names
 from devices import Devices
@@ -69,6 +70,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.run = 0
         self.cycles = 0
         self.signals = ['S1']
+        self.texture = None
+        self.use_hero = 0
 
         # Initialise variables for zooming
         self.zoom = 1
@@ -78,7 +81,43 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.Bind(wx.EVT_SIZE, self.on_size)
         self.Bind(wx.EVT_MOUSE_EVENTS, self.on_mouse)
 
+    def initTexture(self):
+        """init the texture - this has to happen after an OpenGL context
+        has been created
+        """
+
+        # make the OpenGL context associated with this canvas the current one
+        self.SetCurrent(self.context)
+
+        # Get image from current folder
+        im = Image.open('hero.jpg')
+        try:
+            ix, iy, image = im.size[0], im.size[1], im.tobytes("raw", "RGBA", 0, -1)
+        except SystemError:
+            ix, iy, image = im.size[0], im.size[1], im.tobytes("raw", "RGBX", 0, -1)
+
+        # generate a texture id, make it current
+        self.texture = GL.glGenTextures(1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self.texture)
+
+        # texture mode and parameters controlling wrapping and scaling
+        GL.glTexEnvf(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)
+        GL.glTexParameterf(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT)
+        GL.glTexParameterf(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT)
+        GL.glTexParameterf(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
+        GL.glTexParameterf(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
+
+        # map the image data to the texture. note that if the input
+        # type is GL_FLOAT, the values must be in the range [0..1]
+        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB, ix, iy, 0,
+                        GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, image)
+
     def init_gl(self):
+        self.initTexture()
         """Configure and initialise the OpenGL context."""
         size = self.GetClientSize()
         self.SetCurrent(self.context)
@@ -103,6 +142,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         # Clear everything
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+        if self.use_hero == 1:
+            self.texture_mapping()
 
         # Draw specified text at position (10, 10)
         self.render_text(text, 10/self.zoom, 10)
@@ -144,9 +185,11 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.current_y = event.GetY()
         size = self.GetClientSize()
         self.current_y = size.height-self.current_y
-        text = "".join(["X: ", str(self.current_x), " Y: ", str(self.current_y)])
+        text = ''
+        #text = "".join(["X: ", str(self.current_x), " Y: ", str(self.current_y)])
+
+        # Double Click reset to original place, single click shows the position
         if event.GetClickCount() >= 2:
-            # Double Click reset to original place
             self.zoom = 1
             self.pan_x = 0
             self.pan_y = 0
@@ -178,8 +221,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             self.zoom *= (1.0 + (
                 event.GetWheelRotation() / (20 * event.GetWheelDelta())))
             self.init = False
-            GL.glViewport(self.current_x, self.current_y, size.width, size.height)
-            GL.glScaled(self.zoom, self.zoom, self.zoom)
             text = "".join(["Negative mouse wheel rotation. Zoom is now: ",
                             str(self.zoom)])
         if event.GetWheelRotation() > 0:
@@ -227,6 +268,36 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             GL.glVertex2f(x_next/self.zoom, y)
         GL.glEnd()
 
+    def texture_mapping(self):
+        """draw function """
+        self.SetCurrent(self.context)
+        if not self.init:
+            # Configure the viewport, modelview and projection matrices
+            self.init_gl()
+            self.init = True
+
+        # enable textures, bind to our texture
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glColor3f(1, 1, 1)
+
+        # draw a quad
+        size = self.GetClientSize()
+        GL.glBegin(GL.GL_QUADS)
+        GL.glTexCoord2f(0, 1)
+        GL.glVertex2f(0, size.height)
+        GL.glTexCoord2f(0, 0)
+        GL.glVertex2f(0, 0)
+        GL.glTexCoord2f(1, 0)
+        GL.glVertex2f(size.width, 0)
+        GL.glTexCoord2f(1, 1)
+        GL.glVertex2f(size.width, size.height)
+        GL.glEnd()
+
+        GL.glDisable(GL.GL_TEXTURE_2D)
+
+        # swap the front and back buffers so that the texture is visible
+        #self.SwapBuffers()
+
 
 class Gui(wx.Frame):
     """Configure the main window and all the widgets.
@@ -270,31 +341,45 @@ class Gui(wx.Frame):
         self.text = wx.StaticText(self, wx.ID_ANY, "Cycles")
         self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")
         self.run_button = wx.Button(self, wx.ID_ANY, "Run")
-        self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
-                                    style=wx.TE_PROCESS_ENTER)
+        # self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
+        #                            style=wx.TE_PROCESS_ENTER)
+
+        # Preparing Bitmaps
+        image_1 = wx.Image("plus.png") 
+        image_1.Rescale(30, 30) 
+        plus = wx.Bitmap(image_1)
+        image_2 = wx.Image("minus.png") 
+        image_2.Rescale(30, 30) 
+        minus = wx.Bitmap(image_2) 
 
         # Newly defined Widgets
         self.sampleList = ['S1','S2']           # In the future use monitor.monitors_dictionary
         self.cont_button = wx.Button(self,wx.ID_ANY,"Add")
         self.del_button = wx.Button(self, wx.ID_ANY, "Delete")
-        self.cb = wx.ComboBox(self,wx.ID_ANY,size=(100,20),choices=self.sampleList,style=wx.CB_DROPDOWN)
+        self.cb = wx.ComboBox(self,wx.ID_ANY,size=(100,30),choices=self.sampleList,style=wx.CB_DROPDOWN)
         self.text2 = wx.StaticText(self, wx.ID_ANY, "Signal")
         self.switch_button = wx.Button(self, wx.ID_ANY, "Switch")
         self.sig_add_button = wx.Button(self,wx.ID_ANY,"Add")
         self.sig_del_button = wx.Button(self, wx.ID_ANY, "Delete")
         self.clear_button = wx.Button(self, wx.ID_ANY, "Clear")
+        self.zoom_in_button = wx.BitmapButton(self, wx.ID_ANY, plus, size=(40,40))
+        self.zoom_out_button = wx.BitmapButton(self, wx.ID_ANY, minus, size=(40,40))
+        self.hero_button = wx.Button(self, wx.ID_ANY, "HERO")
 
         # Bind events to widgets
         self.Bind(wx.EVT_MENU, self.on_menu)
         self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
         self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
-        self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
+        #self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
         self.cont_button.Bind(wx.EVT_BUTTON, self.on_cont_button)
         self.del_button.Bind(wx.EVT_BUTTON, self.on_del_button)
         self.switch_button.Bind(wx.EVT_BUTTON, self.on_switch_button)
         self.sig_add_button.Bind(wx.EVT_BUTTON, self.on_sig_add_button)
         self.sig_del_button.Bind(wx.EVT_BUTTON, self.on_sig_del_button)
         self.clear_button.Bind(wx.EVT_BUTTON, self.on_clear_button)
+        self.zoom_in_button.Bind(wx.EVT_BUTTON, self.on_zoom_in_button)
+        self.zoom_out_button.Bind(wx.EVT_BUTTON, self.on_zoom_out_button)
+        self.hero_button.Bind(wx.EVT_BUTTON, self.on_hero_button)
 
         # Configure sizers for layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -302,6 +387,7 @@ class Gui(wx.Frame):
         main_sizer_second = wx.BoxSizer(wx.VERTICAL)
         double_butt = wx.BoxSizer(wx.HORIZONTAL)
         double_butt_2 = wx.BoxSizer(wx.HORIZONTAL)
+        double_butt_3 = wx.BoxSizer(wx.HORIZONTAL)
 
 
         main_sizer.Add(main_sizer_second, 5, wx.EXPAND | wx.RIGHT | wx.TOP | wx.LEFT, 5)
@@ -315,12 +401,16 @@ class Gui(wx.Frame):
         double_butt.Add(self.cont_button, 1, wx.ALL, 5)
         double_butt.Add(self.del_button, 1, wx.ALL, 5)
         side_sizer.Add(self.text2, 1, wx.TOP, 10)
-        side_sizer.Add(self.cb, 1, wx.ALL, 0)
+        side_sizer.Add(self.cb, 1, wx.ALL, 5)
         side_sizer.Add(self.switch_button, 1, wx.ALL, 5)
         side_sizer.Add(double_butt_2, 1, wx.ALL, 0)
         double_butt_2.Add(self.sig_add_button, 1, wx.ALL, 5)
         double_butt_2.Add(self.sig_del_button, 1, wx.ALL, 5)
         side_sizer.Add(self.clear_button, 1, wx.ALL, 5)
+        side_sizer.Add(double_butt_3, 0.5, wx.ALL, 0)
+        double_butt_3.Add(self.zoom_in_button, 1, wx.ALL, 5)
+        double_butt_3.Add(self.zoom_out_button, 1, wx.ALL, 5)
+        side_sizer.Add(self.hero_button, 1 , wx.ALL, 5)
         # side_sizer.Add(self.text_box, 1, wx.TOP, 10)
 
         self.SetSizeHints(600, 600)
@@ -399,3 +489,21 @@ class Gui(wx.Frame):
         self.canvas.signals = []
         self.canvas.cycles = self.spin.GetValue()
         self.canvas.render(text)
+
+    def on_zoom_in_button(self, event):
+        self.canvas.zoom = self.canvas.zoom*2
+        self.canvas.init = False
+        text = 'Zoom in'
+        self.canvas.render(text)
+
+    def on_zoom_out_button(self, event):
+        self.canvas.zoom = self.canvas.zoom*0.5
+        self.canvas.init = False
+        text = 'Zoom out'
+        self.canvas.render(text)
+
+    def on_hero_button(self, event):
+        self.canvas.use_hero = 1
+        text = 'HAHAHA'
+        self.canvas.render(text)
+
