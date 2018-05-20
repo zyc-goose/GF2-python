@@ -46,7 +46,6 @@ class Parser:
          self.EMPTY_MONITOR_LIST,
          self.EXPECT_DEVICE_NAME,
          self.EXPECT_DEVICE_TERMINAL_NAME,
-         self.EXPECT_DEVICE_TYPE,
          self.EXPECT_KEYWORD_IS_ARE,
          self.EXPECT_KEYWORD_TO,
          self.EXPECT_LEFT_PAREN,
@@ -55,9 +54,9 @@ class Parser:
          self.EXPECT_QUALIFIER,
          self.EXPECT_RIGHT_PAREN,
          self.INVALID_DEVICE_NAME,
+         self.INVALID_DEVICE_TYPE,
          self.KEYWORD_AS_DEVICE_NAME,
-         self.UNKNOWN_DEVICE_TYPE,
-         self.UNKNOWN_FUNCTION_NAME] = names.unique_error_codes(21)
+         self.UNKNOWN_FUNCTION_NAME] = names.unique_error_codes(20)
 
         self.error_code = self.NO_ERROR
         self.error_count = 0
@@ -205,7 +204,6 @@ class Parser:
 
         return True
 
-
     def get_first_device_id(self):
         """Parse the first device name by force.
         If successful, return device_id.
@@ -252,9 +250,9 @@ class Parser:
             return False
         if self.get_name_string() not in ('is', 'are'):
             if self.get_name_string() in self.device_with_qualifier:
-                self.error_code = self.EXPECT_KEYWORD_IS_ARE_BEFORE_TYPE
+                self.error_code = self.EXPECT_KEYWORD_IS_ARE
             elif self.get_name_string() in self.device_no_qualifier:
-                self.error_code = self.EXPECT_KEYWORD_IS_ARE_BEFORE_TYPE
+                self.error_code = self.EXPECT_KEYWORD_IS_ARE
             else:
                 self.error_code = self.KEYWORD_AS_DEVICE_NAME
             return False
