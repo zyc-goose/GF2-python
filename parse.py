@@ -36,24 +36,7 @@ class Parser:
     def __init__(self, names, devices, network, monitors, scanner):
         """Initialise constants."""
         self.symbol_type, self.symbol_id = None, None
-<<<<<<< HEAD
-        self.move_to_next_symbol()
-        self.error_code = self.NO_ERROR
-        self.error_count = 0
-        self.existing_device_ids = set()
-        self.device_type_to_id = {
-            'CLOCK'  : devices.CLOCK,
-            'SWITCH' : devices.SWITCH,
-            'AND'    : devices.AND,
-            'NAND'   : devices.NAND,
-            'OR'     : devices.OR,
-            'NOR'    : devices.NOR,
-            'DTYPE'  : devices.DTYPE,
-            'XOR'    : devices.XOR
-        }
-=======
 
->>>>>>> d8d647fd013b73d5b44c878af3eab9ad619db064
         [self.NO_ERROR,
          self.DEVICE_REDEFINED,
          self.DEVICE_TYPE_ABSENT,
