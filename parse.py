@@ -86,18 +86,28 @@ class Parser:
         # errors in the circuit definition file.
         return True
         ##################################################
+        ##                HAHAHAHAHAHAHA                ##
+        ##################################################
         assert self.symbol_type is None and self.symbol_id is None, \
             "parse_network() should only be called once"
-        self.move_to_next_symbol() # initialise first symbol
+        self.move_to_next_symbol()  # initialise first symbol
         if self.is_EOF():
             self.error_code = self.EMPTY_FILE
             return False
         while not self.is_EOF():
             if not self.statement():
+                # First check syntax error from scanner
+                if self.symbol_type == scanner.SYNTAX_ERROR:
+                    if self.is_target_name('Unrecogonized character'):
+                        self.error_code = self.BAD_CHARACTER
+                    elif self.is_target_name('Number starting with 0'):
+                        self.error_code = self.BAD_NUMBER
+                    else:
+                        self.error_code = self.BAD_COMMENT
                 self.error_display()
                 self.error_code = self.NO_ERROR  # restore to normal state
+                # move to next '(' to resume parsing
                 while (not self.is_left_paren()) and (not self.is_EOF()):
-                    # move to next '(' to resume parsing
                     self.move_to_next_symbol()
         if self.error_count > 0:
             return False
@@ -122,10 +132,10 @@ class Parser:
         """Check whether current symbol is a keyword."""
         return self.symbol_type == scanner.KEYWORD
 
-    def is_identifier(self):
-        """Check whether current symbol is an identifier."""
-        """i.e. any valid identifier excluding keywords"""
-        return self.symbol_type == scanner.IDENTIFIER
+    def is_name(self):
+        """Check whether current symbol is a name."""
+        """i.e. any valid name excluding keywords"""
+        return self.symbol_type == scanner.NAME
 
     def is_number(self):
         """Check whether current symbol is a number."""
@@ -160,7 +170,7 @@ class Parser:
         # Check inside the statement
         if not (self.device() or self.connect() or self.monitor()):
             if self.error_code == self.NO_ERROR:
-                self.error_code = self.UNKNOWN_FUNCTION_NAME
+                self.error_code = self.INVALID_FUNCTION_NAME
             return False
         self.move_to_next_symbol()
 
@@ -208,7 +218,7 @@ class Parser:
         """Parse the first device name by force.
         If successful, return device_id.
         If failed, generate error code and return None."""
-        if not self.is_identifier():
+        if not self.is_name():
             if self.is_keyword():
                 if self.get_name_string() in ('is', 'are'):
                     self.error_code = self.EMPTY_DEVICE_LIST
@@ -219,7 +229,7 @@ class Parser:
             else:
                 self.error_code = self.INVALID_DEVICE_NAME
             return None
-        # current symbol is identifier
+        # current symbol is name
         if self.symbol_id in self.existing_device_ids:
             self.error_code = self.DEVICE_REDEFINED
             return None
@@ -232,9 +242,9 @@ class Parser:
         """Parse a device name optionally.
         If successful, return device_id.
         If failed, return None and (may) generate error code."""
-        if not self.is_identifier():
+        if not self.is_name():
             return None # no error code since it's optional
-        # current symbol is identifier
+        # current symbol is name
         if self.symbol_id in self.existing_device_ids:
             self.error_code = self.DEVICE_REDEFINED
             return None
@@ -295,7 +305,7 @@ class Parser:
     def device_terminal(self):
         """Parse a device terminal and return (devicd_id, port_id).
         Return (None, None) if error occurs."""
-        if not self.is_identifier():
+        if not self.is_name():
             return None, None  # no error code at this point
         device_id = self.symbol_id
         if device_id not in self.existing_device_ids:
@@ -305,7 +315,7 @@ class Parser:
 
         if self.is_dot():
             self.move_to_next_symbol()
-            if not self.is_identifier():
+            if not self.is_name():
                 self.error_code = self.EXPECT_PORT_NAME
                 return None, None
             port_id = self.symbol_id
@@ -352,7 +362,7 @@ class Parser:
                 if self.is_right_paren():
                     self.error_code = self.EMPTY_MONITOR_LIST
                 else:
-                    self.error_code = self.EXPECT_DEVICE_NAME
+                    self.error_code = self.INVALID_DEVICE_NAME
             return False
         # Check all the other device ports
         while True:
