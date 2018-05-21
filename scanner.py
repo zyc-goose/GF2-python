@@ -30,7 +30,7 @@ class Scanner:
     """
 
 
-    def __init__(self, path, names):   
+    def __init__(self, path, names):
         """Open specified file and initialise reserved words and IDs."""
         try:
             self.input_file = open(path)
@@ -65,12 +65,12 @@ class Scanner:
         '(',
         ')',
         '.']
-        wtf = names.lookup(self.keywords_list)  
+        wtf = names.lookup(self.keywords_list)
 
         self.error_list = [
         'Unrecogonized character',
         'Number starting with 0',
-        'Unterminated comment']           
+        'Unterminated comment']
         wwtf = names.lookup(self.error_list)
 
         self.current_character = self.advance()
@@ -90,7 +90,7 @@ class Scanner:
             self.current_character = self.advance()
         return name
 
-    def get_number(self):   
+    def get_number(self):
         number = ''
         while self.current_character.isdigit() and self.current_character != '':
             number = number + self.current_character
