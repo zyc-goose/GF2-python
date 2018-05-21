@@ -65,23 +65,42 @@ class Scanner:
         '(',
         ')',
         '.']
-        wtf = names.lookup(self.keywords_list)
+        dummy = names.lookup(self.keywords_list)
 
         self.error_list = [
         'Unrecogonized character',
         'Number starting with 0',
         'Unterminated comment']
-        wwtf = names.lookup(self.error_list)
+        dummy = names.lookup(self.error_list)
 
+        self.current_line = ''
+        self.current_character = ''
         self.current_character = self.advance()
+
+    def advance(self):
+        if self.current_character not in ('\n', ''):
+            self.current_line += self.current_character
+        else:
+            self.current_line = ''
+        return self.input_file.read(1)
+
 
     def skip_spaces(self):
         '''move to the next non-whitespace character'''
         while self.current_character.isspace():
             self.current_character = self.advance()
 
-    def advance(self):
-        return self.input_file.read(1)
+    def complete_current_line(self):
+        current_cursor_position = self.input_file.tell()
+        current_line = self.current_line
+        error_position = len(current_line) - 1
+        current_character = self.current_character
+        while current_character not in('\n', ''):
+            current_line += current_character
+            current_character = self.input_file.read(1)
+        self.input_file.seek(current_cursor_position)
+        return [current_line, error_position]
+        '''error_character = current_line[error_position-1]'''
 
     def get_name(self):
         name = ''
@@ -103,7 +122,6 @@ class Scanner:
 
     def skip_comment(self):
         self.current_character = self.advance()
-        # print ('wraifussgisgdf', self.current_character)
         if self.current_character not in ('/', '*'):
             return 3
         elif self.current_character == '/':
@@ -155,13 +173,13 @@ class Scanner:
             symbol_type = self.EOF
             symbol_id = 3154
         elif self.current_character == '/':
-            datui = self.skip_comment()
-            if  datui == 1:
+            skip_successful = self.skip_comment()
+            if  skip_successful == 1:
                 [symbol_type, symbol_id] = self.get_symbol()
-            elif datui == 2:
+            elif skip_successful == 2:
                 symbol_type = self.SYNTAX_ERROR
                 symbol_id = self.names.query('Unterminated comment')
-            elif datui == 3:
+            elif skip_successful == 3:
                 symbol_type = self.SYNTAX_ERROR
                 symbol_id = self.names.query('Unrecogonized character')
         else: # not a valid character
@@ -169,4 +187,6 @@ class Scanner:
             symbol_id = self.names.query('Unrecogonized character')
             self.current_character = self.advance()
 
+        #print(self.current_character)
+        #print(self.current_line)
         return [symbol_type, symbol_id]

@@ -1,25 +1,4 @@
-
-(DEVICE #$%^&*) // bad character
-(DEVICE AA is AND 0003) // bad number
-(DEVICE B B B)
-(DEVICE C is )
-(CONNECT D)
-(DEVICE )
-(DEVICE is)
-()
-(MONITOR)
-(CONNECT)
-(CONNECT AA.shit to )
-(DEVICE F NAND)
-(DEVICE G)
-(CONNECT AA AA)
-(MONITOR AA)
-asdf
-(DEVICE BB is XOR 3)
-(CONNECT AA. to AA.shit)
-(DEVICE CC is CLOCK)
-(MONITOR AA BB CC
-(DEVICE .)
-(DEVICE DD is DEVICE)
-(SB SNB)
-(DEVICE MONITOR)
+(   DEVICE AA is AND 0003)
+(   DEVICE AA is AND 0003)
+(   DEVICE AA is AND 0003)
+(   DEVICE AA is AND 0003)
