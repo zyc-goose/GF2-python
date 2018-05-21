@@ -68,12 +68,12 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.last_mouse_x = 0  # previous mouse x position
         self.last_mouse_y = 0  # previous mouse y position
         # Newly defined variables
-        self.current_x = 0
-        self.current_y = 0
-        self.run = 0
-        self.cycles = 0
-        self.texture = None
-        self.use_hero = 0
+        self.current_x = 0  # Current mouse x position
+        self.current_y = 0  # Current mouse y position
+        self.run = 0  # run flag
+        self.cycles = 0  # number of cycles for display
+        self.texture = None  # texture ID
+        self.use_hero = 0  # whether to use texture or not
 
         # Initialise variables for zooming
         self.zoom = 1
@@ -151,6 +151,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.render_text(text, 10/self.zoom, 10)
 
         if self.run == 1:
+            # If run button clicked, render all signals
             self.render_signal()
 
         # We have been drawing to the back buffer, flush the graphics pipeline
@@ -283,28 +284,30 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glVertex2f(x/self.zoom, y2)
 
     def render_signal(self):
-        """Display the signal trace(s) in the text console."""
+        """Display the signal trace(s) in GUI"""
+
         # To confine name lengths, edit in the future
-        # margin = self.monitors.get_margin()
-        cycle_count = 0
-        pos = 0
+        margin = 10
         GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue
         GL.glBegin(GL.GL_LINE_STRIP)
+
+        # local variables
+        cycle_count = 0  # count number of cycles displayed
+        pos = 0  # signal position, shifted upward for each signal
         start = 30
-        end = max(cycles*20*self.zoom, start)
+        end = max(self.cycles*20*self.zoom, start)
         if cycles != 0:
-            step = (end-start)/cycles
+            step = (end-start)/self.cycles
         else:
             step = 0
 
         # Iterate over each device and render
         for device_id, output_id in self.monitors.monitors_dictionary:
             monitor_name = self.devices.get_signal_name(device_id, output_id)
-            name_length = len(monitor_name)
             signal_list = self.monitors_dictionary[(device_id, output_id)]
 
             # Display signal name
-            self.render_text(monitor_name, 10/self.zoom, 80+pos*50)
+            self.render_text(monitor_name[0:margin], 10/self.zoom, 80+pos*50)
 
             # Iterate over each cycle and render
             for signal in signal_list:
@@ -321,8 +324,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 if signal == self.devices.BLANK:
                     # ASK TOMORROW
                     cycle_count += 1
-                if cycle_count > self.cycles:
-                    break
+                #if cycle_count > self.cycles:
+                #    break
             pos = pos+1
         GL.glEnd()
 
@@ -413,7 +416,7 @@ class Gui(wx.Frame):
         # self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
         #                            style=wx.TE_PROCESS_ENTER)
 
-        # Preparing Bitmaps
+        # Preparing Bitmaps for zoom buttons
         image_1 = wx.Image("./graphics/plus.png") 
         image_1.Rescale(30, 30) 
         plus = wx.Bitmap(image_1)
@@ -533,6 +536,7 @@ class Gui(wx.Frame):
         # Wait until parser finished
 
     def on_sig_add_button(self, event):
+        # Get user selected signal and split to get IDs
         signal = self.total_list[self.cb.GetSelection()]
         if '.' in signal:
             device, port = signal.split('.')
@@ -543,6 +547,7 @@ class Gui(wx.Frame):
             device_id = self.names.query(device)
             port_id = None
 
+        # Add monitor using the IDs above
         if self.canvas.run != 1:
             text = 'You should run the simulation first'
         elif device_id is not None:
@@ -557,6 +562,7 @@ class Gui(wx.Frame):
         self.canvas.render(text)
 
     def on_sig_del_button(self, event):
+        # Get user selected signal and split to get IDs
         signal = self.total_list[self.cb.GetSelection()]
         if '.' in signal:
             device, port = signal.split('.')
@@ -567,6 +573,7 @@ class Gui(wx.Frame):
             device_id = self.names.query(device)
             port_id = None
 
+        # Delete monitor using the IDs above
         if self.canvas.run != 1:
             text = 'You should run the simulation first'
         elif device_id is not None:
@@ -585,20 +592,20 @@ class Gui(wx.Frame):
         self.canvas.render(text)
 
     def on_zoom_in_button(self, event):
+        text = 'Zoom in'
         self.canvas.zoom = self.canvas.zoom*2
         self.canvas.init = False
-        text = 'Zoom in'
         self.canvas.render(text)
 
     def on_zoom_out_button(self, event):
+        text = 'Zoom out'
         self.canvas.zoom = self.canvas.zoom*0.5
         self.canvas.init = False
-        text = 'Zoom out'
         self.canvas.render(text)
 
     def on_hero_button(self, event):
+        text = 'OUR HERO!!!'
         self.canvas.use_hero = 1
-        text = 'HAHAHA'
         self.canvas.render(text)
 
     def run_network(self, cycles):
