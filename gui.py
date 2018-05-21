@@ -59,6 +59,9 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.init = False
         self.context = wxcanvas.GLContext(self)
 
+        self.monitors = monitors
+        self.devices = devices
+
         # Initialise variables for panning
         self.pan_x = 0
         self.pan_y = 0
@@ -149,11 +152,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.render_text(text, 10/self.zoom, 10)
 
         if self.run == 1:
-            position = 0
-            for s in self.signals:
-                self.render_clk(self.cycles, position)
-                self.render_text(s, 10/self.zoom, 80+position*50)
-                position = position+1
+            self.render_signal()
 
         # We have been drawing to the back buffer, flush the graphics pipeline
         # and swap the back buffer to the front
@@ -268,6 +267,64 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             GL.glVertex2f(x_next/self.zoom, y)
         GL.glEnd()
 
+    def draw_horizontal_signal(self, start, cycle_count, step, level, pos):
+        # Two vertices having same y coord
+        x = start+cycle_count*step
+        x_next = start+(cycle_count+1)*step
+        y = 75+25*level+pos*50
+        GL.glVertex2f(x/self.zoom, y)
+        GL.glVertex2f(x_next/self.zoom, y)
+
+    def draw_vertical_signal(self, start, cycle_count, step, level1, level2, pos):
+        # Two vertices having same y coord
+        x = start+cycle_count*step
+        y1 = 75+25*level1+pos*50
+        y2 = 75+25*level2+pos*50
+        GL.glVertex2f(x/self.zoom, y1)
+        GL.glVertex2f(x/self.zoom, y2)
+
+    def render_signal(self):
+        """Display the signal trace(s) in the text console."""
+        # To confine name lengths, edit in the future
+        # margin = self.monitors.get_margin()
+        cycle_count = 0
+        pos = 0
+        GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue
+        GL.glBegin(GL.GL_LINE_STRIP)
+        start = 30
+        end = max(cycles*20*self.zoom, start)
+        if cycles != 0:
+            step = (end-start)/cycles
+        else:
+            step = 0
+
+        # Iterate over each device and render
+        for device_id, output_id in self.monitors.monitors_dictionary:
+            monitor_name = self.devices.get_signal_name(device_id, output_id)
+            name_length = len(monitor_name)
+            signal_list = self.monitors_dictionary[(device_id, output_id)]
+            # Display signal name
+            self.render_text(monitor_name, 10/self.zoom, 80+pos*50)
+            # Iterate over each signal and render
+            for signal in signal_list:
+                if signal == self.devices.HIGH:
+                    self.draw_horizontal_signal(start, cycle_count, step, 1, pos)
+                    cycle_count += 1
+                if signal == self.devices.LOW:
+                    self.draw_horizontal_signal(start, cycle_count, step, 0, pos)
+                    cycle_count += 1
+                if signal == self.devices.RISING:
+                    self.draw_vertical_signal(start, cycle_count, step, 0, 1, pos)
+                if signal == self.devices.FALLING:
+                    self.draw_vertical_signal(start, cycle_count, step, 1, 0, pos)
+                if signal == self.devices.BLANK:
+                    # ASK TOMORROW
+                    cycle_count += 1
+                if cycle_count > self.cycles:
+                    break
+            pos = pos+1
+        GL.glEnd()
+
     def texture_mapping(self):
         """draw function """
         self.SetCurrent(self.context)
@@ -326,6 +383,15 @@ class Gui(wx.Frame):
         """Initialise widgets and layout."""
         super().__init__(parent=None, title=title, size=(800, 600))
 
+        # Make objects local
+        self.devices = devices
+        self.network = network
+        self.monitors = monitors
+
+        # Get device terminals
+        monitored_list, unmonitored_list = self.monitors.get_signal_names()
+        total_list = monitored_list + unmonitored_list
+
         # Configure the file menu
         fileMenu = wx.Menu()
         menuBar = wx.MenuBar()
@@ -336,6 +402,7 @@ class Gui(wx.Frame):
 
         # Canvas for drawing signals
         self.canvas = MyGLCanvas(self, devices, monitors)
+        self.canvas.signals = monitored_list
 
         # Configure the widgets
         self.text = wx.StaticText(self, wx.ID_ANY, "Cycles")
@@ -353,10 +420,9 @@ class Gui(wx.Frame):
         minus = wx.Bitmap(image_2) 
 
         # Newly defined Widgets
-        self.sampleList = ['S1','S2']           # In the future use monitor.monitors_dictionary
         self.cont_button = wx.Button(self,wx.ID_ANY,"Add")
         self.del_button = wx.Button(self, wx.ID_ANY, "Delete")
-        self.cb = wx.ComboBox(self,wx.ID_ANY,size=(100,30),choices=self.sampleList,style=wx.CB_DROPDOWN)
+        self.cb = wx.ComboBox(self,wx.ID_ANY,size=(100,30),choices=self.total_list,style=wx.CB_DROPDOWN)
         self.text2 = wx.StaticText(self, wx.ID_ANY, "Signal")
         self.switch_button = wx.Button(self, wx.ID_ANY, "Switch")
         self.sig_add_button = wx.Button(self,wx.ID_ANY,"Add")
@@ -436,6 +502,7 @@ class Gui(wx.Frame):
         text = "Run button pressed."
         self.canvas.run = 1
         self.canvas.cycles = self.spin.GetValue()
+        self.network.run_network(self.spin.GetValue())
         self.canvas.render(text)
 
     def on_text_box(self, event):
@@ -448,6 +515,7 @@ class Gui(wx.Frame):
         text = "Add Cycles button pressed."
         self.canvas.run = 1
         self.canvas.cycles += self.spin.GetValue()
+        self.network.run_network(self.spin.GetValue())
         self.canvas.render(text)
 
     def on_del_button(self, event):
@@ -463,7 +531,7 @@ class Gui(wx.Frame):
         # Wait until parser finished
 
     def on_sig_add_button(self, event):
-        signal = self.sampleList[self.cb.GetSelection()]
+        signal = self.total_list[self.cb.GetSelection()]
         if self.canvas.run != 1:
             text = 'You should run the simulation first'
         elif signal not in self.canvas.signals:
@@ -474,7 +542,7 @@ class Gui(wx.Frame):
         self.canvas.render(text)
 
     def on_sig_del_button(self, event):
-        signal = self.sampleList[self.cb.GetSelection()]
+        signal = self.total_list[self.cb.GetSelection()]
         if self.canvas.run != 1:
             text = 'You should run the simulation first'
         elif signal in self.canvas.signals:
@@ -507,3 +575,12 @@ class Gui(wx.Frame):
         text = 'HAHAHA'
         self.canvas.render(text)
 
+    def run_network(self, cycles):
+        """Run the network for the specified number of simulation cycles."""
+        for _ in range(cycles):
+            if self.network.execute_network():
+                self.monitors.record_signals()
+            else:
+                print("Error! Network oscillating.")
+                return False
+        return True
