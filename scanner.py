@@ -93,7 +93,7 @@ class Scanner:
     def complete_current_line(self):
         current_cursor_position = self.input_file.tell()
         current_line = self.current_line
-        error_position = len(current_line) - 1
+        error_position = len(current_line)
         current_character = self.current_character
         while current_character not in('\n', ''):
             current_line += current_character

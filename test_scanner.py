@@ -19,7 +19,8 @@ while symbol_type != scanner.EOF:
     #print(scanner.current_character,'\n',scanner.current_line)
 
     [current_line, error_position] = scanner.complete_current_line()
-    print(current_line, '\n', '^'.rjust(error_position))
+    print(current_line,'\n','^'.rjust(error_position), sep='')
+    print(error_position, sep='')
     
     
     [symbol_type, symbol_id] = scanner.get_symbol()
@@ -32,3 +33,5 @@ while symbol_type != scanner.EOF:
 #     print(name)
 
 print(len(''))
+
+print('^'.rjust(1))
