@@ -90,7 +90,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.SetCurrent(self.context)
 
         # Get image from current folder
-        im = Image.open('hero.jpg')
+        im = Image.open('./graphics/hero.jpg')
         try:
             ix, iy, image = im.size[0], im.size[1], im.tobytes("raw", "RGBA", 0, -1)
         except SystemError:
@@ -345,10 +345,10 @@ class Gui(wx.Frame):
         #                            style=wx.TE_PROCESS_ENTER)
 
         # Preparing Bitmaps
-        image_1 = wx.Image("plus.png") 
+        image_1 = wx.Image("./graphics/plus.png") 
         image_1.Rescale(30, 30) 
         plus = wx.Bitmap(image_1)
-        image_2 = wx.Image("minus.png") 
+        image_2 = wx.Image("./graphics/minus.png") 
         image_2.Rescale(30, 30) 
         minus = wx.Bitmap(image_2) 
 
