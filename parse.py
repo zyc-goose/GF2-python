@@ -412,10 +412,11 @@ class Parser:
     def error_display(self, *args):
         """Display error messages on terminal."""
         self.error_count += 1  # increment error count
+        current_line, error_position = self.scanner.complete_current_line()
 
         print('In File: '+self.scanner.input_file.name+', line'\
-            +self.scanner.current_line_number)
-        print(self.scanner.current_line)
-        print(' '*(self.scanner.current_pos-1)+'^')
+            + str(self.scanner.line_number))
+        print(current_line)
+        print(' '*(error_position-1)+'^')
         print(self.errormsg[self.error_code])
         return True
