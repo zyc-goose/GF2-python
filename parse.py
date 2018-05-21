@@ -35,16 +35,25 @@ class Parser:
 
     def __init__(self, names, devices, network, monitors, scanner):
         """Initialise constants."""
+        self.names = names
+        self.devices = devices
+        self.network = network
+        self.monitors = monitors
+        self.scanner = scanner
+
         self.symbol_type, self.symbol_id = None, None
 
         [self.NO_ERROR,
+         self.BAD_CHARACTER,
+         self.BAD_COMMENT,
+         self.BAD_NUMBER,
          self.DEVICE_REDEFINED,
          self.DEVICE_TYPE_ABSENT,
          self.DEVICE_UNDEFINED,
          self.EMPTY_DEVICE_LIST,
          self.EMPTY_FILE,
          self.EMPTY_MONITOR_LIST,
-         self.EXPECT_DEVICE_NAME,
+         self.EMPTY_STATEMENT,
          self.EXPECT_DEVICE_TERMINAL_NAME,
          self.EXPECT_KEYWORD_IS_ARE,
          self.EXPECT_KEYWORD_TO,
@@ -55,8 +64,35 @@ class Parser:
          self.EXPECT_RIGHT_PAREN,
          self.INVALID_DEVICE_NAME,
          self.INVALID_DEVICE_TYPE,
-         self.KEYWORD_AS_DEVICE_NAME,
-         self.UNKNOWN_FUNCTION_NAME] = names.unique_error_codes(20)
+         self.INVALID_FUNCTION_NAME,
+         self.KEYWORD_AS_DEVICE_NAME] = names.unique_error_codes(23)
+
+        self.errormsg = {
+            self.NO_ERROR                      : "NO_ERROR",
+            self.BAD_CHARACTER                 : "BAD_CHARACTER",
+            self.BAD_COMMENT                   : "BAD_COMMENT",
+            self.BAD_NUMBER                    : "BAD_NUMBER",
+            self.DEVICE_REDEFINED              : "DEVICE_REDEFINED",
+            self.DEVICE_TYPE_ABSENT            : "DEVICE_TYPE_ABSENT",
+            self.DEVICE_UNDEFINED              : "DEVICE_UNDEFINED",
+            self.EMPTY_DEVICE_LIST             : "EMPTY_DEVICE_LIST",
+            self.EMPTY_FILE                    : "EMPTY_FILE",
+            self.EMPTY_MONITOR_LIST            : "EMPTY_MONITOR_LIST",
+            self.EMPTY_STATEMENT               : "EMPTY_STATEMENT",
+            self.EXPECT_DEVICE_TERMINAL_NAME   : "EXPECT_DEVICE_TERMINAL_NAME",
+            self.EXPECT_KEYWORD_IS_ARE         : "EXPECT_KEYWORD_IS_ARE",
+            self.EXPECT_KEYWORD_TO             : "EXPECT_KEYWORD_TO",
+            self.EXPECT_LEFT_PAREN             : "EXPECT_LEFT_PAREN",
+            self.EXPECT_NO_QUALIFIER           : "EXPECT_NO_QUALIFIER",
+            self.EXPECT_PORT_NAME              : "EXPECT_PORT_NAME",
+            self.EXPECT_QUALIFIER              : "EXPECT_QUALIFIER",
+            self.EXPECT_RIGHT_PAREN            : "EXPECT_RIGHT_PAREN",
+            self.INVALID_DEVICE_NAME           : "INVALID_DEVICE_NAME",
+            self.INVALID_DEVICE_TYPE           : "INVALID_DEVICE_TYPE",
+            self.INVALID_FUNCTION_NAME         : "INVALID_FUNCTION_NAME",
+            self.KEYWORD_AS_DEVICE_NAME        : "KEYWORD_AS_DEVICE_NAME"
+        }
+
 
         self.error_code = self.NO_ERROR
         self.error_count = 0
@@ -71,33 +107,30 @@ class Parser:
             'NOR'    : devices.NOR
         }
         self.device_no_qualifier = {
-            'DTYPE'  : devices.DTYPE,
+            'DTYPE'  : devices.D_TYPE,
             'XOR'    : devices.XOR
         }
 
     def move_to_next_symbol(self):
         """Get next symbol from scanner."""
-        self.symbol_type, self.symbol_id = scanner.get_symbol()
+        self.symbol_type, self.symbol_id = self.scanner.get_symbol()
 
     def parse_network(self):
         """Parse the circuit definition file."""
         # For now just return True, so that userint and gui can run in the
         # skeleton code. When complete, should return False when there are
         # errors in the circuit definition file.
-        return True
-        ##################################################
-        ##                HAHAHAHAHAHAHA                ##
-        ##################################################
         assert self.symbol_type is None and self.symbol_id is None, \
             "parse_network() should only be called once"
         self.move_to_next_symbol()  # initialise first symbol
         if self.is_EOF():
             self.error_code = self.EMPTY_FILE
+            self.error_display()
             return False
         while not self.is_EOF():
             if not self.statement():
                 # First check syntax error from scanner
-                if self.symbol_type == scanner.SYNTAX_ERROR:
+                if self.symbol_type == self.scanner.SYNTAX_ERROR:
                     if self.is_target_name('Unrecogonized character'):
                         self.error_code = self.BAD_CHARACTER
                     elif self.is_target_name('Number starting with 0'):
@@ -115,35 +148,35 @@ class Parser:
 
     def is_left_paren(self):
         """Check whether current symbol is '('."""
-        return self.symbol_type == scanner.PUNCTUATION and \
-            names.get_name_string(self.symbol_id) == '('
+        return self.symbol_type == self.scanner.PUNCTUATION and \
+            self.names.get_name_string(self.symbol_id) == '('
 
     def is_right_paren(self):
         """Check whether current symbol is ')'."""
-        return self.symbol_type == scanner.PUNCTUATION and \
-            names.get_name_string(self.symbol_id) == ')'
+        return self.symbol_type == self.scanner.PUNCTUATION and \
+            self.names.get_name_string(self.symbol_id) == ')'
 
     def is_dot(self):
         """Check whether current symbol is ')'."""
-        return self.symbol_type == scanner.PUNCTUATION and \
-            names.get_name_string(self.symbol_id) == '.'
+        return self.symbol_type == self.scanner.PUNCTUATION and \
+            self.names.get_name_string(self.symbol_id) == '.'
 
     def is_keyword(self):
         """Check whether current symbol is a keyword."""
-        return self.symbol_type == scanner.KEYWORD
+        return self.symbol_type == self.scanner.KEYWORD
 
     def is_name(self):
         """Check whether current symbol is a name."""
         """i.e. any valid name excluding keywords"""
-        return self.symbol_type == scanner.NAME
+        return self.symbol_type == self.scanner.NAME
 
     def is_number(self):
         """Check whether current symbol is a number."""
-        return self.symbol_type == scanner.NUMBER
+        return self.symbol_type == self.scanner.NUMBER
 
     def is_EOF(self):
         """Check whether current symbol is EOF."""
-        return self.symbol_type == scanner.EOF
+        return self.symbol_type == self.scanner.EOF
 
     def is_target_name(self, target_name):
         """Check if the name string corresponding to self.symbol_id
@@ -170,9 +203,11 @@ class Parser:
         # Check inside the statement
         if not (self.device() or self.connect() or self.monitor()):
             if self.error_code == self.NO_ERROR:
-                self.error_code = self.INVALID_FUNCTION_NAME
+                if self.is_right_paren():
+                    self.error_code = self.EMPTY_STATEMENT
+                else:
+                    self.error_code = self.INVALID_FUNCTION_NAME
             return False
-        self.move_to_next_symbol()
 
         # Check the last parenthesis
         if not self.is_right_paren():
@@ -211,7 +246,6 @@ class Parser:
         device_kind, qualifier = self.get_device_type()
         if device_kind is None: # error occured
             return False
-
         return True
 
     def get_first_device_id(self):
@@ -224,7 +258,7 @@ class Parser:
                     self.error_code = self.EMPTY_DEVICE_LIST
                 else:
                     self.error_code = self.KEYWORD_AS_DEVICE_NAME
-            elif self.is_right_paren():
+            elif self.is_right_paren() or self.is_EOF():
                 self.error_code = self.EMPTY_DEVICE_LIST
             else:
                 self.error_code = self.INVALID_DEVICE_NAME
@@ -256,7 +290,10 @@ class Parser:
     def check_keyword_is_are(self):
         """Check whether current symbol is keyword 'is' or 'are'."""
         if not self.is_keyword():
-            self.error_code = self.INVALID_DEVICE_NAME
+            if self.is_left_paren() or self.is_right_paren():
+                self.error_code = self.EXPECT_KEYWORD_IS_ARE
+            else:
+                self.error_code = self.INVALID_DEVICE_NAME
             return False
         if self.get_name_string() not in ('is', 'are'):
             if self.get_name_string() in self.device_with_qualifier:
@@ -374,4 +411,5 @@ class Parser:
 
     def error_display(self):
         """Display error messages on terminal."""
+        print(self.errormsg[self.error_code])
         return True

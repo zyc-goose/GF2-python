@@ -103,7 +103,7 @@ class Scanner:
 
     def skip_comment(self):
         self.current_character = self.advance()
-        print ('wraifussgisgdf', self.current_character)
+        # print ('wraifussgisgdf', self.current_character)
         if self.current_character not in ('/', '*'):
             return 3
         elif self.current_character == '/':
