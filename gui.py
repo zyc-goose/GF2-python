@@ -72,7 +72,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.current_y = 0
         self.run = 0
         self.cycles = 0
-        self.signals = ['S1']
         self.texture = None
         self.use_hero = 0
 
@@ -247,7 +246,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 GLUT.glutBitmapCharacter(font, ord(character))
 
     def render_clk(self, cycles, pos):
-        # Draw a sample signal trace
+        # Delete when completed
         GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue
         GL.glBegin(GL.GL_LINE_STRIP)
         start = 30
@@ -303,9 +302,11 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             monitor_name = self.devices.get_signal_name(device_id, output_id)
             name_length = len(monitor_name)
             signal_list = self.monitors_dictionary[(device_id, output_id)]
+
             # Display signal name
             self.render_text(monitor_name, 10/self.zoom, 80+pos*50)
-            # Iterate over each signal and render
+
+            # Iterate over each cycle and render
             for signal in signal_list:
                 if signal == self.devices.HIGH:
                     self.draw_horizontal_signal(start, cycle_count, step, 1, pos)
@@ -387,6 +388,7 @@ class Gui(wx.Frame):
         self.devices = devices
         self.network = network
         self.monitors = monitors
+        self.names = names
 
         # Get device terminals
         monitored_list, unmonitored_list = self.monitors.get_signal_names()
@@ -421,7 +423,7 @@ class Gui(wx.Frame):
 
         # Newly defined Widgets
         self.cont_button = wx.Button(self,wx.ID_ANY,"Add")
-        self.del_button = wx.Button(self, wx.ID_ANY, "Delete")
+        # self.del_button = wx.Button(self, wx.ID_ANY, "Delete")
         self.cb = wx.ComboBox(self,wx.ID_ANY,size=(100,30),choices=self.total_list,style=wx.CB_DROPDOWN)
         self.text2 = wx.StaticText(self, wx.ID_ANY, "Signal")
         self.switch_button = wx.Button(self, wx.ID_ANY, "Switch")
@@ -436,9 +438,9 @@ class Gui(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_menu)
         self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
         self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
-        #self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
+        # self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
         self.cont_button.Bind(wx.EVT_BUTTON, self.on_cont_button)
-        self.del_button.Bind(wx.EVT_BUTTON, self.on_del_button)
+        # self.del_button.Bind(wx.EVT_BUTTON, self.on_del_button)
         self.switch_button.Bind(wx.EVT_BUTTON, self.on_switch_button)
         self.sig_add_button.Bind(wx.EVT_BUTTON, self.on_sig_add_button)
         self.sig_del_button.Bind(wx.EVT_BUTTON, self.on_sig_del_button)
@@ -465,7 +467,7 @@ class Gui(wx.Frame):
         side_sizer.Add(self.run_button, 1, wx.ALL, 5)
         side_sizer.Add(double_butt, 1, wx.ALL, 0)
         double_butt.Add(self.cont_button, 1, wx.ALL, 5)
-        double_butt.Add(self.del_button, 1, wx.ALL, 5)
+        # double_butt.Add(self.del_button, 1, wx.ALL, 5)
         side_sizer.Add(self.text2, 1, wx.TOP, 10)
         side_sizer.Add(self.cb, 1, wx.ALL, 5)
         side_sizer.Add(self.switch_button, 1, wx.ALL, 5)
@@ -518,13 +520,13 @@ class Gui(wx.Frame):
         self.network.run_network(self.spin.GetValue())
         self.canvas.render(text)
 
-    def on_del_button(self, event):
-        text = "Delete Cycles button pressed."
-        self.canvas.run = 1
-        self.canvas.cycles -= self.spin.GetValue()
-        if self.canvas.cycles<0:
-            self.canvas.cycles=0
-        self.canvas.render(text)
+    # def on_del_button(self, event):
+    #     text = "Delete Cycles button pressed."
+    #     self.canvas.run = 1
+    #     self.canvas.cycles -= self.spin.GetValue()
+    #     if self.canvas.cycles<0:
+    #         self.canvas.cycles=0
+    #     self.canvas.render(text)
 
     def on_switch_button(self, event):
         text = "Toggle button pressed."
@@ -532,22 +534,46 @@ class Gui(wx.Frame):
 
     def on_sig_add_button(self, event):
         signal = self.total_list[self.cb.GetSelection()]
+        if '.' in signal:
+            device, port = signal.split('.')
+            device_id = self.names.query(device)
+            port_id = self.names.query(port)
+        else:
+            device = signal
+            device_id = self.names.query(device)
+            port_id = None
+
         if self.canvas.run != 1:
             text = 'You should run the simulation first'
-        elif signal not in self.canvas.signals:
-            self.canvas.signals.append(signal)
-            text = "Add Signal: " + signal
+        elif device_id is not None:
+            monitor_error = self.monitors.make_monitor(device_id, port_id,
+                                                       self.canvas.cycles)
+            if monitor_error == self.monitors.NO_ERROR:
+                text = "Successfully made monitor."
+            else:
+                text = "Error! Could not make monitor."
         else:
             text = "Button no effect!"
         self.canvas.render(text)
 
     def on_sig_del_button(self, event):
         signal = self.total_list[self.cb.GetSelection()]
+        if '.' in signal:
+            device, port = signal.split('.')
+            device_id = self.names.query(device)
+            port_id = self.names.query(port)
+        else:
+            device = signal
+            device_id = self.names.query(device)
+            port_id = None
+
         if self.canvas.run != 1:
             text = 'You should run the simulation first'
-        elif signal in self.canvas.signals:
-            self.canvas.signals.remove(signal)
-            text = "Delete Signal: " + signal
+        elif device_id is not None:
+            if self.monitors.remove_monitor(device_id, port_id):
+                text = "Successfully zapped monitor"
+            else:
+                text = "Error! Could not zap monitor."
         else:
             text = "Button no effect!"
         self.canvas.render(text)
