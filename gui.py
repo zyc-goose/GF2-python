@@ -96,7 +96,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         try:
             ix, iy, image = im.size[0], im.size[1], im.tobytes("raw", "RGBX", 0, -1)
         except SystemError:
-            ix, iy, image = im.size[0], im.size[1], im.tobytes("raw", "RGBX", 0, -1)
+            ix, iy, image = im.size[0], im.size[1], im.tobytes("raw", "RGBA", 0, -1)
 
         # generate a texture id, make it current
         self.texture = GL.glGenTextures(1)
@@ -562,7 +562,10 @@ class Gui(wx.Frame):
 
     def switch_signal(self, switch_state):
         text = ""
-        device = self.total_list[self.cb_switch.GetSelection()]
+        if self.cb_switch.GetSelection() != wx.NOT_FOUND:
+            device = self.switches[self.cb_switch.GetSelection()]
+        else:
+            device = None
         if device is not None:
             switch_id = self.names.query(device)
             if self.devices.set_switch(switch_id, switch_state):
@@ -574,16 +577,25 @@ class Gui(wx.Frame):
         self.canvas.render(text)
 
     def on_set_button(self, event):
-        """Set the specified switch to the specified signal level."""
-        self.switch_signal(1)
+        """Set the specified switch"""
+        if self.canvas.run != 1:
+            text = 'You should run the simulation first'
+        else:
+            self.switch_signal(1)
 
     def on_clr_button(self, event):
-        """Set the specified switch to the specified signal level."""
-        self.switch_signal(0)
+        """Clear the specified switch"""
+        if self.canvas.run != 1:
+            text = 'You should run the simulation first'
+        else:
+            self.switch_signal(0)
 
     def get_monitor_ids(self):
-        signal = self.total_list[self.cb_monitor.GetSelection()]
-        if '.' in signal:
+        if self.cb_monitor.GetSelection() != wx.NOT_FOUND:
+            signal = self.total_list[self.cb_monitor.GetSelection()]
+        else:
+            signal = None
+        if signal is not None and '.' in signal:
             device, port = signal.split('.')
             device_id = self.names.query(device)
             port_id = self.names.query(port)
@@ -648,5 +660,14 @@ class Gui(wx.Frame):
 
     def on_hero_button(self, event):
         text = 'OUR HERO!!!'
-        self.canvas.use_hero = 1
-        self.canvas.render(text)
+        if self.canvas.use_hero == 1:
+            self.canvas.use_hero = 0
+        else:
+            message = "Do You Want To See Our Leader?"
+            dlg = wx.MessageDialog(self, message, caption="PLEASE ANSWER!!!",
+                  style=wx.YES_NO|wx.CENTER)
+            result = dlg.ShowModal()
+            if result == wx.ID_YES:
+                self.canvas.use_hero = 1
+                self.canvas.render(text)
+            dlg.Destroy()
