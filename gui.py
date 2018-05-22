@@ -288,7 +288,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         pos = 0  # signal position, shifted upward for each signal
         start = 30
         end = max(self.cycles*20*self.zoom, start)
-        if cycles != 0:
+        if self.cycles != 0:
             step = (end-start)/self.cycles
         else:
             step = 0
@@ -316,7 +316,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 if signal == self.devices.BLANK:
                     # ASK TOMORROW
                     cycle_count += 1
-                #if cycle_count > self.cycles:
+                # if cycle_count > self.cycles:
                 #    break
             pos = pos+1
         GL.glEnd()
@@ -387,7 +387,10 @@ class Gui(wx.Frame):
 
         # Get device terminals
         monitored_list, unmonitored_list = self.monitors.get_signal_names()
-        total_list = monitored_list + unmonitored_list
+        self.total_list = monitored_list + unmonitored_list
+
+        # Get switch list
+        self.switches = self.devices.find_devices(self.devices.SWITCH)
 
         # Configure the file menu
         fileMenu = wx.Menu()
@@ -401,13 +404,6 @@ class Gui(wx.Frame):
         self.canvas = MyGLCanvas(self, devices, monitors)
         self.canvas.signals = monitored_list
 
-        # Configure the widgets
-        self.text = wx.StaticText(self, wx.ID_ANY, "Cycles")
-        self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")
-        self.run_button = wx.Button(self, wx.ID_ANY, "Run")
-        # self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
-        #                            style=wx.TE_PROCESS_ENTER)
-
         # Preparing Bitmaps for zoom buttons
         image_1 = wx.Image("./graphics/plus.png") 
         image_1.Rescale(30, 30) 
@@ -416,33 +412,54 @@ class Gui(wx.Frame):
         image_2.Rescale(30, 30) 
         minus = wx.Bitmap(image_2) 
 
-        # Newly defined Widgets
+        # Basic cycle control widgets
+        self.text = wx.StaticText(self, wx.ID_ANY, "Cycles")
+        self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")
+        self.run_button = wx.Button(self, wx.ID_ANY, "Run")
         self.cont_button = wx.Button(self,wx.ID_ANY,"Add")
-        # self.del_button = wx.Button(self, wx.ID_ANY, "Delete")
-        self.cb = wx.ComboBox(self,wx.ID_ANY,size=(100,30),choices=self.total_list,style=wx.CB_DROPDOWN)
-        self.text2 = wx.StaticText(self, wx.ID_ANY, "Signal")
-        self.switch_button = wx.Button(self, wx.ID_ANY, "Switch")
+        self.del_button = wx.Button(self, wx.ID_ANY, "Delete")
+
+        # Monitor add/delete widgets
+        self.cb_monitor = wx.ComboBox(self,wx.ID_ANY,size=(100,30),choices=self.total_list)
+        self.text2 = wx.StaticText(self, wx.ID_ANY, "Monitors")
         self.sig_add_button = wx.Button(self,wx.ID_ANY,"Add")
         self.sig_del_button = wx.Button(self, wx.ID_ANY, "Delete")
-        self.clear_button = wx.Button(self, wx.ID_ANY, "Clear")
+
+        # Switch toggle widgets
+        self.text3 = wx.StaticText(self, wx.ID_ANY, "Switches")
+        self.cb_switch = wx.ComboBox(self,wx.ID_ANY,size=(100,30),choices=self.switches)
+        self.set_button = wx.Button(self, wx.ID_ANY, "1")
+        self.clr_button = wx.Button(self, wx.ID_ANY, "0")
+
+        # Zoom in/out functions
+        self.text4 = wx.StaticText(self, wx.ID_ANY, "Zoom in/out")
         self.zoom_in_button = wx.BitmapButton(self, wx.ID_ANY, plus, size=(40,40))
         self.zoom_out_button = wx.BitmapButton(self, wx.ID_ANY, minus, size=(40,40))
+        # self.clear_button = wx.Button(self, wx.ID_ANY, "Clear")
+
+        # Display texture mapping
         self.hero_button = wx.Button(self, wx.ID_ANY, "HERO")
+        # self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
+        #                            style=wx.TE_PROCESS_ENTER)
 
         # Bind events to widgets
         self.Bind(wx.EVT_MENU, self.on_menu)
         self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
         self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
-        # self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
         self.cont_button.Bind(wx.EVT_BUTTON, self.on_cont_button)
         # self.del_button.Bind(wx.EVT_BUTTON, self.on_del_button)
-        self.switch_button.Bind(wx.EVT_BUTTON, self.on_switch_button)
+
+        self.set_button.Bind(wx.EVT_BUTTON, self.on_set_button)
+        self.clr_button.Bind(wx.EVT_BUTTON, self.on_clr_button)
+
         self.sig_add_button.Bind(wx.EVT_BUTTON, self.on_sig_add_button)
         self.sig_del_button.Bind(wx.EVT_BUTTON, self.on_sig_del_button)
-        self.clear_button.Bind(wx.EVT_BUTTON, self.on_clear_button)
+
         self.zoom_in_button.Bind(wx.EVT_BUTTON, self.on_zoom_in_button)
         self.zoom_out_button.Bind(wx.EVT_BUTTON, self.on_zoom_out_button)
+        # self.clear_button.Bind(wx.EVT_BUTTON, self.on_clear_button)
         self.hero_button.Bind(wx.EVT_BUTTON, self.on_hero_button)
+        # self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
 
         # Configure sizers for layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -451,6 +468,7 @@ class Gui(wx.Frame):
         double_butt = wx.BoxSizer(wx.HORIZONTAL)
         double_butt_2 = wx.BoxSizer(wx.HORIZONTAL)
         double_butt_3 = wx.BoxSizer(wx.HORIZONTAL)
+        double_butt_4 = wx.BoxSizer(wx.HORIZONTAL)
 
 
         main_sizer.Add(main_sizer_second, 5, wx.EXPAND | wx.RIGHT | wx.TOP | wx.LEFT, 5)
@@ -462,19 +480,28 @@ class Gui(wx.Frame):
         side_sizer.Add(self.run_button, 1, wx.ALL, 5)
         side_sizer.Add(double_butt, 1, wx.ALL, 0)
         double_butt.Add(self.cont_button, 1, wx.ALL, 5)
-        # double_butt.Add(self.del_button, 1, wx.ALL, 5)
+        double_butt.Add(self.del_button, 1, wx.ALL, 5)  # Currently not using
+
         side_sizer.Add(self.text2, 1, wx.TOP, 10)
-        side_sizer.Add(self.cb, 1, wx.ALL, 5)
-        side_sizer.Add(self.switch_button, 1, wx.ALL, 5)
+        side_sizer.Add(self.cb_monitor, 1, wx.ALL, 5)
         side_sizer.Add(double_butt_2, 1, wx.ALL, 0)
         double_butt_2.Add(self.sig_add_button, 1, wx.ALL, 5)
         double_butt_2.Add(self.sig_del_button, 1, wx.ALL, 5)
-        side_sizer.Add(self.clear_button, 1, wx.ALL, 5)
-        side_sizer.Add(double_butt_3, 0.5, wx.ALL, 0)
-        double_butt_3.Add(self.zoom_in_button, 1, wx.ALL, 5)
-        double_butt_3.Add(self.zoom_out_button, 1, wx.ALL, 5)
+
+        side_sizer.Add(self.text3, 1, wx.TOP, 10)
+        side_sizer.Add(self.cb_switch, 1, wx.ALL, 5)
+        side_sizer.Add(double_butt_3, 1, wx.ALL, 0)
+        double_butt_3.Add(self.set_button, 1, wx.ALL, 5)
+        double_butt_3.Add(self.clr_button, 1, wx.ALL, 5)
+
+        side_sizer.Add(self.text4, 1, wx.TOP, 10)
+        side_sizer.Add(double_butt_4, 0.5, wx.ALL, 0)
+        double_butt_4.Add(self.zoom_in_button, 1, wx.ALL, 5)
+        double_butt_4.Add(self.zoom_out_button, 1, wx.ALL, 5)
         side_sizer.Add(self.hero_button, 1 , wx.ALL, 5)
         # side_sizer.Add(self.text_box, 1, wx.TOP, 10)
+
+        # side_sizer.Add(self.clear_button, 1, wx.ALL, 5)
 
         self.SetSizeHints(600, 600)
         self.SetSizer(main_sizer)
@@ -494,12 +521,22 @@ class Gui(wx.Frame):
         text = "".join(["New spin control value: ", str(spin_value)])
         self.canvas.render(text)
 
+    def run_network(self, cycles):
+        """Run the network for the specified number of simulation cycles."""
+        for _ in range(cycles):
+            if self.network.execute_network():
+                self.monitors.record_signals()
+            else:
+                print("Error! Network oscillating.")
+                return False
+        return True
+
     def on_run_button(self, event):
         """Handle the event when the user clicks the run button."""
         text = "Run button pressed."
         self.canvas.run = 1
         self.canvas.cycles = self.spin.GetValue()
-        self.network.run_network(self.spin.GetValue())
+        self.run_network(self.canvas.cycles)
         self.canvas.render(text)
 
     def on_text_box(self, event):
@@ -512,7 +549,7 @@ class Gui(wx.Frame):
         text = "Add Cycles button pressed."
         self.canvas.run = 1
         self.canvas.cycles += self.spin.GetValue()
-        self.network.run_network(self.spin.GetValue())
+        self.run_network(self.spin.GetValue())
         self.canvas.render(text)
 
     # def on_del_button(self, event):
@@ -523,13 +560,29 @@ class Gui(wx.Frame):
     #         self.canvas.cycles=0
     #     self.canvas.render(text)
 
-    def on_switch_button(self, event):
-        text = "Toggle button pressed."
-        # Wait until parser finished
+    def switch_signal(self, switch_state):
+        text = ""
+        device = self.total_list[self.cb_switch.GetSelection()]
+        if device is not None:
+            switch_id = self.names.query(device)
+            if self.devices.set_switch(switch_id, switch_state):
+                text = "Successfully set switch."
+            else:
+                text = "Error! Invalid switch."
+        else:
+            text = "Button no effect!"
+        self.canvas.render(text)
 
-    def on_sig_add_button(self, event):
-        # Get user selected signal and split to get IDs
-        signal = self.total_list[self.cb.GetSelection()]
+    def on_set_button(self, event):
+        """Set the specified switch to the specified signal level."""
+        self.switch_signal(1)
+
+    def on_clr_button(self, event):
+        """Set the specified switch to the specified signal level."""
+        self.switch_signal(0)
+
+    def get_monitor_ids(self):
+        signal = self.total_list[self.cb_monitor.GetSelection()]
         if '.' in signal:
             device, port = signal.split('.')
             device_id = self.names.query(device)
@@ -538,6 +591,11 @@ class Gui(wx.Frame):
             device = signal
             device_id = self.names.query(device)
             port_id = None
+        return device_id, port_id
+
+    def on_sig_add_button(self, event):
+        # Get user selected signal and split to get IDs
+        device_id, port_id = self.get_monitor_ids()
 
         # Add monitor using the IDs above
         if self.canvas.run != 1:
@@ -555,15 +613,7 @@ class Gui(wx.Frame):
 
     def on_sig_del_button(self, event):
         # Get user selected signal and split to get IDs
-        signal = self.total_list[self.cb.GetSelection()]
-        if '.' in signal:
-            device, port = signal.split('.')
-            device_id = self.names.query(device)
-            port_id = self.names.query(port)
-        else:
-            device = signal
-            device_id = self.names.query(device)
-            port_id = None
+        device_id, port_id = self.get_monitor_ids()
 
         # Delete monitor using the IDs above
         if self.canvas.run != 1:
@@ -577,11 +627,12 @@ class Gui(wx.Frame):
             text = "Button no effect!"
         self.canvas.render(text)
 
-    def on_clear_button(self, event):
-        text = 'Clear the Canvas'
-        self.canvas.signals = []
-        self.canvas.cycles = self.spin.GetValue()
-        self.canvas.render(text)
+    # Should be added together with delete cycle function
+    # def on_clear_button(self, event):
+    #     text = 'Clear the Canvas'
+    #     self.canvas.signals = []
+    #     self.canvas.cycles = self.spin.GetValue()
+    #     self.canvas.render(text)
 
     def on_zoom_in_button(self, event):
         text = 'Zoom in'
@@ -599,13 +650,3 @@ class Gui(wx.Frame):
         text = 'OUR HERO!!!'
         self.canvas.use_hero = 1
         self.canvas.render(text)
-
-    def run_network(self, cycles):
-        """Run the network for the specified number of simulation cycles."""
-        for _ in range(cycles):
-            if self.network.execute_network():
-                self.monitors.record_signals()
-            else:
-                print("Error! Network oscillating.")
-                return False
-        return True
