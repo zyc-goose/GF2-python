@@ -73,22 +73,25 @@ class Scanner:
         'Unterminated comment']
         dummy = names.lookup(self.error_list)
 
+        self.line_number = 0
         self.current_line = ''
         self.current_character = ''
-        self.current_character = self.advance()
+        self.advance()
 
     def advance(self):
         if self.current_character not in ('\n', ''):
             self.current_line += self.current_character
         else:
             self.current_line = ''
-        return self.input_file.read(1)
+            self.line_number += 1
+
+        self.current_character = self.input_file.read(1)
 
 
     def skip_spaces(self):
         '''move to the next non-whitespace character'''
         while self.current_character.isspace():
-            self.current_character = self.advance()
+            self.advance()
 
     def complete_current_line(self):
         current_cursor_position = self.input_file.tell()
@@ -106,14 +109,14 @@ class Scanner:
         name = ''
         while self.current_character.isalnum() and self.current_character != '':
             name = name + self.current_character
-            self.current_character = self.advance()
+            self.advance()
         return name
 
     def get_number(self):
         number = ''
         while self.current_character.isdigit() and self.current_character != '':
             number = number + self.current_character
-            self.current_character = self.advance()
+            self.advance()
 
         if number[0] == '0' and len(number) != 1:
             return -1
@@ -121,22 +124,22 @@ class Scanner:
             return int(number)
 
     def skip_comment(self):
-        self.current_character = self.advance()
+        self.advance()
         if self.current_character not in ('/', '*'):
             return 3
         elif self.current_character == '/':
             while self.current_character not in ('\n', ''):
-                self.current_character = self.advance()
+                self.advance()
             return 1
         elif self.current_character == '*':
-            self.current_character = self.advance()
-            next_character = self.advance()
-            while not (self.current_character == '*' and next_character == '/'):
-                self.current_character = next_character
-                next_character = self.advance()
-                if next_character == '':
+            previous_character = self.current_character
+            self.advance()
+            while not (previous_character == '*' and self.current_character == '/'):
+                previous_character = self.current_character
+                self.advance()
+                if self.current_character == '':
                     return 2
-            self.current_character = self.advance()
+            self.advance()
             return 1
 
     def move_to_next_valid_statement(self):
@@ -168,7 +171,7 @@ class Scanner:
         elif self.current_character in ('(', ')', '.'):
             symbol_type = self.PUNCTUATION
             symbol_id = self.names.query(self.current_character)
-            self.current_character = self.advance()
+            self.advance()
         elif self.current_character == '':
             symbol_type = self.EOF
             symbol_id = 3154
@@ -185,7 +188,7 @@ class Scanner:
         else: # not a valid character
             symbol_type = self.SYNTAX_ERROR
             symbol_id = self.names.query('Unrecogonized character')
-            self.current_character = self.advance()
+            self.advance()
 
         #print(self.current_character)
         #print(self.current_line)

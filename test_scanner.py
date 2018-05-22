@@ -14,13 +14,13 @@ while symbol_type != scanner.EOF:
         content = names.get_name_string(symbol_id)
     else:
         content = symbol_id
-    #print(symbol_type, symbol_id, content)
+    print(symbol_type, symbol_id, content)
 
     #print(scanner.current_character,'\n',scanner.current_line)
 
-    [current_line, error_position] = scanner.complete_current_line()
-    print(current_line,'\n','^'.rjust(error_position), sep='')
-    print(error_position, sep='')
+    #[current_line, error_position] = scanner.complete_current_line()
+    #print(current_line,'\n','^'.rjust(error_position), sep='')
+    
     
     
     [symbol_type, symbol_id] = scanner.get_symbol()
@@ -32,6 +32,3 @@ while symbol_type != scanner.EOF:
 # for name in names.name_list:
 #     print(name)
 
-print(len(''))
-
-print('^'.rjust(1))

@@ -1,4 +1,11 @@
-(#   DEVICE AA is AND 0003)
+(#   DEVICE AA is AND 0003)   /*
+
+
+
+
 (   DEVICE AA is AND 0003)
-(   DEVICE AA is AND 0003)
-(   DEVICE AA is AND 0003)
+
+*/
+
+(   DEVICE bb is AND 3)	//this is a comment
+(   DEVICE cc are AND 4)
