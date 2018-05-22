@@ -562,7 +562,10 @@ class Gui(wx.Frame):
 
     def switch_signal(self, switch_state):
         text = ""
-        device = self.total_list[self.cb_switch.GetSelection()]
+        if self.cb_switch.GetSelection() != wx.NOT_FOUND:
+            device = self.switches[self.cb_switch.GetSelection()]
+        else:
+            device = None
         if device is not None:
             switch_id = self.names.query(device)
             if self.devices.set_switch(switch_id, switch_state):
@@ -574,16 +577,25 @@ class Gui(wx.Frame):
         self.canvas.render(text)
 
     def on_set_button(self, event):
-        """Set the specified switch to the specified signal level."""
-        self.switch_signal(1)
+        """Set the specified switch"""
+        if self.canvas.run != 1:
+            text = 'You should run the simulation first'
+        else:
+            self.switch_signal(1)
 
     def on_clr_button(self, event):
-        """Set the specified switch to the specified signal level."""
-        self.switch_signal(0)
+        """Clear the specified switch"""
+        if self.canvas.run != 1:
+            text = 'You should run the simulation first'
+        else:
+            self.switch_signal(0)
 
     def get_monitor_ids(self):
-        signal = self.total_list[self.cb_monitor.GetSelection()]
-        if '.' in signal:
+        if self.cb_monitor.GetSelection() != wx.NOT_FOUND:
+            signal = self.total_list[self.cb_monitor.GetSelection()]
+        else:
+            signal = None
+        if signal is not None and '.' in signal:
             device, port = signal.split('.')
             device_id = self.names.query(device)
             port_id = self.names.query(port)
