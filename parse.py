@@ -111,7 +111,9 @@ class Parser:
 
         self.error_code = self.NO_ERROR
         self.error_count = 0
-        self.error_code_list = [] # store the error code history, for test purpose
+        self.error_code_list = [] # store the error code history, for test
+        self.error_pos_overwrite = False # for special cases
+        self.last_error_pos = None
 
         self.device_with_qualifier = {
             'CLOCK'  : devices.CLOCK,
@@ -128,6 +130,7 @@ class Parser:
 
     def move_to_next_symbol(self):
         """Get next symbol from scanner."""
+        cur_line, self.last_error_pos = self.scanner.complete_current_line()
         self.symbol_type, self.symbol_id = self.scanner.get_symbol()
 
     def parse_network(self):
@@ -401,6 +404,7 @@ class Parser:
             if monitor_mode and \
                (device_id, port_id) in self.monitors.monitors_dictionary:
                 self.error_code = self.MONITOR_PRESENT
+                self.error_pos_overwrite = True
                 return None, None
         return device_id, port_id
 
@@ -474,6 +478,9 @@ class Parser:
         self.error_count += 1  # increment error count
         self.error_code_list.append(self.error_code)
         current_line, error_position = self.scanner.complete_current_line()
+        if self.error_pos_overwrite:
+            error_position = self.last_error_pos
+            self.error_pos_overwrite = False
         indent = ' '*2
         print('In File "'+self.scanner.input_file.name+'", line '\
             + str(self.scanner.line_number))
