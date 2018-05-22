@@ -61,6 +61,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         self.monitors = monitors
         self.devices = devices
+        self.parent = parent
 
         # Initialise variables for panning
         self.pan_x = 0
@@ -74,6 +75,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.cycles = 0  # number of cycles for display
         self.texture = None  # texture ID
         self.use_hero = 0  # whether to use texture or not
+        self.signal_width = 0  # Total signal length on canvas
 
         # Initialise variables for zooming
         self.zoom = 1
@@ -229,6 +231,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                             str(self.zoom)])
         if text:
             self.render(text)
+            # Here called the parent, but better to do it in other ways
+            self.parent.update_scroll_bar()
         else:
             self.Refresh()  # triggers the paint event
 
@@ -262,12 +266,14 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # local variables
         cycle_count = 0  # count number of cycles displayed
         pos = 0  # signal position, shifted upward for each signal
-        start = 30
-        end = max(self.cycles*20*self.zoom, start)
+        start = 30  # start point for rasterisation
+        end = max(self.cycles*20*self.zoom, start)  # end point for rasterisation
         if self.cycles != 0:
             step = (end-start)/self.cycles
         else:
             step = 0
+
+        self.signal_width = end+10
 
         # Iterate over each device and render
         for device_id, output_id in self.monitors.monitors_dictionary:
@@ -275,8 +281,9 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             signal_list = self.monitors.monitors_dictionary[(device_id, output_id)]
 
             # Display signal name
-            self.render_text(monitor_name, 10/self.zoom, 80+pos*50)
+            self.render_text(monitor_name[0:margin], 10/self.zoom, 80+pos*50)
 
+            # Start drawing the current signal
             GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue
             GL.glBegin(GL.GL_LINE_STRIP)
 
@@ -531,6 +538,7 @@ class Gui(wx.Frame):
         else:
             text = "Already in Run mode"
         self.canvas.render(text)
+        self.update_scroll_bar()
 
     def on_text_box(self, event):
         """Handle the event when the user enters text."""
@@ -544,6 +552,7 @@ class Gui(wx.Frame):
         self.canvas.cycles += self.spin.GetValue()
         self.run_network(self.spin.GetValue())
         self.canvas.render(text)
+        self.update_scroll_bar()
 
     # def on_del_button(self, event):
     #     text = "Delete Cycles button pressed."
@@ -643,15 +652,15 @@ class Gui(wx.Frame):
         text = 'Zoom in'
         self.canvas.zoom = self.canvas.zoom*2
         self.canvas.init = False
-        self.hbar.SetScrollbar(0, self.full_width, self.full_width*self.canvas.zoom, self.canvas.zoom)
         self.canvas.render(text)
+        self.update_scroll_bar()
 
     def on_zoom_out_button(self, event):
         text = 'Zoom out'
         self.canvas.zoom = self.canvas.zoom*0.5
         self.canvas.init = False
-        self.hbar.SetScrollbar(0, self.full_width, self.full_width*self.canvas.zoom, self.canvas.zoom)
         self.canvas.render(text)
+        self.update_scroll_bar()
 
     def on_hero_button(self, event):
         text = 'OUR HERO!!!'
@@ -672,7 +681,13 @@ class Gui(wx.Frame):
         pos = self.hbar.GetThumbPosition()
         length = self.hbar.GetRange()
         thumbsize = self.hbar.GetThumbSize()
-        if self.canvas.zoom>1:
-            self.canvas.pan_x = -int(self.full_width*(self.canvas.zoom-1)*(pos/(length-thumbsize)))
+        if length > thumbsize:
+            self.canvas.pan_x = -int((self.canvas.signal_width-self.full_width)*(pos/(length-thumbsize)))
             self.canvas.init = False
             self.canvas.render(str(self.canvas.pan_x))
+
+    def update_scroll_bar(self):
+        if self.full_width < self.canvas.signal_width:
+            self.hbar.SetScrollbar(0, self.full_width, self.canvas.signal_width, self.canvas.zoom)
+        else:
+            self.hbar.SetScrollbar(0, self.full_width, self.full_width, self.canvas.zoom)
