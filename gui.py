@@ -545,9 +545,12 @@ class Gui(wx.Frame):
     def on_run_button(self, event):
         """Handle the event when the user clicks the run button."""
         text = "Run button pressed."
-        self.canvas.run = 1
-        self.canvas.cycles = self.spin.GetValue()
-        self.run_network(self.canvas.cycles)
+        if self.canvas.run == 0:
+            self.canvas.run = 1
+            self.canvas.cycles = self.spin.GetValue()
+            self.run_network(self.canvas.cycles)
+        else:
+            text = "Already in Run mode"
         self.canvas.render(text)
 
     def on_text_box(self, event):
