@@ -69,28 +69,28 @@ class Parser:
 
         self.errormsg = {
             self.NO_ERROR                      : "NO_ERROR",
-            self.BAD_CHARACTER                 : "***Syntax Error, Invalid character",
-            self.BAD_COMMENT                   : "***Syntax Error, Invalid comment",
-            self.BAD_NUMBER                    : "***Syntax Error, Invalid number",
-            self.DEVICE_REDEFINED              : "***Semantic Error, Device is already defined",
-            self.DEVICE_TYPE_ABSENT            : "***Syntax Error, Expected device type",
-            self.DEVICE_UNDEFINED              : "***Semnatic Error, Device is not defined",
-            self.EMPTY_DEVICE_LIST             : "***Syntax Error, Expected device names",
-            self.EMPTY_FILE                    : "***Semantic Error, File is empty",
-            self.EMPTY_MONITOR_LIST            : "***Syntax Error, Expected device terminal names",
-            self.EMPTY_STATEMENT               : "***Syntax Error, Empty statement",
-            self.EXPECT_DEVICE_TERMINAL_NAME   : "***Syntax Error, Expected device terminal names",
-            self.EXPECT_KEYWORD_IS_ARE         : "***Syntax Error, Expected keyword IS/ARE",
-            self.EXPECT_KEYWORD_TO             : "***Syntax Error, Expected keyword TO",
-            self.EXPECT_LEFT_PAREN             : "***Syntax Error, Expected left parenthesis '('",
-            self.EXPECT_NO_QUALIFIER           : "***Syntax Error, Expected no qualifier",
-            self.EXPECT_PORT_NAME              : "***Syntax Error, Expected a port name",
-            self.EXPECT_QUALIFIER              : "***Syntax Error, Expected qualifier for the device",
-            self.EXPECT_RIGHT_PAREN            : "***Syntax Error, Expected right parenthesis ')'",
-            self.INVALID_DEVICE_NAME           : "***Syntax Error, Invalid device name",
-            self.INVALID_DEVICE_TYPE           : "***Syntax Error, Invalid device type",
-            self.INVALID_FUNCTION_NAME         : "***Syntax Error, Invalid function, please specify 'DEVICE', 'CONNECT' or 'MONITOR'",
-            self.KEYWORD_AS_DEVICE_NAME        : "***Syntax Error, Invalid device name"
+            self.BAD_CHARACTER                 : "***Syntax Error: Invalid character",
+            self.BAD_COMMENT                   : "***Syntax Error: Unterminated /* comment",
+            self.BAD_NUMBER                    : "***Syntax Error: Number has too many leading zeros",
+            self.DEVICE_REDEFINED              : "***Semantic Error: Device is already defined",
+            self.DEVICE_TYPE_ABSENT            : "***Syntax Error: Expected device type",
+            self.DEVICE_UNDEFINED              : "***Semnatic Error: Device is not defined",
+            self.EMPTY_DEVICE_LIST             : "***Syntax Error: Expected device names",
+            self.EMPTY_FILE                    : "***Semantic Error: File is empty",
+            self.EMPTY_MONITOR_LIST            : "***Syntax Error: Expected device terminal names",
+            self.EMPTY_STATEMENT               : "***Syntax Error: Empty statement",
+            self.EXPECT_DEVICE_TERMINAL_NAME   : "***Syntax Error: Expected device terminal names",
+            self.EXPECT_KEYWORD_IS_ARE         : "***Syntax Error: Expected keyword 'is'/'are'",
+            self.EXPECT_KEYWORD_TO             : "***Syntax Error: Expected keyword 'to'",
+            self.EXPECT_LEFT_PAREN             : "***Syntax Error: Expected left parenthesis '('",
+            self.EXPECT_NO_QUALIFIER           : "***Syntax Error: Expected no qualifier",
+            self.EXPECT_PORT_NAME              : "***Syntax Error: Expected a port name",
+            self.EXPECT_QUALIFIER              : "***Syntax Error: Expected qualifier for the device",
+            self.EXPECT_RIGHT_PAREN            : "***Syntax Error: Expected right parenthesis ')'",
+            self.INVALID_DEVICE_NAME           : "***Syntax Error: Invalid device name",
+            self.INVALID_DEVICE_TYPE           : "***Syntax Error: Invalid device type",
+            self.INVALID_FUNCTION_NAME         : "***Syntax Error: Invalid function, please specify 'DEVICE', 'CONNECT' or 'MONITOR'",
+            self.KEYWORD_AS_DEVICE_NAME        : "***Syntax Error: Can't use keyword as device name"
         }
 
 
@@ -141,8 +141,17 @@ class Parser:
                 self.error_code = self.NO_ERROR  # restore to normal state
                 # move to next '(' to resume parsing
                 while (not self.is_left_paren()) and (not self.is_EOF()):
+                    if self.is_target_name('Unterminated comment'):
+                        self.error_code = self.BAD_COMMENT
+                        self.error_display()
+                        self.error_code = self.NO_ERROR
                     self.move_to_next_symbol()
         if self.error_count > 0:
+            print()
+            if self.error_count == 1:
+                print('Parser: 1 error generated.')
+            else:
+                print('Parser: %d errors generated.' % (self.error_count))
             return False
         return True
 
@@ -413,10 +422,10 @@ class Parser:
         """Display error messages on terminal."""
         self.error_count += 1  # increment error count
         current_line, error_position = self.scanner.complete_current_line()
-
-        print('In File: '+self.scanner.input_file.name+', line'\
+        indent = ' '*2
+        print('In File "'+self.scanner.input_file.name+'", line '\
             + str(self.scanner.line_number))
-        print(current_line)
-        print(' '*(error_position-1)+'^')
-        print(self.errormsg[self.error_code])
+        print(indent + current_line)
+        print(indent + ' '*(error_position-1) + '^')
+        print(self.errormsg[self.error_code] + '')
         return True
