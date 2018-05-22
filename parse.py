@@ -82,7 +82,7 @@ class Parser:
             self.BAD_NUMBER                    : "***Syntax Error: Number has too many leading zeros",
             self.DEVICE_REDEFINED              : "***Semantic Error: Device is already defined",
             self.DEVICE_TYPE_ABSENT            : "***Syntax Error: Expected device type",
-            self.DEVICE_UNDEFINED              : "***Semnatic Error: Device is not defined",
+            self.DEVICE_UNDEFINED              : "***Semantic Error: Device is not defined",
             self.EMPTY_DEVICE_LIST             : "***Syntax Error: Expected device names",
             self.EMPTY_FILE                    : "***Semantic Error: File is empty",
             self.EMPTY_MONITOR_LIST            : "***Syntax Error: Expected device terminal names",
@@ -92,27 +92,27 @@ class Parser:
             self.EXPECT_KEYWORD_TO             : "***Syntax Error: Expected keyword 'to'",
             self.EXPECT_LEFT_PAREN             : "***Syntax Error: Expected left parenthesis '('",
             self.EXPECT_NO_QUALIFIER           : "***Syntax Error: Expected no qualifier",
-            self.EXPECT_PORT_NAME              : "***Syntax Error: Expected a port name",
-            self.EXPECT_PORT_NAME_DTYPE        : "EXPECT_PORT_NAME_DTYPE",
+            self.EXPECT_PORT_NAME              : "***Syntax Error: Expected a port name after '.'",
+            self.EXPECT_PORT_NAME_DTYPE        : "***Semantic Error: DTYPE device should have a port name",
             self.EXPECT_QUALIFIER              : "***Syntax Error: Expected qualifier for the device",
             self.EXPECT_RIGHT_PAREN            : "***Syntax Error: Expected right parenthesis ')'",
-            self.INPUT_CONNECTED               : "INPUT_CONNECTED",
-            self.INPUT_TO_INPUT                : "INPUT_TO_INPUT",
+            self.INPUT_CONNECTED               : "***Semantic Error: Attempt to connect multiple outputs to an input",
+            self.INPUT_TO_INPUT                : "***Semantic Error: Attempt to connect two inputs",
             self.INVALID_DEVICE_NAME           : "***Syntax Error: Invalid device name",
             self.INVALID_DEVICE_TYPE           : "***Syntax Error: Invalid device type",
             self.INVALID_FUNCTION_NAME         : "***Syntax Error: Invalid function, please specify 'DEVICE', 'CONNECT' or 'MONITOR'",
-            self.INVALID_PORT_NAME             : "INVALID_PORT_NAME",
-            self.INVALID_QUALIFIER             : "da zhi sha bi",
+            self.INVALID_PORT_NAME             : "***Semantic Error: Invalid port name for the device",
+            self.INVALID_QUALIFIER             : "***Semantic Error: Invalid qualifier for the given device type",
             self.KEYWORD_AS_DEVICE_NAME        : "***Syntax Error: Can't use keyword as device name",
-            self.MONITOR_NOT_OUTPUT            : "MONITOR_NOT_OUTPUT",
-            self.MONITOR_PRESENT               : "MONITOR_PRESENT",
-            self.OUTPUT_TO_OUTPUT              : "OUTPUT_TO_OUTPUT"
+            self.MONITOR_NOT_OUTPUT            : "***Semantic Error: Attempt to monitor an input",
+            self.MONITOR_PRESENT               : "***Semantic Error: Monitor already exists for the given signal",
+            self.OUTPUT_TO_OUTPUT              : "***Semantic Error: Attempt to connect two outputs"
         }
 
         self.error_code = self.NO_ERROR
         self.error_count = 0
         self.error_code_list = [] # store the error code history, for test
-        self.error_pos_overwrite = False # for special cases
+        self.last_error_pos_overwrite = False # for special cases
         self.last_error_pos = None
 
         self.device_with_qualifier = {
@@ -159,10 +159,6 @@ class Parser:
                 self.error_code = self.NO_ERROR  # restore to normal state
                 # move to next '(' to resume parsing
                 while (not self.is_left_paren()) and (not self.is_EOF()):
-                    if self.is_target_name('Unterminated comment'):
-                        self.error_code = self.BAD_COMMENT
-                        self.error_display()
-                        self.error_code = self.NO_ERROR
                     self.move_to_next_symbol()
         if self.error_count > 0:
             print()
@@ -293,7 +289,7 @@ class Parser:
         device_id = self.symbol_id
         if self.devices.get_device(device_id) is not None:
             self.error_code = self.DEVICE_REDEFINED
-            return False
+            return None
         new_device_ids.add(device_id)
         self.move_to_next_symbol()
         return device_id
@@ -309,7 +305,7 @@ class Parser:
         if self.devices.get_device(device_id) is not None \
            or device_id in new_device_ids:
             self.error_code = self.DEVICE_REDEFINED
-            return False
+            return None
         new_device_ids.add(device_id)
         self.move_to_next_symbol()
         return device_id
@@ -404,7 +400,7 @@ class Parser:
             if monitor_mode and \
                (device_id, port_id) in self.monitors.monitors_dictionary:
                 self.error_code = self.MONITOR_PRESENT
-                self.error_pos_overwrite = True
+                self.last_error_pos_overwrite = True
                 return None, None
         return device_id, port_id
 
@@ -434,14 +430,15 @@ class Parser:
         error_code = self.network.make_connection(first_device_id, first_port_id,
                                                  second_device_id, second_port_id)
         if error_code != self.network.NO_ERROR:
-            if error_code == network.INPUT_CONNECTED:
+            if error_code == self.network.INPUT_CONNECTED:
                 self.error_code = self.INPUT_CONNECTED
-            elif error_code == network.INPUT_TO_INPUT:
+            elif error_code == self.network.INPUT_TO_INPUT:
                 self.error_code = self.INPUT_TO_INPUT
-            elif error_code == network.OUTPUT_TO_OUTPUT:
+            elif error_code == self.network.OUTPUT_TO_OUTPUT:
                 self.error_code = self.OUTPUT_TO_OUTPUT
             else:
                 raise ValueError('zao yu feng')
+            self.last_error_pos_overwrite = True
             return False
         return True
 
@@ -478,10 +475,11 @@ class Parser:
         self.error_count += 1  # increment error count
         self.error_code_list.append(self.error_code)
         current_line, error_position = self.scanner.complete_current_line()
-        if self.error_pos_overwrite:
+        if self.last_error_pos_overwrite:
             error_position = self.last_error_pos
-            self.error_pos_overwrite = False
+            self.last_error_pos_overwrite = False
         indent = ' '*2
+        print('\n[ERROR #%d]' % (self.error_count))
         print('In File "'+self.scanner.input_file.name+'", line '\
             + str(self.scanner.line_number))
         print(indent + current_line)
