@@ -94,9 +94,9 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Get image from current folder
         im = Image.open('./graphics/hero.jpg')
         try:
-            ix, iy, image = im.size[0], im.size[1], im.tobytes("raw", "RGBA", 0, -1)
-        except SystemError:
             ix, iy, image = im.size[0], im.size[1], im.tobytes("raw", "RGBX", 0, -1)
+        except SystemError:
+            ix, iy, image = im.size[0], im.size[1], im.tobytes("raw", "RGBA", 0, -1)
 
         # generate a texture id, make it current
         self.texture = GL.glGenTextures(1)
@@ -660,5 +660,8 @@ class Gui(wx.Frame):
 
     def on_hero_button(self, event):
         text = 'OUR HERO!!!'
-        self.canvas.use_hero = 1
+        if self.canvas.use_hero == 0:
+            self.canvas.use_hero = 1
+        else:
+            self.canvas.use_hero = 0
         self.canvas.render(text)
