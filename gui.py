@@ -275,14 +275,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glVertex2f(x/self.zoom, y)
         GL.glVertex2f(x_next/self.zoom, y)
 
-    def draw_vertical_signal(self, start, cycle_count, step, level1, level2, pos):
-        # Two vertices having same y coord
-        x = start+cycle_count*step
-        y1 = 75+25*level1+pos*50
-        y2 = 75+25*level2+pos*50
-        GL.glVertex2f(x/self.zoom, y1)
-        GL.glVertex2f(x/self.zoom, y2)
-
     def render_signal(self):
         """Display the signal trace(s) in GUI"""
 
@@ -318,9 +310,9 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                     self.draw_horizontal_signal(start, cycle_count, step, 0, pos)
                     cycle_count += 1
                 if signal == self.devices.RISING:
-                    self.draw_vertical_signal(start, cycle_count, step, 0, 1, pos)
+                    continue
                 if signal == self.devices.FALLING:
-                    self.draw_vertical_signal(start, cycle_count, step, 1, 0, pos)
+                    continue
                 if signal == self.devices.BLANK:
                     # ASK TOMORROW
                     cycle_count += 1
