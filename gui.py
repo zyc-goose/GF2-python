@@ -660,8 +660,14 @@ class Gui(wx.Frame):
 
     def on_hero_button(self, event):
         text = 'OUR HERO!!!'
-        if self.canvas.use_hero == 0:
-            self.canvas.use_hero = 1
-        else:
+        if self.canvas.use_hero == 1:
             self.canvas.use_hero = 0
-        self.canvas.render(text)
+        else:
+            message = "Do You Want To See Our Leader?"
+            dlg = wx.MessageDialog(self, message, caption="PLEASE ANSWER!!!",
+                  style=wx.YES_NO|wx.CENTER)
+            result = dlg.ShowModal()
+            if result == wx.ID_YES:
+                self.canvas.use_hero = 1
+                self.canvas.render(text)
+            dlg.Destroy()
