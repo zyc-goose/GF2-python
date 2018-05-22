@@ -245,27 +245,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             else:
                 GLUT.glutBitmapCharacter(font, ord(character))
 
-    def render_clk(self, cycles, pos):
-        # Delete when completed
-        GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue
-        GL.glBegin(GL.GL_LINE_STRIP)
-        start = 30
-        end = max(cycles*20*self.zoom, start)
-        if cycles != 0:
-            step = (end-start)/cycles
-        else:
-            step = 0
-        for i in range(cycles):
-            x = start+i*step
-            x_next = start+(i+1)*step
-            if i % 2 == 0:
-                y = 75+pos*50
-            else:
-                y = 100+pos*50
-            GL.glVertex2f(x/self.zoom, y)
-            GL.glVertex2f(x_next/self.zoom, y)
-        GL.glEnd()
-
     def draw_horizontal_signal(self, start, cycle_count, step, level, pos):
         # Two vertices having same y coord
         x = start+cycle_count*step
