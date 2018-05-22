@@ -662,6 +662,7 @@ class Gui(wx.Frame):
         text = 'OUR HERO!!!'
         if self.canvas.use_hero == 1:
             self.canvas.use_hero = 0
+            self.canvas.render(text)
         else:
             message = "Do You Want To See Our Leader?"
             dlg = wx.MessageDialog(self, message, caption="PLEASE ANSWER!!!",
