@@ -188,22 +188,21 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         #text = "".join(["X: ", str(self.current_x), " Y: ", str(self.current_y)])
 
         # Double Click reset to original place, single click shows the position
-        if event.GetClickCount() >= 2:
+        if event.ButtonDClick():
             self.zoom = 1
             self.pan_x = 0
             self.pan_y = 0
             self.init_gl()
             self.init = True
             text = "Mouse double clicked"
-        else:
-            if event.ButtonDown():
-                self.last_mouse_x = event.GetX()
-                self.last_mouse_y = event.GetY()
-                text = "".join(["Mouse button pressed at: ", str(event.GetX()),
-                                ", ", str(event.GetY())])
-            if event.ButtonUp():
-                text = "".join(["Mouse button released at: ", str(event.GetX()),
-                                ", ", str(event.GetY())])
+        elif event.ButtonDown():
+            self.last_mouse_x = event.GetX()
+            self.last_mouse_y = event.GetY()
+            text = "".join(["Mouse button pressed at: ", str(event.GetX()),
+                            ", ", str(event.GetY())])
+        elif event.ButtonUp():
+            text = "".join(["Mouse button released at: ", str(event.GetX()),
+                            ", ", str(event.GetY())])
         if event.Leaving():
             text = "".join(["Mouse left canvas at: ", str(event.GetX()),
                             ", ", str(event.GetY())])
