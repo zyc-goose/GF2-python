@@ -69,28 +69,28 @@ class Parser:
 
         self.errormsg = {
             self.NO_ERROR                      : "NO_ERROR",
-            self.BAD_CHARACTER                 : "BAD_CHARACTER",
-            self.BAD_COMMENT                   : "BAD_COMMENT",
-            self.BAD_NUMBER                    : "BAD_NUMBER",
-            self.DEVICE_REDEFINED              : "DEVICE_REDEFINED",
-            self.DEVICE_TYPE_ABSENT            : "DEVICE_TYPE_ABSENT",
-            self.DEVICE_UNDEFINED              : "DEVICE_UNDEFINED",
-            self.EMPTY_DEVICE_LIST             : "EMPTY_DEVICE_LIST",
-            self.EMPTY_FILE                    : "EMPTY_FILE",
-            self.EMPTY_MONITOR_LIST            : "EMPTY_MONITOR_LIST",
-            self.EMPTY_STATEMENT               : "EMPTY_STATEMENT",
-            self.EXPECT_DEVICE_TERMINAL_NAME   : "EXPECT_DEVICE_TERMINAL_NAME",
-            self.EXPECT_KEYWORD_IS_ARE         : "EXPECT_KEYWORD_IS_ARE",
-            self.EXPECT_KEYWORD_TO             : "EXPECT_KEYWORD_TO",
-            self.EXPECT_LEFT_PAREN             : "EXPECT_LEFT_PAREN",
-            self.EXPECT_NO_QUALIFIER           : "EXPECT_NO_QUALIFIER",
-            self.EXPECT_PORT_NAME              : "EXPECT_PORT_NAME",
-            self.EXPECT_QUALIFIER              : "EXPECT_QUALIFIER",
-            self.EXPECT_RIGHT_PAREN            : "EXPECT_RIGHT_PAREN",
-            self.INVALID_DEVICE_NAME           : "INVALID_DEVICE_NAME",
-            self.INVALID_DEVICE_TYPE           : "INVALID_DEVICE_TYPE",
-            self.INVALID_FUNCTION_NAME         : "INVALID_FUNCTION_NAME",
-            self.KEYWORD_AS_DEVICE_NAME        : "KEYWORD_AS_DEVICE_NAME"
+            self.BAD_CHARACTER                 : "***Syntax Error, Invalid character",
+            self.BAD_COMMENT                   : "***Syntax Error, Invalid comment",
+            self.BAD_NUMBER                    : "***Syntax Error, Invalid number",
+            self.DEVICE_REDEFINED              : "***Semantic Error, Device is already defined",
+            self.DEVICE_TYPE_ABSENT            : "***Syntax Error, Expected device type",
+            self.DEVICE_UNDEFINED              : "***Semnatic Error, Device is not defined",
+            self.EMPTY_DEVICE_LIST             : "***Syntax Error, Expected device names",
+            self.EMPTY_FILE                    : "***Semantic Error, File is empty",
+            self.EMPTY_MONITOR_LIST            : "***Syntax Error, Expected device terminal names",
+            self.EMPTY_STATEMENT               : "***Syntax Error, Empty statement",
+            self.EXPECT_DEVICE_TERMINAL_NAME   : "***Syntax Error, Expected device terminal names",
+            self.EXPECT_KEYWORD_IS_ARE         : "***Syntax Error, Expected keyword IS/ARE",
+            self.EXPECT_KEYWORD_TO             : "***Syntax Error, Expected keyword TO",
+            self.EXPECT_LEFT_PAREN             : "***Syntax Error, Expected left parenthesis '('",
+            self.EXPECT_NO_QUALIFIER           : "***Syntax Error, Expected no qualifier",
+            self.EXPECT_PORT_NAME              : "***Syntax Error, Expected a port name",
+            self.EXPECT_QUALIFIER              : "***Syntax Error, Expected qualifier for the device",
+            self.EXPECT_RIGHT_PAREN            : "***Syntax Error, Expected right parenthesis ')'",
+            self.INVALID_DEVICE_NAME           : "***Syntax Error, Invalid device name",
+            self.INVALID_DEVICE_TYPE           : "***Syntax Error, Invalid device type",
+            self.INVALID_FUNCTION_NAME         : "***Syntax Error, Invalid function, please specify 'DEVICE', 'CONNECT' or 'MONITOR'",
+            self.KEYWORD_AS_DEVICE_NAME        : "***Syntax Error, Invalid device name"
         }
 
 
@@ -409,7 +409,14 @@ class Parser:
                     return True
                 return False
 
-    def error_display(self):
+    def error_display(self, *args):
         """Display error messages on terminal."""
+        self.error_count += 1  # increment error count
+        current_line, error_position = self.scanner.complete_current_line()
+
+        print('In File: '+self.scanner.input_file.name+', line'\
+            + str(self.scanner.line_number))
+        print(current_line)
+        print(' '*(error_position-1)+'^')
         print(self.errormsg[self.error_code])
         return True

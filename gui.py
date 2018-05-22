@@ -11,6 +11,7 @@ Gui - configures the main window and all the widgets.
 import wx
 import wx.glcanvas as wxcanvas
 from OpenGL import GL, GLUT
+from PIL import Image
 
 from names import Names
 from devices import Devices
@@ -58,17 +59,21 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.init = False
         self.context = wxcanvas.GLContext(self)
 
+        self.monitors = monitors
+        self.devices = devices
+
         # Initialise variables for panning
         self.pan_x = 0
         self.pan_y = 0
         self.last_mouse_x = 0  # previous mouse x position
         self.last_mouse_y = 0  # previous mouse y position
         # Newly defined variables
-        self.current_x = 0
-        self.current_y = 0
-        self.run = 0
-        self.cycles = 0
-        self.signals = ['S1']
+        self.current_x = 0  # Current mouse x position
+        self.current_y = 0  # Current mouse y position
+        self.run = 0  # run flag
+        self.cycles = 0  # number of cycles for display
+        self.texture = None  # texture ID
+        self.use_hero = 0  # whether to use texture or not
 
         # Initialise variables for zooming
         self.zoom = 1
@@ -78,7 +83,43 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.Bind(wx.EVT_SIZE, self.on_size)
         self.Bind(wx.EVT_MOUSE_EVENTS, self.on_mouse)
 
+    def initTexture(self):
+        """init the texture - this has to happen after an OpenGL context
+        has been created
+        """
+
+        # make the OpenGL context associated with this canvas the current one
+        self.SetCurrent(self.context)
+
+        # Get image from current folder
+        im = Image.open('./graphics/hero.jpg')
+        try:
+            ix, iy, image = im.size[0], im.size[1], im.tobytes("raw", "RGBA", 0, -1)
+        except SystemError:
+            ix, iy, image = im.size[0], im.size[1], im.tobytes("raw", "RGBX", 0, -1)
+
+        # generate a texture id, make it current
+        self.texture = GL.glGenTextures(1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self.texture)
+
+        # texture mode and parameters controlling wrapping and scaling
+        GL.glTexEnvf(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)
+        GL.glTexParameterf(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT)
+        GL.glTexParameterf(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT)
+        GL.glTexParameterf(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
+        GL.glTexParameterf(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
+
+        # map the image data to the texture. note that if the input
+        # type is GL_FLOAT, the values must be in the range [0..1]
+        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB, ix, iy, 0,
+                        GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, image)
+
     def init_gl(self):
+        self.initTexture()
         """Configure and initialise the OpenGL context."""
         size = self.GetClientSize()
         self.SetCurrent(self.context)
@@ -103,16 +144,15 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         # Clear everything
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+        if self.use_hero == 1:
+            self.texture_mapping()
 
         # Draw specified text at position (10, 10)
         self.render_text(text, 10/self.zoom, 10)
 
         if self.run == 1:
-            position = 0
-            for s in self.signals:
-                self.render_clk(self.cycles, position)
-                self.render_text(s, 10/self.zoom, 80+position*50)
-                position = position+1
+            # If run button clicked, render all signals
+            self.render_signal()
 
         # We have been drawing to the back buffer, flush the graphics pipeline
         # and swap the back buffer to the front
@@ -144,9 +184,11 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.current_y = event.GetY()
         size = self.GetClientSize()
         self.current_y = size.height-self.current_y
-        text = "".join(["X: ", str(self.current_x), " Y: ", str(self.current_y)])
+        text = ''
+        #text = "".join(["X: ", str(self.current_x), " Y: ", str(self.current_y)])
+
+        # Double Click reset to original place, single click shows the position
         if event.GetClickCount() >= 2:
-            # Double Click reset to original place
             self.zoom = 1
             self.pan_x = 0
             self.pan_y = 0
@@ -178,8 +220,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             self.zoom *= (1.0 + (
                 event.GetWheelRotation() / (20 * event.GetWheelDelta())))
             self.init = False
-            GL.glViewport(self.current_x, self.current_y, size.width, size.height)
-            GL.glScaled(self.zoom, self.zoom, self.zoom)
             text = "".join(["Negative mouse wheel rotation. Zoom is now: ",
                             str(self.zoom)])
         if event.GetWheelRotation() > 0:
@@ -207,7 +247,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 GLUT.glutBitmapCharacter(font, ord(character))
 
     def render_clk(self, cycles, pos):
-        # Draw a sample signal trace
+        # Delete when completed
         GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue
         GL.glBegin(GL.GL_LINE_STRIP)
         start = 30
@@ -226,6 +266,90 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             GL.glVertex2f(x/self.zoom, y)
             GL.glVertex2f(x_next/self.zoom, y)
         GL.glEnd()
+
+    def draw_horizontal_signal(self, start, cycle_count, step, level, pos):
+        # Two vertices having same y coord
+        x = start+cycle_count*step
+        x_next = start+(cycle_count+1)*step
+        y = 75+25*level+pos*50
+        GL.glVertex2f(x/self.zoom, y)
+        GL.glVertex2f(x_next/self.zoom, y)
+
+    def render_signal(self):
+        """Display the signal trace(s) in GUI"""
+
+        # To confine name lengths, edit in the future
+        margin = 10
+        GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue
+        GL.glBegin(GL.GL_LINE_STRIP)
+
+        # local variables
+        cycle_count = 0  # count number of cycles displayed
+        pos = 0  # signal position, shifted upward for each signal
+        start = 30
+        end = max(self.cycles*20*self.zoom, start)
+        if cycles != 0:
+            step = (end-start)/self.cycles
+        else:
+            step = 0
+
+        # Iterate over each device and render
+        for device_id, output_id in self.monitors.monitors_dictionary:
+            monitor_name = self.devices.get_signal_name(device_id, output_id)
+            signal_list = self.monitors_dictionary[(device_id, output_id)]
+
+            # Display signal name
+            self.render_text(monitor_name[0:margin], 10/self.zoom, 80+pos*50)
+
+            # Iterate over each cycle and render
+            for signal in signal_list:
+                if signal == self.devices.HIGH:
+                    self.draw_horizontal_signal(start, cycle_count, step, 1, pos)
+                    cycle_count += 1
+                if signal == self.devices.LOW:
+                    self.draw_horizontal_signal(start, cycle_count, step, 0, pos)
+                    cycle_count += 1
+                if signal == self.devices.RISING:
+                    continue
+                if signal == self.devices.FALLING:
+                    continue
+                if signal == self.devices.BLANK:
+                    # ASK TOMORROW
+                    cycle_count += 1
+                #if cycle_count > self.cycles:
+                #    break
+            pos = pos+1
+        GL.glEnd()
+
+    def texture_mapping(self):
+        """draw function """
+        self.SetCurrent(self.context)
+        if not self.init:
+            # Configure the viewport, modelview and projection matrices
+            self.init_gl()
+            self.init = True
+
+        # enable textures, bind to our texture
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glColor3f(1, 1, 1)
+
+        # draw a quad
+        size = self.GetClientSize()
+        GL.glBegin(GL.GL_QUADS)
+        GL.glTexCoord2f(0, 1)
+        GL.glVertex2f(0, size.height)
+        GL.glTexCoord2f(0, 0)
+        GL.glVertex2f(0, 0)
+        GL.glTexCoord2f(1, 0)
+        GL.glVertex2f(size.width, 0)
+        GL.glTexCoord2f(1, 1)
+        GL.glVertex2f(size.width, size.height)
+        GL.glEnd()
+
+        GL.glDisable(GL.GL_TEXTURE_2D)
+
+        # swap the front and back buffers so that the texture is visible
+        #self.SwapBuffers()
 
 
 class Gui(wx.Frame):
@@ -255,6 +379,16 @@ class Gui(wx.Frame):
         """Initialise widgets and layout."""
         super().__init__(parent=None, title=title, size=(800, 600))
 
+        # Make objects local
+        self.devices = devices
+        self.network = network
+        self.monitors = monitors
+        self.names = names
+
+        # Get device terminals
+        monitored_list, unmonitored_list = self.monitors.get_signal_names()
+        total_list = monitored_list + unmonitored_list
+
         # Configure the file menu
         fileMenu = wx.Menu()
         menuBar = wx.MenuBar()
@@ -265,36 +399,50 @@ class Gui(wx.Frame):
 
         # Canvas for drawing signals
         self.canvas = MyGLCanvas(self, devices, monitors)
+        self.canvas.signals = monitored_list
 
         # Configure the widgets
         self.text = wx.StaticText(self, wx.ID_ANY, "Cycles")
         self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")
         self.run_button = wx.Button(self, wx.ID_ANY, "Run")
-        self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
-                                    style=wx.TE_PROCESS_ENTER)
+        # self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
+        #                            style=wx.TE_PROCESS_ENTER)
+
+        # Preparing Bitmaps for zoom buttons
+        image_1 = wx.Image("./graphics/plus.png") 
+        image_1.Rescale(30, 30) 
+        plus = wx.Bitmap(image_1)
+        image_2 = wx.Image("./graphics/minus.png") 
+        image_2.Rescale(30, 30) 
+        minus = wx.Bitmap(image_2) 
 
         # Newly defined Widgets
-        self.sampleList = ['S1','S2']           # In the future use monitor.monitors_dictionary
         self.cont_button = wx.Button(self,wx.ID_ANY,"Add")
-        self.del_button = wx.Button(self, wx.ID_ANY, "Delete")
-        self.cb = wx.ComboBox(self,wx.ID_ANY,size=(100,20),choices=self.sampleList,style=wx.CB_DROPDOWN)
+        # self.del_button = wx.Button(self, wx.ID_ANY, "Delete")
+        self.cb = wx.ComboBox(self,wx.ID_ANY,size=(100,30),choices=self.total_list,style=wx.CB_DROPDOWN)
         self.text2 = wx.StaticText(self, wx.ID_ANY, "Signal")
         self.switch_button = wx.Button(self, wx.ID_ANY, "Switch")
         self.sig_add_button = wx.Button(self,wx.ID_ANY,"Add")
         self.sig_del_button = wx.Button(self, wx.ID_ANY, "Delete")
         self.clear_button = wx.Button(self, wx.ID_ANY, "Clear")
+        self.zoom_in_button = wx.BitmapButton(self, wx.ID_ANY, plus, size=(40,40))
+        self.zoom_out_button = wx.BitmapButton(self, wx.ID_ANY, minus, size=(40,40))
+        self.hero_button = wx.Button(self, wx.ID_ANY, "HERO")
 
         # Bind events to widgets
         self.Bind(wx.EVT_MENU, self.on_menu)
         self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
         self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
-        self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
+        # self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
         self.cont_button.Bind(wx.EVT_BUTTON, self.on_cont_button)
-        self.del_button.Bind(wx.EVT_BUTTON, self.on_del_button)
+        # self.del_button.Bind(wx.EVT_BUTTON, self.on_del_button)
         self.switch_button.Bind(wx.EVT_BUTTON, self.on_switch_button)
         self.sig_add_button.Bind(wx.EVT_BUTTON, self.on_sig_add_button)
         self.sig_del_button.Bind(wx.EVT_BUTTON, self.on_sig_del_button)
         self.clear_button.Bind(wx.EVT_BUTTON, self.on_clear_button)
+        self.zoom_in_button.Bind(wx.EVT_BUTTON, self.on_zoom_in_button)
+        self.zoom_out_button.Bind(wx.EVT_BUTTON, self.on_zoom_out_button)
+        self.hero_button.Bind(wx.EVT_BUTTON, self.on_hero_button)
 
         # Configure sizers for layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -302,6 +450,7 @@ class Gui(wx.Frame):
         main_sizer_second = wx.BoxSizer(wx.VERTICAL)
         double_butt = wx.BoxSizer(wx.HORIZONTAL)
         double_butt_2 = wx.BoxSizer(wx.HORIZONTAL)
+        double_butt_3 = wx.BoxSizer(wx.HORIZONTAL)
 
 
         main_sizer.Add(main_sizer_second, 5, wx.EXPAND | wx.RIGHT | wx.TOP | wx.LEFT, 5)
@@ -313,14 +462,18 @@ class Gui(wx.Frame):
         side_sizer.Add(self.run_button, 1, wx.ALL, 5)
         side_sizer.Add(double_butt, 1, wx.ALL, 0)
         double_butt.Add(self.cont_button, 1, wx.ALL, 5)
-        double_butt.Add(self.del_button, 1, wx.ALL, 5)
+        # double_butt.Add(self.del_button, 1, wx.ALL, 5)
         side_sizer.Add(self.text2, 1, wx.TOP, 10)
-        side_sizer.Add(self.cb, 1, wx.ALL, 0)
+        side_sizer.Add(self.cb, 1, wx.ALL, 5)
         side_sizer.Add(self.switch_button, 1, wx.ALL, 5)
         side_sizer.Add(double_butt_2, 1, wx.ALL, 0)
         double_butt_2.Add(self.sig_add_button, 1, wx.ALL, 5)
         double_butt_2.Add(self.sig_del_button, 1, wx.ALL, 5)
         side_sizer.Add(self.clear_button, 1, wx.ALL, 5)
+        side_sizer.Add(double_butt_3, 0.5, wx.ALL, 0)
+        double_butt_3.Add(self.zoom_in_button, 1, wx.ALL, 5)
+        double_butt_3.Add(self.zoom_out_button, 1, wx.ALL, 5)
+        side_sizer.Add(self.hero_button, 1 , wx.ALL, 5)
         # side_sizer.Add(self.text_box, 1, wx.TOP, 10)
 
         self.SetSizeHints(600, 600)
@@ -346,6 +499,7 @@ class Gui(wx.Frame):
         text = "Run button pressed."
         self.canvas.run = 1
         self.canvas.cycles = self.spin.GetValue()
+        self.network.run_network(self.spin.GetValue())
         self.canvas.render(text)
 
     def on_text_box(self, event):
@@ -358,38 +512,67 @@ class Gui(wx.Frame):
         text = "Add Cycles button pressed."
         self.canvas.run = 1
         self.canvas.cycles += self.spin.GetValue()
+        self.network.run_network(self.spin.GetValue())
         self.canvas.render(text)
 
-    def on_del_button(self, event):
-        text = "Delete Cycles button pressed."
-        self.canvas.run = 1
-        self.canvas.cycles -= self.spin.GetValue()
-        if self.canvas.cycles<0:
-            self.canvas.cycles=0
-        self.canvas.render(text)
+    # def on_del_button(self, event):
+    #     text = "Delete Cycles button pressed."
+    #     self.canvas.run = 1
+    #     self.canvas.cycles -= self.spin.GetValue()
+    #     if self.canvas.cycles<0:
+    #         self.canvas.cycles=0
+    #     self.canvas.render(text)
 
     def on_switch_button(self, event):
         text = "Toggle button pressed."
         # Wait until parser finished
 
     def on_sig_add_button(self, event):
-        signal = self.sampleList[self.cb.GetSelection()]
+        # Get user selected signal and split to get IDs
+        signal = self.total_list[self.cb.GetSelection()]
+        if '.' in signal:
+            device, port = signal.split('.')
+            device_id = self.names.query(device)
+            port_id = self.names.query(port)
+        else:
+            device = signal
+            device_id = self.names.query(device)
+            port_id = None
+
+        # Add monitor using the IDs above
         if self.canvas.run != 1:
             text = 'You should run the simulation first'
-        elif signal not in self.canvas.signals:
-            self.canvas.signals.append(signal)
-            text = "Add Signal: " + signal
+        elif device_id is not None:
+            monitor_error = self.monitors.make_monitor(device_id, port_id,
+                                                       self.canvas.cycles)
+            if monitor_error == self.monitors.NO_ERROR:
+                text = "Successfully made monitor."
+            else:
+                text = "Error! Could not make monitor."
         else:
             text = "Button no effect!"
         self.canvas.render(text)
 
     def on_sig_del_button(self, event):
-        signal = self.sampleList[self.cb.GetSelection()]
+        # Get user selected signal and split to get IDs
+        signal = self.total_list[self.cb.GetSelection()]
+        if '.' in signal:
+            device, port = signal.split('.')
+            device_id = self.names.query(device)
+            port_id = self.names.query(port)
+        else:
+            device = signal
+            device_id = self.names.query(device)
+            port_id = None
+
+        # Delete monitor using the IDs above
         if self.canvas.run != 1:
             text = 'You should run the simulation first'
-        elif signal in self.canvas.signals:
-            self.canvas.signals.remove(signal)
-            text = "Delete Signal: " + signal
+        elif device_id is not None:
+            if self.monitors.remove_monitor(device_id, port_id):
+                text = "Successfully zapped monitor"
+            else:
+                text = "Error! Could not zap monitor."
         else:
             text = "Button no effect!"
         self.canvas.render(text)
@@ -399,3 +582,30 @@ class Gui(wx.Frame):
         self.canvas.signals = []
         self.canvas.cycles = self.spin.GetValue()
         self.canvas.render(text)
+
+    def on_zoom_in_button(self, event):
+        text = 'Zoom in'
+        self.canvas.zoom = self.canvas.zoom*2
+        self.canvas.init = False
+        self.canvas.render(text)
+
+    def on_zoom_out_button(self, event):
+        text = 'Zoom out'
+        self.canvas.zoom = self.canvas.zoom*0.5
+        self.canvas.init = False
+        self.canvas.render(text)
+
+    def on_hero_button(self, event):
+        text = 'OUR HERO!!!'
+        self.canvas.use_hero = 1
+        self.canvas.render(text)
+
+    def run_network(self, cycles):
+        """Run the network for the specified number of simulation cycles."""
+        for _ in range(cycles):
+            if self.network.execute_network():
+                self.monitors.record_signals()
+            else:
+                print("Error! Network oscillating.")
+                return False
+        return True

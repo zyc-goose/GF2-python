@@ -65,14 +65,15 @@ class Scanner:
         '(',
         ')',
         '.']
-        dummy = names.lookup(self.keywords_list)
+        dummy = self.names.lookup(self.keywords_list)
 
         self.error_list = [
         'Unrecogonized character',
         'Number starting with 0',
         'Unterminated comment']
-        dummy = names.lookup(self.error_list)
+        dummy = self.names.lookup(self.error_list)
 
+        self.line_number = 0
         self.current_line = ''
         self.current_character = ''
         self.current_character = self.advance()
@@ -82,6 +83,7 @@ class Scanner:
             self.current_line += self.current_character
         else:
             self.current_line = ''
+            self.line_number += 1
         return self.input_file.read(1)
 
 
