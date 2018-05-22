@@ -288,7 +288,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         pos = 0  # signal position, shifted upward for each signal
         start = 30
         end = max(self.cycles*20*self.zoom, start)
-        if cycles != 0:
+        if self.cycles != 0:
             step = (end-start)/self.cycles
         else:
             step = 0
@@ -521,12 +521,22 @@ class Gui(wx.Frame):
         text = "".join(["New spin control value: ", str(spin_value)])
         self.canvas.render(text)
 
+    def run_network(self, cycles):
+        """Run the network for the specified number of simulation cycles."""
+        for _ in range(cycles):
+            if self.network.execute_network():
+                self.monitors.record_signals()
+            else:
+                print("Error! Network oscillating.")
+                return False
+        return True
+
     def on_run_button(self, event):
         """Handle the event when the user clicks the run button."""
         text = "Run button pressed."
         self.canvas.run = 1
         self.canvas.cycles = self.spin.GetValue()
-        self.network.run_network(self.canvas.cycles)
+        self.run_network(self.canvas.cycles)
         self.canvas.render(text)
 
     def on_text_box(self, event):
@@ -539,7 +549,7 @@ class Gui(wx.Frame):
         text = "Add Cycles button pressed."
         self.canvas.run = 1
         self.canvas.cycles += self.spin.GetValue()
-        self.network.run_network(self.spin.GetValue())
+        self.run_network(self.spin.GetValue())
         self.canvas.render(text)
 
     # def on_del_button(self, event):
@@ -640,13 +650,3 @@ class Gui(wx.Frame):
         text = 'OUR HERO!!!'
         self.canvas.use_hero = 1
         self.canvas.render(text)
-
-    def run_network(self, cycles):
-        """Run the network for the specified number of simulation cycles."""
-        for _ in range(cycles):
-            if self.network.execute_network():
-                self.monitors.record_signals()
-            else:
-                print("Error! Network oscillating.")
-                return False
-        return True
