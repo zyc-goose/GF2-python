@@ -279,8 +279,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         # To confine name lengths, edit in the future
         margin = 10
-        GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue
-        GL.glBegin(GL.GL_LINE_STRIP)
 
         # local variables
         cycle_count = 0  # count number of cycles displayed
@@ -295,12 +293,16 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Iterate over each device and render
         for device_id, output_id in self.monitors.monitors_dictionary:
             monitor_name = self.devices.get_signal_name(device_id, output_id)
-            signal_list = self.monitors_dictionary[(device_id, output_id)]
+            signal_list = self.monitors.monitors_dictionary[(device_id, output_id)]
 
             # Display signal name
-            self.render_text(monitor_name[0:margin], 10/self.zoom, 80+pos*50)
+            self.render_text(monitor_name, 10/self.zoom, 80+pos*50)
+
+            GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue
+            GL.glBegin(GL.GL_LINE_STRIP)
 
             # Iterate over each cycle and render
+            cycle_count = 0
             for signal in signal_list:
                 if signal == self.devices.HIGH:
                     self.draw_horizontal_signal(start, cycle_count, step, 1, pos)
@@ -318,7 +320,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 # if cycle_count > self.cycles:
                 #    break
             pos = pos+1
-        GL.glEnd()
+            GL.glEnd()
 
     def texture_mapping(self):
         """draw function """
@@ -389,7 +391,10 @@ class Gui(wx.Frame):
         self.total_list = monitored_list + unmonitored_list
 
         # Get switch list
-        self.switches = self.devices.find_devices(self.devices.SWITCH)
+        self.switch_ids = self.devices.find_devices(self.devices.SWITCH)
+        self.switches = []
+        for each_id in self.switch_ids:
+            self.switches.append(names.get_name_string(each_id))
 
         # Configure the file menu
         fileMenu = wx.Menu()
