@@ -441,6 +441,11 @@ class Gui(wx.Frame):
         # self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
         #                            style=wx.TE_PROCESS_ENTER)
 
+        # Scroll Bars
+        self.full_width = 600
+        self.hbar = wx.ScrollBar(self, id=wx.ID_ANY, size=(600,15), style=wx.SB_HORIZONTAL)
+        self.hbar.SetScrollbar(0, self.full_width, self.full_width, 1)
+
         # Bind events to widgets
         self.Bind(wx.EVT_MENU, self.on_menu)
         self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
@@ -458,6 +463,7 @@ class Gui(wx.Frame):
         self.zoom_out_button.Bind(wx.EVT_BUTTON, self.on_zoom_out_button)
         # self.clear_button.Bind(wx.EVT_BUTTON, self.on_clear_button)
         self.hero_button.Bind(wx.EVT_BUTTON, self.on_hero_button)
+        self.hbar.Bind(wx.EVT_SCROLL, self.on_hbar)
         # self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
 
         # Configure sizers for layout
@@ -471,7 +477,8 @@ class Gui(wx.Frame):
 
 
         main_sizer.Add(main_sizer_second, 5, wx.EXPAND | wx.RIGHT | wx.TOP | wx.LEFT, 5)
-        main_sizer_second.Add(self.canvas, 5, wx.EXPAND | wx.BOTTOM, 5)
+        main_sizer_second.Add(self.canvas, 25, wx.EXPAND | wx.ALL, 5)
+        main_sizer_second.Add(self.hbar, 1, wx.ALL, 5)
         main_sizer.Add(side_sizer, 1, wx.ALL, 5)
 
         side_sizer.Add(self.text, 1, wx.TOP, 10)
@@ -511,7 +518,7 @@ class Gui(wx.Frame):
         if Id == wx.ID_EXIT:
             self.Close(True)
         if Id == wx.ID_ABOUT:
-            wx.MessageBox("Logic Simulator\nBrian's Version\n2018",
+            wx.MessageBox("Logic Simulator\nTeam 4 Version\n2018",
                           "About Logsim", wx.ICON_INFORMATION | wx.OK)
 
     def on_spin(self, event):
@@ -649,12 +656,14 @@ class Gui(wx.Frame):
         text = 'Zoom in'
         self.canvas.zoom = self.canvas.zoom*2
         self.canvas.init = False
+        self.hbar.SetScrollbar(0, self.full_width, self.full_width*self.canvas.zoom, self.canvas.zoom)
         self.canvas.render(text)
 
     def on_zoom_out_button(self, event):
         text = 'Zoom out'
         self.canvas.zoom = self.canvas.zoom*0.5
         self.canvas.init = False
+        self.hbar.SetScrollbar(0, self.full_width, self.full_width*self.canvas.zoom, self.canvas.zoom)
         self.canvas.render(text)
 
     def on_hero_button(self, event):
@@ -671,3 +680,12 @@ class Gui(wx.Frame):
                 self.canvas.use_hero = 1
                 self.canvas.render(text)
             dlg.Destroy()
+
+    def on_hbar(self, event):
+        pos = self.hbar.GetThumbPosition()
+        length = self.hbar.GetRange()
+        thumbsize = self.hbar.GetThumbSize()
+        if self.canvas.zoom>1:
+            self.canvas.pan_x = -int(self.full_width*(self.canvas.zoom-1)*(pos/(length-thumbsize)))
+            self.canvas.init = False
+            self.canvas.render(str(self.canvas.pan_x))
