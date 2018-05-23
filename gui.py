@@ -106,14 +106,10 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         # texture mode and parameters controlling wrapping and scaling
         GL.glTexEnvf(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)
-        GL.glTexParameterf(
-            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT)
-        GL.glTexParameterf(
-            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT)
-        GL.glTexParameterf(
-            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
-        GL.glTexParameterf(
-            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
+        GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT)
+        GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT)
+        GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
+        GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
 
         # map the image data to the texture. note that if the input
         # type is GL_FLOAT, the values must be in the range [0..1]
@@ -139,6 +135,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
     def render(self, text):
         """Handle all drawing operations."""
         self.SetCurrent(self.context)
+        self.signal_width = self.GetClientSize().width*self.zoom
         if not self.init:
             # Configure the viewport, modelview and projection matrices
             self.init_gl()
@@ -273,7 +270,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         else:
             step = 0
 
-        self.signal_width = end+10
+        self.signal_width = max(end+10, self.GetClientSize().width*self.zoom)
 
         # Iterate over each device and render
         for device_id, output_id in self.monitors.monitors_dictionary:
@@ -687,7 +684,8 @@ class Gui(wx.Frame):
             self.canvas.render(str(self.canvas.pan_x))
 
     def update_scroll_bar(self):
+        pos = self.hbar.GetThumbPosition()
         if self.full_width < self.canvas.signal_width:
-            self.hbar.SetScrollbar(0, self.full_width, self.canvas.signal_width, self.canvas.zoom)
+            self.hbar.SetScrollbar(pos, self.full_width, self.canvas.signal_width, self.canvas.zoom)
         else:
-            self.hbar.SetScrollbar(0, self.full_width, self.full_width, self.canvas.zoom)
+            self.hbar.SetScrollbar(pos, self.full_width, self.full_width, self.canvas.zoom)
