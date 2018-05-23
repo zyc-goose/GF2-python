@@ -61,6 +61,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         self.monitors = monitors
         self.devices = devices
+        self.parent = parent
 
         # Initialise variables for panning
         self.pan_x = 0
@@ -74,6 +75,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.cycles = 0  # number of cycles for display
         self.texture = None  # texture ID
         self.use_hero = 0  # whether to use texture or not
+        self.signal_width = 0  # Total signal length on canvas
 
         # Initialise variables for zooming
         self.zoom = 1
@@ -229,6 +231,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                             str(self.zoom)])
         if text:
             self.render(text)
+            # Here called the parent, but better to do it in other ways
+            self.parent.update_scroll_bar()
         else:
             self.Refresh()  # triggers the paint event
 
@@ -245,27 +249,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             else:
                 GLUT.glutBitmapCharacter(font, ord(character))
 
-    def render_clk(self, cycles, pos):
-        # Delete when completed
-        GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue
-        GL.glBegin(GL.GL_LINE_STRIP)
-        start = 30
-        end = max(cycles*20*self.zoom, start)
-        if cycles != 0:
-            step = (end-start)/cycles
-        else:
-            step = 0
-        for i in range(cycles):
-            x = start+i*step
-            x_next = start+(i+1)*step
-            if i % 2 == 0:
-                y = 75+pos*50
-            else:
-                y = 100+pos*50
-            GL.glVertex2f(x/self.zoom, y)
-            GL.glVertex2f(x_next/self.zoom, y)
-        GL.glEnd()
-
     def draw_horizontal_signal(self, start, cycle_count, step, level, pos):
         # Two vertices having same y coord
         x = start+cycle_count*step
@@ -279,28 +262,33 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         # To confine name lengths, edit in the future
         margin = 10
-        GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue
-        GL.glBegin(GL.GL_LINE_STRIP)
 
         # local variables
         cycle_count = 0  # count number of cycles displayed
         pos = 0  # signal position, shifted upward for each signal
-        start = 30
-        end = max(self.cycles*20*self.zoom, start)
+        start = 30  # start point for rasterisation
+        end = max(self.cycles*20*self.zoom, start)  # end point for rasterisation
         if self.cycles != 0:
             step = (end-start)/self.cycles
         else:
             step = 0
 
+        self.signal_width = end+10
+
         # Iterate over each device and render
         for device_id, output_id in self.monitors.monitors_dictionary:
             monitor_name = self.devices.get_signal_name(device_id, output_id)
-            signal_list = self.monitors_dictionary[(device_id, output_id)]
+            signal_list = self.monitors.monitors_dictionary[(device_id, output_id)]
 
             # Display signal name
             self.render_text(monitor_name[0:margin], 10/self.zoom, 80+pos*50)
 
+            # Start drawing the current signal
+            GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue
+            GL.glBegin(GL.GL_LINE_STRIP)
+
             # Iterate over each cycle and render
+            cycle_count = 0
             for signal in signal_list:
                 if signal == self.devices.HIGH:
                     self.draw_horizontal_signal(start, cycle_count, step, 1, pos)
@@ -318,7 +306,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 # if cycle_count > self.cycles:
                 #    break
             pos = pos+1
-        GL.glEnd()
+            GL.glEnd()
 
     def texture_mapping(self):
         """draw function """
@@ -389,7 +377,10 @@ class Gui(wx.Frame):
         self.total_list = monitored_list + unmonitored_list
 
         # Get switch list
-        self.switches = self.devices.find_devices(self.devices.SWITCH)
+        self.switch_ids = self.devices.find_devices(self.devices.SWITCH)
+        self.switches = []
+        for each_id in self.switch_ids:
+            self.switches.append(names.get_name_string(each_id))
 
         # Configure the file menu
         fileMenu = wx.Menu()
@@ -441,6 +432,11 @@ class Gui(wx.Frame):
         # self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
         #                            style=wx.TE_PROCESS_ENTER)
 
+        # Scroll Bars
+        self.full_width = 600
+        self.hbar = wx.ScrollBar(self, id=wx.ID_ANY, size=(600,15), style=wx.SB_HORIZONTAL)
+        self.hbar.SetScrollbar(0, self.full_width, self.full_width, 1)
+
         # Bind events to widgets
         self.Bind(wx.EVT_MENU, self.on_menu)
         self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
@@ -458,6 +454,7 @@ class Gui(wx.Frame):
         self.zoom_out_button.Bind(wx.EVT_BUTTON, self.on_zoom_out_button)
         # self.clear_button.Bind(wx.EVT_BUTTON, self.on_clear_button)
         self.hero_button.Bind(wx.EVT_BUTTON, self.on_hero_button)
+        self.hbar.Bind(wx.EVT_SCROLL, self.on_hbar)
         # self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
 
         # Configure sizers for layout
@@ -471,7 +468,8 @@ class Gui(wx.Frame):
 
 
         main_sizer.Add(main_sizer_second, 5, wx.EXPAND | wx.RIGHT | wx.TOP | wx.LEFT, 5)
-        main_sizer_second.Add(self.canvas, 5, wx.EXPAND | wx.BOTTOM, 5)
+        main_sizer_second.Add(self.canvas, 25, wx.EXPAND | wx.ALL, 5)
+        main_sizer_second.Add(self.hbar, 1, wx.ALL, 5)
         main_sizer.Add(side_sizer, 1, wx.ALL, 5)
 
         side_sizer.Add(self.text, 1, wx.TOP, 10)
@@ -511,7 +509,7 @@ class Gui(wx.Frame):
         if Id == wx.ID_EXIT:
             self.Close(True)
         if Id == wx.ID_ABOUT:
-            wx.MessageBox("Logic Simulator\nBrian's Version\n2018",
+            wx.MessageBox("Logic Simulator\nTeam 4 Version\n2018",
                           "About Logsim", wx.ICON_INFORMATION | wx.OK)
 
     def on_spin(self, event):
@@ -533,10 +531,14 @@ class Gui(wx.Frame):
     def on_run_button(self, event):
         """Handle the event when the user clicks the run button."""
         text = "Run button pressed."
-        self.canvas.run = 1
-        self.canvas.cycles = self.spin.GetValue()
-        self.run_network(self.canvas.cycles)
+        if self.canvas.run == 0:
+            self.canvas.run = 1
+            self.canvas.cycles = self.spin.GetValue()
+            self.run_network(self.canvas.cycles)
+        else:
+            text = "Already in Run mode"
         self.canvas.render(text)
+        self.update_scroll_bar()
 
     def on_text_box(self, event):
         """Handle the event when the user enters text."""
@@ -550,6 +552,7 @@ class Gui(wx.Frame):
         self.canvas.cycles += self.spin.GetValue()
         self.run_network(self.spin.GetValue())
         self.canvas.render(text)
+        self.update_scroll_bar()
 
     # def on_del_button(self, event):
     #     text = "Delete Cycles button pressed."
@@ -650,12 +653,14 @@ class Gui(wx.Frame):
         self.canvas.zoom = self.canvas.zoom*2
         self.canvas.init = False
         self.canvas.render(text)
+        self.update_scroll_bar()
 
     def on_zoom_out_button(self, event):
         text = 'Zoom out'
         self.canvas.zoom = self.canvas.zoom*0.5
         self.canvas.init = False
         self.canvas.render(text)
+        self.update_scroll_bar()
 
     def on_hero_button(self, event):
         text = 'OUR HERO!!!'
@@ -671,3 +676,18 @@ class Gui(wx.Frame):
                 self.canvas.use_hero = 1
                 self.canvas.render(text)
             dlg.Destroy()
+
+    def on_hbar(self, event):
+        pos = self.hbar.GetThumbPosition()
+        length = self.hbar.GetRange()
+        thumbsize = self.hbar.GetThumbSize()
+        if length > thumbsize:
+            self.canvas.pan_x = -int((self.canvas.signal_width-self.full_width)*(pos/(length-thumbsize)))
+            self.canvas.init = False
+            self.canvas.render(str(self.canvas.pan_x))
+
+    def update_scroll_bar(self):
+        if self.full_width < self.canvas.signal_width:
+            self.hbar.SetScrollbar(0, self.full_width, self.canvas.signal_width, self.canvas.zoom)
+        else:
+            self.hbar.SetScrollbar(0, self.full_width, self.full_width, self.canvas.zoom)
