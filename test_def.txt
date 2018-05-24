@@ -20,3 +20,27 @@ and
 and1
 and
 and3
+(
+*
+AND
+DTYPE
+DEVICE
+is
+)
+NOT
+AND
+DTYPE 2
+DEVICE
+CLOCK 10
+XOR)
+1
+and5
+and. to
+and.I3
+and.I1
+(MONITOR and)
+and
+(DEVICE Aluba is DTYPE)
+Aluba
+(MONITOR Aluba.Q)
+Aluba.Q
