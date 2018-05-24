@@ -9,6 +9,7 @@ Classes
 Parser - parses the definition file and builds the logic network.
 """
 
+from collections import namedtuple
 
 class Parser:
 
@@ -33,7 +34,7 @@ class Parser:
     parse_network(self): Parses the circuit definition file.
     """
 
-    def __init__(self, names, devices, network, monitors, scanner):
+    def __init__(self, names, devices, network, monitors, scanner, test_mode=False):
         """Initialise constants."""
         self.names = names
         self.devices = devices
@@ -75,6 +76,40 @@ class Parser:
          self.MONITOR_PRESENT,
          self.OUTPUT_TO_OUTPUT] = names.unique_error_codes(31)
 
+        self.error_names = {
+            self.NO_ERROR                      : "NO_ERROR",
+            self.BAD_CHARACTER                 : "BAD_CHARACTER",
+            self.BAD_COMMENT                   : "BAD_COMMENT",
+            self.BAD_NUMBER                    : "BAD_NUMBER",
+            self.DEVICE_REDEFINED              : "DEVICE_REDEFINED",
+            self.DEVICE_TYPE_ABSENT            : "DEVICE_TYPE_ABSENT",
+            self.DEVICE_UNDEFINED              : "DEVICE_UNDEFINED",
+            self.EMPTY_DEVICE_LIST             : "EMPTY_DEVICE_LIST",
+            self.EMPTY_FILE                    : "EMPTY_FILE",
+            self.EMPTY_MONITOR_LIST            : "EMPTY_MONITOR_LIST",
+            self.EMPTY_STATEMENT               : "EMPTY_STATEMENT",
+            self.EXPECT_DEVICE_TERMINAL_NAME   : "EXPECT_DEVICE_TERMINAL_NAME",
+            self.EXPECT_KEYWORD_IS_ARE         : "EXPECT_KEYWORD_IS_ARE",
+            self.EXPECT_KEYWORD_TO             : "EXPECT_KEYWORD_TO",
+            self.EXPECT_LEFT_PAREN             : "EXPECT_LEFT_PAREN",
+            self.EXPECT_NO_QUALIFIER           : "EXPECT_NO_QUALIFIER",
+            self.EXPECT_PORT_NAME              : "EXPECT_PORT_NAME",
+            self.EXPECT_PORT_NAME_DTYPE        : "EXPECT_PORT_NAME_DTYPE",
+            self.EXPECT_QUALIFIER              : "EXPECT_QUALIFIER",
+            self.EXPECT_RIGHT_PAREN            : "EXPECT_RIGHT_PAREN",
+            self.INPUT_CONNECTED               : "INPUT_CONNECTED",
+            self.INPUT_TO_INPUT                : "INPUT_TO_INPUT",
+            self.INVALID_DEVICE_NAME           : "INVALID_DEVICE_NAME",
+            self.INVALID_DEVICE_TYPE           : "INVALID_DEVICE_TYPE",
+            self.INVALID_FUNCTION_NAME         : "INVALID_FUNCTION_NAME",
+            self.INVALID_PORT_NAME             : "INVALID_PORT_NAME",
+            self.INVALID_QUALIFIER             : "INVALID_QUALIFIER",
+            self.KEYWORD_AS_DEVICE_NAME        : "KEYWORD_AS_DEVICE_NAME",
+            self.MONITOR_NOT_OUTPUT            : "MONITOR_NOT_OUTPUT",
+            self.MONITOR_PRESENT               : "MONITOR_PRESENT",
+            self.OUTPUT_TO_OUTPUT              : "OUTPUT_TO_OUTPUT"
+        }
+
         self.errormsg = {
             self.NO_ERROR                      : "NO_ERROR",
             self.BAD_CHARACTER                 : "***Syntax Error: Invalid character",
@@ -111,9 +146,15 @@ class Parser:
 
         self.error_code = self.NO_ERROR
         self.error_count = 0
-        self.error_code_list = [] # store the error code history, for test
-        self.last_error_pos_overwrite = False # for special cases
+
+        # For error cursor position correction
+        self.last_error_pos_overwrite = False
         self.last_error_pos = None
+
+        # For testing purpose
+        self.test_mode = test_mode
+        self.ErrorTuple = namedtuple('ErrorTuple', 'error, linum, pos')
+        self.error_tuple_list = []
 
         self.device_with_qualifier = {
             'CLOCK'  : devices.CLOCK,
@@ -375,7 +416,7 @@ class Parser:
         self.move_to_next_symbol()
         if self.is_dot():
             self.move_to_next_symbol()
-            if not self.is_name():
+            if self.is_target_name('to') or self.is_right_paren():
                 self.error_code = self.EXPECT_PORT_NAME
                 self.last_error_pos_overwrite = True
                 return None, None
@@ -475,11 +516,16 @@ class Parser:
     def error_display(self, *args):
         """Display error messages on terminal."""
         self.error_count += 1  # increment error count
-        self.error_code_list.append(self.error_code)
         current_line, error_position = self.scanner.complete_current_line()
         if self.last_error_pos_overwrite:
             error_position = self.last_error_pos
             self.last_error_pos_overwrite = False
+        ###TEST BEGIN###
+        if self.test_mode:
+            error_tuple = self.ErrorTuple(self.error_names[self.error_code], self.scanner.line_number, error_position)
+            self.error_tuple_list.append(error_tuple)
+            return True
+        ###TEST END###
         indent = ' '*2
         print('\n[ERROR #%d]' % (self.error_count))
         print('In File "'+self.scanner.input_file.name+'", line '\
