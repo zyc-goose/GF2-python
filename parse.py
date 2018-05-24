@@ -135,9 +135,6 @@ class Parser:
 
     def parse_network(self):
         """Parse the circuit definition file."""
-        # For now just return True, so that userint and gui can run in the
-        # skeleton code. When complete, should return False when there are
-        # errors in the circuit definition file.
         assert self.symbol_type is None and self.symbol_id is None, \
             "parse_network() should only be called once"
         self.move_to_next_symbol()  # initialise first symbol
