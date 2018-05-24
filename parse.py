@@ -76,6 +76,7 @@ class Parser:
          self.MONITOR_PRESENT,
          self.OUTPUT_TO_OUTPUT] = names.unique_error_codes(31)
 
+        # FOR TEST
         self.error_names = {
             self.NO_ERROR                      : "NO_ERROR",
             self.BAD_CHARACTER                 : "BAD_CHARACTER",
@@ -116,7 +117,7 @@ class Parser:
             self.BAD_COMMENT                   : "***Syntax Error: Unterminated /* comment",
             self.BAD_NUMBER                    : "***Syntax Error: Number has too many leading zeros",
             self.DEVICE_REDEFINED              : "***Semantic Error: Device is already defined",
-            self.DEVICE_TYPE_ABSENT            : "***Syntax Error: Expected device type",
+            self.DEVICE_TYPE_ABSENT            : "***Syntax Error: Expected device type after 'is'/'are'",
             self.DEVICE_UNDEFINED              : "***Semantic Error: Device is not defined",
             self.EMPTY_DEVICE_LIST             : "***Syntax Error: Expected device names",
             self.EMPTY_FILE                    : "***Semantic Error: File is empty",
@@ -150,6 +151,7 @@ class Parser:
         # For error cursor position correction
         self.last_error_pos_overwrite = False
         self.last_error_pos = None
+        self.last_error_linum = None
 
         # For testing purpose
         self.test_mode = test_mode
@@ -172,6 +174,7 @@ class Parser:
     def move_to_next_symbol(self):
         """Get next symbol from scanner."""
         cur_line, self.last_error_pos = self.scanner.complete_current_line()
+        self.last_error_linum = self.scanner.line_number
         self.symbol_type, self.symbol_id = self.scanner.get_symbol()
 
     def parse_network(self):
@@ -371,6 +374,7 @@ class Parser:
         Return (None, None) if failed."""
         if self.is_right_paren():
             self.error_code = self.DEVICE_TYPE_ABSENT
+            self.last_error_pos_overwrite = True
             return None, None
         elif not self.is_keyword():
             self.error_code = self.INVALID_DEVICE_TYPE
@@ -514,19 +518,21 @@ class Parser:
         """Display error messages on terminal."""
         self.error_count += 1  # increment error count
         current_line, error_position = self.scanner.complete_current_line()
+        line_number = self.scanner.line_number
         if self.last_error_pos_overwrite:
             error_position = self.last_error_pos
+            line_number = self.last_error_linum
             self.last_error_pos_overwrite = False
         ###TEST BEGIN###
         if self.test_mode:
-            error_tuple = self.ErrorTuple(self.error_names[self.error_code], self.scanner.line_number, error_position)
+            error_tuple = self.ErrorTuple(self.error_names[self.error_code], line_number, error_position)
             self.error_tuple_list.append(error_tuple)
             return True
         ###TEST END###
         indent = ' '*2
         print('\n[ERROR #%d]' % (self.error_count))
         print('In File "'+self.scanner.input_file.name+'", line '\
-            + str(self.scanner.line_number))
+            + str(line_number))
         print(indent + current_line)
         print(indent + ' '*(error_position-1) + '^')
         print(self.errormsg[self.error_code] + '')
