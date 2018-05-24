@@ -92,7 +92,7 @@ class Parser:
             self.EXPECT_KEYWORD_TO             : "***Syntax Error: Expected keyword 'to'",
             self.EXPECT_LEFT_PAREN             : "***Syntax Error: Expected left parenthesis '('",
             self.EXPECT_NO_QUALIFIER           : "***Syntax Error: Expected no qualifier",
-            self.EXPECT_PORT_NAME              : "***Syntax Error: Expected a port name after '.'",
+            self.EXPECT_PORT_NAME              : "***Syntax Error: Expected a valid port name after '.'",
             self.EXPECT_PORT_NAME_DTYPE        : "***Semantic Error: DTYPE device should have a port name",
             self.EXPECT_QUALIFIER              : "***Syntax Error: Expected qualifier for the device",
             self.EXPECT_RIGHT_PAREN            : "***Syntax Error: Expected right parenthesis ')'",
@@ -377,6 +377,7 @@ class Parser:
             self.move_to_next_symbol()
             if not self.is_name():
                 self.error_code = self.EXPECT_PORT_NAME
+                self.last_error_pos_overwrite = True
                 return None, None
             port_id = self.symbol_id
             if port_id not in device.inputs and port_id not in device.outputs:
@@ -395,6 +396,7 @@ class Parser:
             port_id = None
             if port_id not in device.outputs:
                 self.error_code = self.EXPECT_PORT_NAME_DTYPE
+                self.last_error_pos_overwrite = True
                 return None, None
             # monitor mode
             if monitor_mode and \
