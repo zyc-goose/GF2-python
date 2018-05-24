@@ -11,9 +11,9 @@ from monitors import Monitors
 import os
 from collections import namedtuple
 
-
+###### ERROR CODE TESTS ######
 class ParserTestCase:
-    """Receive an input file (as strings), run the parser and check the output."""
+    """Receive an input file (as strings), run the parser and check the error code."""
 
     def __init__(self):
         self.testfile_name = 'testfile.txt'
@@ -67,28 +67,171 @@ class ParserTestCase:
             return True
         print("\nInput file:")
         print(self.testfile + '\n')
-        print("actual:", self.actual_output)
-        print("expect:", self.expected_output)
+        print("actual: [", end='')
+        print(("\n" + " "*9).join(map(str, self.actual_output)), end=']\n')
+        print("expect: [", end='')
+        print(("\n" + " "*9).join(map(str, self.expected_output)), end=']\n')
         return False
 
-
-def test_error_example():
-    """Example test"""
-    testcase = ParserTestCase()
-    testcase.add_input_line('(DEVICE D1 D2 are)')
-    testcase.add_expected_error(error_name='DEVICE_TYPE_ABSENT', line_number=1, cursor_pos=18)
-    testcase.execute()
-    assert testcase.passed()
 
 def test_error_bad_character():
     """BAD_CHARACTER"""
     testcase = ParserTestCase()
     testcase.add_input_line('(DEVICE A B are XOR)')
     testcase.add_input_line('(DEVICE C D ?)')
-    testcase.add_expected_error(error_name='BAD_CHARACTER', line_number=2, cursor_pos=13)
+    testcase.add_expected_error('BAD_CHARACTER', line_number=2, cursor_pos=13)
     testcase.execute()
     assert testcase.passed()
 
+def test_error_bad_comment():
+    """BAD_COMMENT"""
+    testcase = ParserTestCase()
+    testcase.add_input_line('/* foo bar pig dog')
+    testcase.add_expected_error('BAD_COMMENT', line_number=1, cursor_pos=18)
+    testcase.execute()
+    assert testcase.passed()
+
+def test_error_bad_number():
+    """BAD_NUMBER"""
+    testcase = ParserTestCase()
+    testcase.add_input_line('(DEVICE A B are NAND 007)')
+    testcase.add_expected_error('BAD_NUMBER', line_number=1, cursor_pos=24)
+    testcase.execute()
+    assert testcase.passed()
+
+def test_error_device_redefined():
+    """DEVICE_REDEFINED"""
+    testcase = ParserTestCase()
+    testcase.add_input_line('(DEVICE A B are NAND 2)')
+    testcase.add_input_line('(DEVICE A ??!!@@##')
+    testcase.add_expected_error('DEVICE_REDEFINED', line_number=2, cursor_pos=9)
+    testcase.execute()
+    assert testcase.passed()
+
+def test_error_device_type_absent():
+    """DEVICE_TYPE_ABSENT"""
+    testcase = ParserTestCase()
+    testcase.add_input_line('(DEVICE A1 A2 are  ')
+    testcase.add_input_line('')
+    testcase.add_input_line('   )')
+    testcase.add_expected_error('DEVICE_TYPE_ABSENT', line_number=1, cursor_pos=17)
+    testcase.execute()
+    assert testcase.passed()
+
+def test_error_device_undefined():
+    """DEVICE_UNDEFINED"""
+    testcase = ParserTestCase()
+    testcase.add_input_line('(DEVICE A1 A2 are OR 3)')
+    testcase.add_input_line('(MONITOR A3 )')
+    testcase.add_expected_error('DEVICE_UNDEFINED', line_number=2, cursor_pos=11)
+    testcase.execute()
+    assert testcase.passed()
+
+def test_error_empty_device_list():
+    """EMPTY_DEVICE_LIST"""
+    testcase = ParserTestCase()
+    testcase.add_input_line('(DEVICE   are DTYPE)')
+    testcase.add_input_line('(DEVICE  )')
+    testcase.add_expected_error('EMPTY_DEVICE_LIST', line_number=1, cursor_pos=13)
+    testcase.add_expected_error('EMPTY_DEVICE_LIST', line_number=2, cursor_pos=10)
+    testcase.execute()
+    assert testcase.passed()
+
+def test_error_empty_file():
+    """EMPTY_FILE"""
+    testcase = ParserTestCase()
+    testcase.add_input_line('// csbg csbg snb cnm wqnmlgb zao yu feng')
+    testcase.add_input_line('/* Lorem Ipsum Cappucino Latte')
+    testcase.add_input_line('bagels cereal chocolate pig elephant')
+    testcase.add_input_line('zheye jidangwei */')
+    testcase.add_expected_error('EMPTY_FILE', line_number=4, cursor_pos=18)
+    testcase.execute()
+    assert testcase.passed()
+
+def test_error_empty_monitor_list():
+    """EMPTY_MONITOR_LIST"""
+    testcase = ParserTestCase()
+    testcase.add_input_line('(DEVICE A is NAND 1)')
+    testcase.add_input_line('(MONITOR          )')
+    testcase.add_expected_error('EMPTY_MONITOR_LIST', line_number=2, cursor_pos=19)
+    testcase.execute()
+    assert testcase.passed()
+
+def test_error_empty_statement():
+    """EMPTY_STATEMENT"""
+    testcase = ParserTestCase()
+    testcase.add_input_line('(DEVICE dog cat bulldog are DTYPE)')
+    testcase.add_input_line('()')
+    testcase.add_expected_error('EMPTY_STATEMENT', line_number=2, cursor_pos=2)
+    testcase.execute()
+    assert testcase.passed()
+
+def test_error_expect_device_terminal_name():
+    """EXPECT_DEVICE_TERMINAL_NAME"""
+    testcase = ParserTestCase()
+    testcase.add_input_line('(CONNECT to B foo bar)')
+    testcase.add_input_line('(CONNECT)')
+    testcase.add_input_line('(DEVICE A is DTYPE)')
+    testcase.add_input_line('(CONNECT A.DATA to )')
+    testcase.add_expected_error('EXPECT_DEVICE_TERMINAL_NAME', line_number=1, cursor_pos=11)
+    testcase.add_expected_error('EXPECT_DEVICE_TERMINAL_NAME', line_number=2, cursor_pos=9)
+    testcase.add_expected_error('EXPECT_DEVICE_TERMINAL_NAME', line_number=4, cursor_pos=20)
+    testcase.execute()
+    assert testcase.passed()
+
+def test_error_expect_keyword_is_are():
+    """EXPECT_KEYWORD_IS_ARE"""
+    testcase = ParserTestCase()
+    testcase.add_input_line('(DEVICE A B C)')
+    testcase.add_input_line('(DEVICE D E F CLOCK)')
+    testcase.add_expected_error('EXPECT_KEYWORD_IS_ARE', line_number=1, cursor_pos=14)
+    testcase.add_expected_error('EXPECT_KEYWORD_IS_ARE', line_number=2, cursor_pos=19)
+    testcase.execute()
+    assert testcase.passed()
+
+def test_error_expect_keyword_to():
+    """EXPECT_KEYWORD_TO"""
+    testcase = ParserTestCase()
+    testcase.add_input_line('(DEVICE A is XOR)')
+    testcase.add_input_line('(CONNECT A)')
+    testcase.add_input_line('(CONNECT A dog)')
+    testcase.add_expected_error('EXPECT_KEYWORD_TO', line_number=2, cursor_pos=11)
+    testcase.add_expected_error('EXPECT_KEYWORD_TO', line_number=3, cursor_pos=14)
+    testcase.execute()
+    assert testcase.passed()
+
+def test_error_expect_left_paren():
+    """EXPECT_LEFT_PAREN"""
+    testcase = ParserTestCase()
+    testcase.add_input_line('(DEVICE A is XOR)')
+    testcase.add_input_line('  cat (DEVICE B is NOR 16)')
+    testcase.add_expected_error('EXPECT_LEFT_PAREN', line_number=2, cursor_pos=5)
+    testcase.execute()
+    assert testcase.passed()
+
+def test_error_expect_left_paren():
+    """EXPECT_NO_QUALIFIER"""
+    testcase = ParserTestCase()
+    testcase.add_input_line('(DEVICE A is XOR 0)')
+    testcase.add_input_line('(DEVICE B is DTYPE 3154)')
+    testcase.add_expected_error('EXPECT_NO_QUALIFIER', line_number=1, cursor_pos=18)
+    testcase.add_expected_error('EXPECT_NO_QUALIFIER', line_number=2, cursor_pos=23)
+    testcase.execute()
+    assert testcase.passed()
+
+def test_error_expect_port_name():
+    """EXPECT_PORT_NAME"""
+    testcase = ParserTestCase()
+    testcase.add_input_line('(DEVICE A B is NAND 2)')
+    testcase.add_input_line('(CONNECT A. to )')
+    testcase.add_input_line('(CONNECT A to B.)')
+    testcase.add_expected_error('EXPECT_PORT_NAME', line_number=2, cursor_pos=11)
+    testcase.add_expected_error('EXPECT_PORT_NAME', line_number=3, cursor_pos=16)
+    testcase.execute()
+    assert testcase.passed()
+
+
+###### FUNCTION TESTS ######
 @pytest.fixture(scope="session")
 def new_parser():
     path = 'test_def.txt'
