@@ -70,6 +70,7 @@ class Network:
          self.INPUT_CONNECTED, self.PORT_ABSENT,
          self.DEVICE_ABSENT] = self.names.unique_error_codes(6)
         self.steady_state = True  # for checking if signals have settled
+        self.device_no_input = 0
 
     def get_connected_output(self, device_id, input_id):
         """Return the output connected to the given input.
@@ -378,6 +379,7 @@ class Network:
             # the clock
             for device_id in d_type_devices:  # execute DTYPE devices
                 if not self.execute_d_type(device_id):
+                    self.device_no_input = device_id
                     return False
             for device_id in clock_devices:  # complete clock executions
                 if not self.execute_clock(device_id):
@@ -385,21 +387,26 @@ class Network:
             for device_id in and_devices:  # execute AND gate devices
                 if not self.execute_gate(device_id, self.devices.HIGH,
                                          self.devices.HIGH):
+                    self.device_no_input = device_id
                     return False
             for device_id in or_devices:  # execute OR gate devices
                 if not self.execute_gate(device_id, self.devices.LOW,
                                          self.devices.LOW):
+                    self.device_no_input = device_id
                     return False
             for device_id in nand_devices:  # execute NAND gate devices
                 if not self.execute_gate(device_id, self.devices.HIGH,
                                          self.devices.LOW):
+                    self.device_no_input = device_id
                     return False
             for device_id in nor_devices:  # execute NOR gate devices
                 if not self.execute_gate(device_id, self.devices.LOW,
                                          self.devices.HIGH):
+                    self.device_no_input = device_id
                     return False
             for device_id in xor_devices:  # execute XOR devices
                 if not self.execute_gate(device_id, None, None):
+                    self.device_no_input = device_id
                     return False
             if self.steady_state:
                 break

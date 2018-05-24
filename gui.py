@@ -61,6 +61,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         self.monitors = monitors
         self.devices = devices
+        self.parent = parent
 
         # Initialise variables for panning
         self.pan_x = 0
@@ -74,6 +75,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.cycles = 0  # number of cycles for display
         self.texture = None  # texture ID
         self.use_hero = 0  # whether to use texture or not
+        self.signal_width = 0  # Total signal length on canvas
 
         # Initialise variables for zooming
         self.zoom = 1
@@ -104,14 +106,10 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         # texture mode and parameters controlling wrapping and scaling
         GL.glTexEnvf(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE)
-        GL.glTexParameterf(
-            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT)
-        GL.glTexParameterf(
-            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT)
-        GL.glTexParameterf(
-            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
-        GL.glTexParameterf(
-            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
+        GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT)
+        GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT)
+        GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
+        GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
 
         # map the image data to the texture. note that if the input
         # type is GL_FLOAT, the values must be in the range [0..1]
@@ -137,6 +135,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
     def render(self, text):
         """Handle all drawing operations."""
         self.SetCurrent(self.context)
+        self.signal_width = self.GetClientSize().width*self.zoom
         if not self.init:
             # Configure the viewport, modelview and projection matrices
             self.init_gl()
@@ -229,6 +228,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                             str(self.zoom)])
         if text:
             self.render(text)
+            # Here called the parent, but better to do it in other ways
+            self.parent.update_scroll_bar()
         else:
             self.Refresh()  # triggers the paint event
 
@@ -244,27 +245,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 GL.glRasterPos2f(x_pos, y_pos)
             else:
                 GLUT.glutBitmapCharacter(font, ord(character))
-
-    def render_clk(self, cycles, pos):
-        # Delete when completed
-        GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue
-        GL.glBegin(GL.GL_LINE_STRIP)
-        start = 30
-        end = max(cycles*20*self.zoom, start)
-        if cycles != 0:
-            step = (end-start)/cycles
-        else:
-            step = 0
-        for i in range(cycles):
-            x = start+i*step
-            x_next = start+(i+1)*step
-            if i % 2 == 0:
-                y = 75+pos*50
-            else:
-                y = 100+pos*50
-            GL.glVertex2f(x/self.zoom, y)
-            GL.glVertex2f(x_next/self.zoom, y)
-        GL.glEnd()
 
     def draw_horizontal_signal(self, start, cycle_count, step, level, pos):
         # Two vertices having same y coord
@@ -283,12 +263,14 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # local variables
         cycle_count = 0  # count number of cycles displayed
         pos = 0  # signal position, shifted upward for each signal
-        start = 30
-        end = max(self.cycles*20*self.zoom, start)
+        start = 70  # start point for rasterisation
+        end = max(self.cycles*20*self.zoom, start)  # end point for rasterisation
         if self.cycles != 0:
             step = (end-start)/self.cycles
         else:
             step = 0
+
+        self.signal_width = max(end+10, self.GetClientSize().width*self.zoom)
 
         # Iterate over each device and render
         for device_id, output_id in self.monitors.monitors_dictionary:
@@ -296,8 +278,9 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             signal_list = self.monitors.monitors_dictionary[(device_id, output_id)]
 
             # Display signal name
-            self.render_text(monitor_name, 10/self.zoom, 80+pos*50)
+            self.render_text(monitor_name[0:margin], 10/self.zoom, 80+pos*50)
 
+            # Start drawing the current signal
             GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue
             GL.glBegin(GL.GL_LINE_STRIP)
 
@@ -538,20 +521,25 @@ class Gui(wx.Frame):
             if self.network.execute_network():
                 self.monitors.record_signals()
             else:
-                print("Error! Network oscillating.")
                 return False
         return True
 
     def on_run_button(self, event):
         """Handle the event when the user clicks the run button."""
-        text = "Run button pressed."
+        status = False
         if self.canvas.run == 0:
             self.canvas.run = 1
             self.canvas.cycles = self.spin.GetValue()
-            self.run_network(self.canvas.cycles)
+            status = self.run_network(self.canvas.cycles)
         else:
             text = "Already in Run mode"
+        if status:
+            text = "Run button pressed."
+        else:
+            device_name = self.names.get_name_string(self.network.device_no_input)
+            text = 'DEVICE \"' + device_name + '\" is oscillatory!'
         self.canvas.render(text)
+        self.update_scroll_bar()
 
     def on_text_box(self, event):
         """Handle the event when the user enters text."""
@@ -565,6 +553,7 @@ class Gui(wx.Frame):
         self.canvas.cycles += self.spin.GetValue()
         self.run_network(self.spin.GetValue())
         self.canvas.render(text)
+        self.update_scroll_bar()
 
     # def on_del_button(self, event):
     #     text = "Delete Cycles button pressed."
@@ -664,15 +653,15 @@ class Gui(wx.Frame):
         text = 'Zoom in'
         self.canvas.zoom = self.canvas.zoom*2
         self.canvas.init = False
-        self.hbar.SetScrollbar(0, self.full_width, self.full_width*self.canvas.zoom, self.canvas.zoom)
         self.canvas.render(text)
+        self.update_scroll_bar()
 
     def on_zoom_out_button(self, event):
         text = 'Zoom out'
         self.canvas.zoom = self.canvas.zoom*0.5
         self.canvas.init = False
-        self.hbar.SetScrollbar(0, self.full_width, self.full_width*self.canvas.zoom, self.canvas.zoom)
         self.canvas.render(text)
+        self.update_scroll_bar()
 
     def on_hero_button(self, event):
         text = 'OUR HERO!!!'
@@ -693,7 +682,14 @@ class Gui(wx.Frame):
         pos = self.hbar.GetThumbPosition()
         length = self.hbar.GetRange()
         thumbsize = self.hbar.GetThumbSize()
-        if self.canvas.zoom>1:
-            self.canvas.pan_x = -int(self.full_width*(self.canvas.zoom-1)*(pos/(length-thumbsize)))
+        if length > thumbsize:
+            self.canvas.pan_x = -int((self.canvas.signal_width-self.full_width)*(pos/(length-thumbsize)))
             self.canvas.init = False
             self.canvas.render(str(self.canvas.pan_x))
+
+    def update_scroll_bar(self):
+        pos = self.hbar.GetThumbPosition()
+        if self.full_width < self.canvas.signal_width:
+            self.hbar.SetScrollbar(pos, self.full_width, self.canvas.signal_width, self.canvas.zoom)
+        else:
+            self.hbar.SetScrollbar(pos, self.full_width, self.full_width, self.canvas.zoom)
