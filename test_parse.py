@@ -361,4 +361,82 @@ def test_get_optional_device_id_error(new_parser):
 def test_get_optional_device_id(new_parser):
     assert new_parser.get_optional_device_id(set()) is not None
 
-def test_
+def test_check_keyword_is_are_error(new_parser):
+    assert not new_parser.check_keyword_is_are()
+    assert new_parser.error_code == new_parser.EXPECT_KEYWORD_IS_ARE
+    new_parser.move_to_next_symbol()
+
+    assert not new_parser.check_keyword_is_are()
+    assert new_parser.error_code == new_parser.INVALID_DEVICE_NAME
+    new_parser.move_to_next_symbol()
+
+    assert not new_parser.check_keyword_is_are()
+    assert new_parser.error_code == new_parser.EXPECT_KEYWORD_IS_ARE
+    new_parser.move_to_next_symbol()
+
+    assert not new_parser.check_keyword_is_are()
+    assert new_parser.error_code == new_parser.EXPECT_KEYWORD_IS_ARE
+    new_parser.move_to_next_symbol()
+
+    assert not new_parser.check_keyword_is_are()
+    assert new_parser.error_code == new_parser.KEYWORD_AS_DEVICE_NAME
+    new_parser.move_to_next_symbol()
+
+def test_check_keyword_is_are(new_parser):
+    assert new_parser.check_keyword_is_are()
+    new_parser.move_to_next_symbol()
+
+def test_get_device_type_error(new_parser):
+    assert new_parser.get_device_type() == (None, None)
+    assert new_parser.error_code == new_parser.DEVICE_TYPE_ABSENT
+    new_parser.move_to_next_symbol()
+
+    assert new_parser.get_device_type() == (None, None)
+    assert new_parser.error_code == new_parser.INVALID_DEVICE_TYPE
+    new_parser.move_to_next_symbol()
+
+    assert new_parser.get_device_type() == (None, None)
+    assert new_parser.error_code == new_parser.EXPECT_QUALIFIER
+
+    assert new_parser.get_device_type() == (None, None)
+    assert new_parser.error_code == new_parser.EXPECT_NO_QUALIFIER
+    new_parser.move_to_next_symbol()
+
+    assert new_parser.get_device_type() == (None, None)
+    assert new_parser.error_code == new_parser.INVALID_DEVICE_TYPE
+    new_parser.move_to_next_symbol()
+
+def test_get_device_type(new_parser):
+    assert new_parser.get_device_type() == (new_parser.devices.CLOCK, 10)
+    assert new_parser.get_device_type() == (new_parser.devices.XOR, None)
+    new_parser.move_to_next_symbol()
+
+def test_device_terminal_error(new_parser):
+    assert new_parser.device_terminal() == (None, None)
+    new_parser.move_to_next_symbol()
+    assert new_parser.device_terminal() == (None, None)
+    assert new_parser.error_code == new_parser.DEVICE_UNDEFINED
+    new_parser.move_to_next_symbol()
+    assert new_parser.device_terminal() == (None, None)
+    assert new_parser.error_code == new_parser.EXPECT_PORT_NAME
+    new_parser.move_to_next_symbol()
+    assert new_parser.device_terminal() == (None, None)
+    assert new_parser.error_code == new_parser.INVALID_PORT_NAME
+    new_parser.move_to_next_symbol()
+    assert new_parser.device_terminal(monitor_mode=True) == (None, None)
+    assert new_parser.error_code == new_parser.MONITOR_NOT_OUTPUT
+    new_parser.move_to_next_symbol()
+    new_parser.statement()
+    new_parser.move_to_next_symbol()
+    assert new_parser.device_terminal(monitor_mode=True) == (None, None)
+    assert new_parser.error_code == new_parser.MONITOR_PRESENT
+    new_parser.error_code = new_parser.NO_ERROR
+    new_parser.statement()
+    assert new_parser.device_terminal() == (None, None)
+    assert new_parser.error_code == new_parser.EXPECT_PORT_NAME_DTYPE
+    new_parser.statement()
+    new_parser.move_to_next_symbol()
+    assert new_parser.device_terminal(monitor_mode=True) == (None, None)
+    assert new_parser.error_code == new_parser.MONITOR_PRESENT
+    new_parser.error_code = new_parser.NO_ERROR
+
