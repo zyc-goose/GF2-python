@@ -285,5 +285,68 @@ def test_statement_error(move_to_next_symbol):
     assert error_code_4 == move_to_next_symbol.EXPECT_RIGHT_PAREN
 
 def test_statement(new_parser):
-    print(new_parser.symbol_id)
     assert new_parser.statement()
+
+def test_device_error(new_parser):
+    assert not new_parser.device()
+    error_code_1 = new_parser.error_code
+    assert error_code_1 == new_parser.NO_ERROR
+    new_parser.move_to_next_symbol()
+
+    assert not new_parser.device()
+    new_parser.error_code = new_parser.NO_ERROR
+    new_parser.move_to_next_symbol()
+
+    assert not new_parser.device()
+    new_parser.error_code = new_parser.NO_ERROR
+    new_parser.move_to_next_symbol()
+
+    assert not new_parser.device()
+    new_parser.error_code = new_parser.NO_ERROR
+    new_parser.move_to_next_symbol()
+
+    assert not new_parser.device()
+    new_parser.error_code = new_parser.NO_ERROR
+    new_parser.move_to_next_symbol()
+
+    assert not new_parser.device()
+    error_code_2 = new_parser.error_code
+    assert error_code_2 == new_parser.INVALID_QUALIFIER
+    new_parser.error_code = new_parser.NO_ERROR
+
+def test_device(move_to_next_symbol):
+    assert move_to_next_symbol.device()
+
+def test_get_first_device_id_error(new_parser):
+    assert new_parser.get_first_device_id(set()) is None
+    assert new_parser.error_code == new_parser.EMPTY_DEVICE_LIST
+    new_parser.move_to_next_symbol()
+
+    assert new_parser.get_first_device_id(set()) is None
+    assert new_parser.error_code == new_parser.KEYWORD_AS_DEVICE_NAME
+    new_parser.move_to_next_symbol()
+
+    assert new_parser.get_first_device_id(set()) is None
+    assert new_parser.error_code == new_parser.EMPTY_DEVICE_LIST
+    new_parser.move_to_next_symbol()
+
+    assert new_parser.get_first_device_id(set()) is None
+    assert new_parser.error_code == new_parser.INVALID_DEVICE_NAME
+    new_parser.move_to_next_symbol()
+
+    new_parser.get_first_device_id(set())
+    assert new_parser.error_code == new_parser.DEVICE_REDEFINED
+    new_parser.move_to_next_symbol()
+
+def test_get_first_device_id(new_parser):
+    assert new_parser.get_first_device_id(set()) is not None
+
+def test_get_optional_device_id_error(new_parser):
+    assert new_parser.get_optional_device_id(set()) is None
+    assert new_parser.error_code == new_parser.DEVICE_REDEFINED
+    new_parser.move_to_next_symbol()
+
+def test_get_optional_device_id(new_parser):
+    assert new_parser.get_optional_device_id(set()) is not None
+
+def test_

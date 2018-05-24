@@ -5,3 +5,18 @@ DEVICE
 (DEVICES
 (DEVICE a1 is AND 2
 (DEVICE G1 is AND 2)
+MONITOR
+DEVICE
+DEVICE !
+DEVICE is
+DEVICE andgate is)
+DEVICE and is AND 100)
+DEVICE and and2 are AND 2
+is
+DEVICE
+)
+250
+and
+and1
+and
+and3
