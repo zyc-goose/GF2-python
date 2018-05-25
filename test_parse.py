@@ -506,17 +506,17 @@ def test_device_terminal_error(new_parser):
     new_parser.move_to_next_symbol()
     assert new_parser.device_terminal(monitor_mode=True) == (None, None)
     assert new_parser.error_code == new_parser.MONITOR_NOT_OUTPUT
+    new_parser.error_code = new_parser.NO_ERROR
     new_parser.move_to_next_symbol()
     new_parser.statement()
-    new_parser.move_to_next_symbol()
     assert new_parser.device_terminal(monitor_mode=True) == (None, None)
     assert new_parser.error_code == new_parser.MONITOR_PRESENT
     new_parser.error_code = new_parser.NO_ERROR
     new_parser.statement()
     assert new_parser.device_terminal() == (None, None)
     assert new_parser.error_code == new_parser.EXPECT_PORT_NAME_DTYPE
+    new_parser.error_code = new_parser.NO_ERROR
     new_parser.statement()
-    new_parser.move_to_next_symbol()
     assert new_parser.device_terminal(monitor_mode=True) == (None, None)
     assert new_parser.error_code == new_parser.MONITOR_PRESENT
     new_parser.error_code = new_parser.NO_ERROR
