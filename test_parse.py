@@ -78,6 +78,7 @@ def testcase():
     """An empty TestCase instance."""
     return ParserTestCase()
 
+
 def test_error_bad_character(testcase):
     """BAD_CHARACTER"""
     testcase.add_input_line('(DEVICE A B are XOR)')
@@ -218,6 +219,75 @@ def test_error_expect_port_name(testcase):
     testcase.execute()
     assert testcase.passed()
 
+def test_error_expect_port_name_dtype(testcase):
+    """EXPECT_PORT_NAME_DTYPE"""
+    testcase.add_input_line('(DEVICE A B is DTYPE)')
+    testcase.add_input_line('(CONNECT A to )')
+    testcase.add_input_line('(CONNECT A.QBAR to B)')
+    testcase.add_expected_error('EXPECT_PORT_NAME_DTYPE', line_number=2, cursor_pos=10)
+    testcase.add_expected_error('EXPECT_PORT_NAME_DTYPE', line_number=3, cursor_pos=20)
+    testcase.execute()
+    assert testcase.passed()
+
+def test_error_expect_qualifier(testcase):
+    """EXPECT_QUALIFIER"""
+    testcase.add_input_line('(DEVICE A B is NAND 3 )')
+    testcase.add_input_line('(DEVICE C D is NAND   )')
+    testcase.add_expected_error('EXPECT_QUALIFIER', line_number=2, cursor_pos=23)
+    testcase.execute()
+    assert testcase.passed()
+
+def test_error_expect_right_paren(testcase):
+    """EXPECT_RIGHT_PAREN"""
+    testcase.add_input_line('(DEVICE foo bar is NAND 14')
+    testcase.add_input_line('  /* some useless comment')
+    testcase.add_input_line(' anothe sb sb sb sb csbg */')
+    testcase.add_input_line('(CONNECT foo.I1 to bar)')
+    testcase.add_expected_error('EXPECT_RIGHT_PAREN', line_number=1, cursor_pos=27)
+    testcase.execute()
+    assert testcase.passed()
+
+def test_error_input_connected(testcase):
+    """INPUT_CONNECTED"""
+    testcase.add_input_line('(DEVICE A B C are AND 2)')
+    testcase.add_input_line('  /* some useless comment')
+    testcase.add_input_line(' anothe sb sb sb sb csbg */')
+    testcase.add_input_line('')
+    testcase.add_input_line('(CONNECT A to C.I1)')
+    testcase.add_input_line('(CONNECT B to C.I1)')
+    testcase.add_expected_error('INPUT_CONNECTED', line_number=6, cursor_pos=18)
+    testcase.execute()
+    assert testcase.passed()
+
+def test_error_input_connected(testcase):
+    """INPUT_TO_INPUT"""
+    testcase.add_input_line('(DEVICE A B are AND 2)')
+    testcase.add_input_line('(CONNECT A.I2 to B.I1)')
+    testcase.add_expected_error('INPUT_TO_INPUT', line_number=2, cursor_pos=21)
+    testcase.execute()
+    assert testcase.passed()
+
+def test_error_invalid_device_name(testcase):
+    """INVALID_DEVICE_NAME"""
+    testcase.add_input_line('(DEVICE A B C1234 1234)')
+    testcase.add_input_line('(DEVICE DDD .)')
+    testcase.add_expected_error('INVALID_DEVICE_NAME', line_number=1, cursor_pos=22)
+    testcase.add_expected_error('INVALID_DEVICE_NAME', line_number=2, cursor_pos=13)
+    testcase.execute()
+    assert testcase.passed()
+
+def test_error_invalid_device_type(testcase):
+    """INVALID_DEVICE_TYPE"""
+    testcase.add_input_line('(DEVICE A11 A22 A33 are BTYPE)')
+    testcase.add_input_line('(DEVICE B1 B2 B3 are csbg)')
+    testcase.add_input_line('(DEVICE C1 C2 C3 are .)')
+    testcase.add_input_line('(DEVICE D1 D2 D3 are MONITOR)')
+    testcase.add_expected_error('INVALID_DEVICE_TYPE', line_number=1, cursor_pos=29)
+    testcase.add_expected_error('INVALID_DEVICE_TYPE', line_number=2, cursor_pos=25)
+    testcase.add_expected_error('INVALID_DEVICE_TYPE', line_number=3, cursor_pos=22)
+    testcase.add_expected_error('INVALID_DEVICE_TYPE', line_number=4, cursor_pos=28)
+    testcase.execute()
+    assert testcase.passed()
 
 ###### FUNCTION TESTS ######
 @pytest.fixture(scope="session")
@@ -427,4 +497,3 @@ def test_device_terminal_error(new_parser):
     assert new_parser.device_terminal(monitor_mode=True) == (None, None)
     assert new_parser.error_code == new_parser.MONITOR_PRESENT
     new_parser.error_code = new_parser.NO_ERROR
-
