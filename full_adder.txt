@@ -1,7 +1,1 @@
-(#   DEVICE AA is AND 0003)
-(   DEVICE AA is AND 0003)
-(   DEVICE AA is AND 0003)
-(   DEVICE AA is AND 0003)
-( foo bar)
-/* Jianran shi da sha bi
-Unterminated comment
+(DEVICE D1 D2 D3 are MONITOR        )

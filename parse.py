@@ -274,12 +274,16 @@ class Parser:
         # Check the last parenthesis
         if not self.is_right_paren():
             self.error_code = self.EXPECT_RIGHT_PAREN
+            self.last_error_pos_overwrite = True
+            self.last_error_pos += 1
             return False
         self.move_to_next_symbol()
         return True
 
     def device(self):
         """Parse a device definition."""
+        if self.error_code != self.NO_ERROR: # make sure no error has occured
+            return False
         if not (self.is_keyword() and self.is_target_name('DEVICE')):
             return False  # not a device, pass on to connect
         self.move_to_next_symbol()
@@ -402,6 +406,7 @@ class Parser:
             return device_kind, qualifier
         else:
             self.error_code = self.INVALID_DEVICE_TYPE
+            line, linum = self.scanner.complete_current_line()
             return None, None
 
     def device_terminal(self, monitor_mode = False):
@@ -450,6 +455,8 @@ class Parser:
 
     def connect(self):
         """Parse a connection."""
+        if self.error_code != self.NO_ERROR: # make sure no error has occured
+            return False
         if not (self.is_keyword() and self.is_target_name('CONNECT')):
             return False  # not a connect, pass on to monitor
         self.move_to_next_symbol()
@@ -488,6 +495,8 @@ class Parser:
 
     def monitor(self):
         """Parse a series of monitors."""
+        if self.error_code != self.NO_ERROR: # make sure no error has occured
+            return False
         if not (self.is_keyword() and self.is_target_name('MONITOR')):
             return False  # not a monitor, pass back to statement
         self.move_to_next_symbol()
