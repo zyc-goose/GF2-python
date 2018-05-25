@@ -1,5 +1,3 @@
-(DEVICE SW is SWITCH 0)
-(DEVICE A is NAND 2)
-(CONNECT SW to A.I1)
-(CONNECT SW to A.I2)
-(MONITOR A)
+(DEVICE csbg is NAND 1)
+(CONNECT csbg to csbg.I1)
+(MONITOR csbg)
