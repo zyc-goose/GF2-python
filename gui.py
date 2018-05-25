@@ -76,6 +76,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.texture = None  # texture ID
         self.use_hero = 0  # whether to use texture or not
         self.signal_width = 0  # Total signal length on canvas
+        self.page_number = 1
+        self.current_page = 1
 
         # Initialise variables for zooming
         self.zoom = 1
@@ -148,10 +150,13 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         # Draw specified text at position (10, 10)
         self.render_text(text, 10/self.zoom, 10)
+        page_disp = 'Page: '+str(self.current_page)+'/'+str(self.page_number)
+        self.render_text(page_disp, (520-self.pan_x)/self.zoom, 10)
 
         if self.run == 1:
             # If run button clicked, render all signals
             self.render_signal()
+        self.parent.update_scroll_bar()
 
         # We have been drawing to the back buffer, flush the graphics pipeline
         # and swap the back buffer to the front
@@ -263,14 +268,18 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # local variables
         cycle_count = 0  # count number of cycles displayed
         pos = 0  # signal position, shifted upward for each signal
-        start = 70  # start point for rasterisation
-        end = max(self.cycles*20*self.zoom, start)  # end point for rasterisation
-        if self.cycles != 0:
-            step = (end-start)/self.cycles
+        start = 50  # start point for rasterisation
+        # No of cycles to be displayed on this page
+        last_cycle = min((self.cycles-(self.current_page-1)*60),60)
+        end = max(last_cycle*9*self.zoom + start, start)  # end point for rasterisation
+        if last_cycle != 0:
+            step = (end-start)/last_cycle
         else:
             step = 0
 
-        self.signal_width = max(end+10, self.GetClientSize().width*self.zoom)
+        self.signal_width = end+10
+        # Use below when texture is mapped
+        # self.signal_width = max(end+10, self.GetClientSize().width*self.zoom)
 
         # Iterate over each device and render
         for device_id, output_id in self.monitors.monitors_dictionary:
@@ -286,7 +295,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
             # Iterate over each cycle and render
             cycle_count = 0
-            for signal in signal_list:
+            for signal in signal_list[(self.current_page-1)*60:(self.current_page-1)*60+last_cycle]:
                 if signal == self.devices.HIGH:
                     self.draw_horizontal_signal(start, cycle_count, step, 1, pos)
                     cycle_count += 1
@@ -373,6 +382,9 @@ class Gui(wx.Frame):
         monitored_list, unmonitored_list = self.monitors.get_signal_names()
         self.total_list = monitored_list + unmonitored_list
 
+        # Cycles completed
+        self.cycles_completed = 0
+
         # Get switch list
         self.switch_ids = self.devices.find_devices(self.devices.SWITCH)
         self.switches = []
@@ -425,7 +437,9 @@ class Gui(wx.Frame):
         # self.clear_button = wx.Button(self, wx.ID_ANY, "Clear")
 
         # Display texture mapping
-        self.hero_button = wx.Button(self, wx.ID_ANY, "HERO")
+        #self.hero_button = wx.Button(self, wx.ID_ANY, "HERO")
+        self.prev_button = wx.Button(self, wx.ID_ANY, "Prev Page")
+        self.next_button = wx.Button(self, wx.ID_ANY, "Next Page")
         # self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
         #                            style=wx.TE_PROCESS_ENTER)
 
@@ -450,8 +464,10 @@ class Gui(wx.Frame):
         self.zoom_in_button.Bind(wx.EVT_BUTTON, self.on_zoom_in_button)
         self.zoom_out_button.Bind(wx.EVT_BUTTON, self.on_zoom_out_button)
         # self.clear_button.Bind(wx.EVT_BUTTON, self.on_clear_button)
-        self.hero_button.Bind(wx.EVT_BUTTON, self.on_hero_button)
+        #self.hero_button.Bind(wx.EVT_BUTTON, self.on_hero_button)
         self.hbar.Bind(wx.EVT_SCROLL, self.on_hbar)
+        self.prev_button.Bind(wx.EVT_BUTTON, self.on_prev_button)
+        self.next_button.Bind(wx.EVT_BUTTON, self.on_next_button)
         # self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
 
         # Configure sizers for layout
@@ -462,6 +478,7 @@ class Gui(wx.Frame):
         double_butt_2 = wx.BoxSizer(wx.HORIZONTAL)
         double_butt_3 = wx.BoxSizer(wx.HORIZONTAL)
         double_butt_4 = wx.BoxSizer(wx.HORIZONTAL)
+        double_butt_5 = wx.BoxSizer(wx.HORIZONTAL)
 
 
         main_sizer.Add(main_sizer_second, 5, wx.EXPAND | wx.RIGHT | wx.TOP | wx.LEFT, 5)
@@ -492,7 +509,10 @@ class Gui(wx.Frame):
         side_sizer.Add(double_butt_4, 0.5, wx.ALL, 0)
         double_butt_4.Add(self.zoom_in_button, 1, wx.ALL, 5)
         double_butt_4.Add(self.zoom_out_button, 1, wx.ALL, 5)
-        side_sizer.Add(self.hero_button, 1 , wx.ALL, 5)
+        side_sizer.Add(double_butt_5, 1, wx.ALL, 0)
+        double_butt_5.Add(self.prev_button, 0.8 , wx.ALL, 0)
+        double_butt_5.Add(self.next_button, 0.8, wx.ALL, 0)
+        # side_sizer.Add(self.hero_button, 1 , wx.ALL, 5)
         # side_sizer.Add(self.text_box, 1, wx.TOP, 10)
 
         # side_sizer.Add(self.clear_button, 1, wx.ALL, 5)
@@ -526,18 +546,19 @@ class Gui(wx.Frame):
 
     def on_run_button(self, event):
         """Handle the event when the user clicks the run button."""
-        status = False
         if self.canvas.run == 0:
             self.canvas.run = 1
             self.canvas.cycles = self.spin.GetValue()
-            status = self.run_network(self.canvas.cycles)
+            self.canvas.page_number = int(self.canvas.cycles/60)+1
+            self.canvas.current_page = 1
+            self.cycles_completed = 60
+            if self.run_network(60):
+                text = "Run button pressed."
+            else:
+                device_name = self.names.get_name_string(self.network.device_no_input)
+                text = 'DEVICE \"' + device_name + '\" is oscillatory!'
         else:
             text = "Already in Run mode"
-        if status:
-            text = "Run button pressed."
-        else:
-            device_name = self.names.get_name_string(self.network.device_no_input)
-            text = 'DEVICE \"' + device_name + '\" is oscillatory!'
         self.canvas.render(text)
         self.update_scroll_bar()
 
@@ -550,8 +571,14 @@ class Gui(wx.Frame):
     def on_cont_button(self, event):
         text = "Add Cycles button pressed."
         self.canvas.run = 1
-        self.canvas.cycles += self.spin.GetValue()
-        self.run_network(self.spin.GetValue())
+        added_cycles = self.spin.GetValue()
+        self.canvas.cycles += added_cycles
+        self.canvas.page_number = int(self.canvas.cycles/60)+1
+        if self.cycles_completed%60 != 0:
+            next_to_run = min((60-self.cycles_completed%60), added_cycles)
+            self.run_network(next_to_run)
+            self.cycles_completed += next_to_run
+        # self.run_network(self.spin.GetValue())
         self.canvas.render(text)
         self.update_scroll_bar()
 
@@ -693,3 +720,25 @@ class Gui(wx.Frame):
             self.hbar.SetScrollbar(pos, self.full_width, self.canvas.signal_width, self.canvas.zoom)
         else:
             self.hbar.SetScrollbar(pos, self.full_width, self.full_width, self.canvas.zoom)
+
+    def on_prev_button(self, event):
+        if self.canvas.current_page > 1:
+            self.canvas.current_page -= 1
+            self.canvas.pan_x = 0
+            self.canvas.init = False
+        else:
+            self.canvas.current_page = 1
+        self.canvas.render('Turn to Previous Page')
+
+    def on_next_button(self, event):
+        if self.canvas.current_page < self.canvas.page_number:
+            next_to_run = min(self.canvas.cycles-self.canvas.current_page*60, 60)
+            self.canvas.current_page += 1
+            self.canvas.pan_x = 0
+            self.canvas.init = False
+            if self.canvas.current_page*60 > self.cycles_completed:
+                self.run_network(next_to_run)
+                self.cycles_completed += next_to_run
+        else:
+            self.canvas.current_page = self.canvas.page_number
+        self.canvas.render('Turn to Next Page')
