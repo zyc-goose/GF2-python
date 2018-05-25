@@ -73,15 +73,19 @@ class Scanner:
         'Unterminated comment']
         dummy = names.lookup(self.error_list)
 
+        self.previous_lines = [] # for errormsg display
+
         self.line_number = 0
         self.current_line = ''
         self.current_character = ''
         self.advance()
 
+
     def advance(self):
         if self.current_character not in ('\n', ''):
             self.current_line += self.current_character
         else:
+            self.previous_lines.append(self.current_line)
             self.current_line = ''
             self.line_number += 1
 

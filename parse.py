@@ -151,6 +151,10 @@ class Parser:
         self.error_code = self.NO_ERROR
         self.error_count = 0
 
+        # For errormsg display
+        self.Location = namedtuple('Location', 'linum, pos')
+        self.device_locations = {} # id -> location
+
         # For error cursor position correction
         self.last_error_pos_overwrite = False
         self.last_error_pos = None
@@ -324,6 +328,11 @@ class Parser:
                 return False
         return True
 
+    def add_device_location(self):
+        """Add current (linum, pos) to the dict of device locations."""
+        self.device_locations[self.symbol_id] = \
+        self.Location(self.scanner.line_number, len(self.scanner.current_line))
+
     def get_first_device_id(self, new_device_ids):
         """Parse the first device name by force.
         If successful, return device_id.
@@ -345,6 +354,7 @@ class Parser:
             self.error_code = self.DEVICE_REDEFINED
             return None
         new_device_ids.add(device_id)
+        self.add_device_location()
         self.move_to_next_symbol()
         return device_id
 
@@ -361,6 +371,7 @@ class Parser:
             self.error_code = self.DEVICE_REDEFINED
             return None
         new_device_ids.add(device_id)
+        self.add_device_location()
         self.move_to_next_symbol()
         return device_id
 
@@ -554,4 +565,19 @@ class Parser:
         print(indent + current_line)
         print(indent + ' '*(error_position-1) + '^')
         print(self.errormsg[self.error_code] + '')
+        self.error_additional_info()
         return True
+
+    def error_additional_info(self):
+        """Add additional information to the error display."""
+        indent = ' '*2
+        if self.error_code == self.DEVICE_REDEFINED:
+            location = self.device_locations[self.symbol_id]
+            print('-----------------------------------------')
+            print('Previous definition here, in line', location.linum)
+            if location.linum < self.scanner.line_number:
+                line = self.scanner.previous_lines[location.linum]
+            else:
+                line, pos = self.scanner.complete_current_line()
+            print(indent + line)
+            print(indent + ' '*(location.pos-1) + '^')
