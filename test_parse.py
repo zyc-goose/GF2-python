@@ -590,3 +590,9 @@ def test_connect_error(new_parser):
     new_parser.error_code = new_parser.NO_ERROR
     assert not new_parser.connect()
     assert new_parser.error_code == new_parser.EXPECT_DEVICE_TERMINAL_NAME
+    new_parser.move_to_next_symbol()
+
+    new_parser.error_code = new_parser.NO_ERROR
+    assert not new_parser.connect()
+    print(new_parser.symbol_id)
+    assert new_parser.error_code == new_parser.EXPECT_KEYWORD_TO
