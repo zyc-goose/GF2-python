@@ -44,3 +44,8 @@ and
 Aluba
 (MONITOR Aluba.Q)
 Aluba.Q
+(DEVICE or is OR 2)
+or.I1
+CONNECT or to and.I1)
+DEVICE
+CONNECT
