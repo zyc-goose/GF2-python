@@ -118,35 +118,36 @@ class Parser:
             self.BAD_CHARACTER                 : "***Syntax Error: Invalid character",
             self.BAD_COMMENT                   : "***Syntax Error: Unterminated /* comment",
             self.BAD_NUMBER                    : "***Syntax Error: Number has too many leading zeros",
-            self.DEVICE_REDEFINED              : "***Semantic Error: Device is already defined",
+            self.DEVICE_REDEFINED              : "***Semantic Error: Device '{symbol_name}' is already defined",
             self.DEVICE_TYPE_ABSENT            : "***Syntax Error: Expected device type after 'is'/'are'",
-            self.DEVICE_UNDEFINED              : "***Semantic Error: Device is not defined",
-            self.EMPTY_DEVICE_LIST             : "***Syntax Error: Expected device names",
+            self.DEVICE_UNDEFINED              : "***Semantic Error: Device '{symbol_name}' is not defined",
+            self.EMPTY_DEVICE_LIST             : "***Syntax Error: Device list is empty",
             self.EMPTY_FILE                    : "***Semantic Error: File is empty",
-            self.EMPTY_MONITOR_LIST            : "***Syntax Error: Expected device terminal names",
-            self.EMPTY_STATEMENT               : "***Syntax Error: Empty statement",
-            self.EXPECT_DEVICE_TERMINAL_NAME   : "***Syntax Error: Expected device terminal names",
+            self.EMPTY_MONITOR_LIST            : "***Syntax Error: Monitor list is empty",
+            self.EMPTY_STATEMENT               : "***Syntax Error: Statement is empty",
+            self.EXPECT_DEVICE_TERMINAL_NAME   : "***Syntax Error: Expected a device terminal name (device_name + port_name)",
             self.EXPECT_KEYWORD_IS_ARE         : "***Syntax Error: Expected keyword 'is'/'are'",
             self.EXPECT_KEYWORD_TO             : "***Syntax Error: Expected keyword 'to'",
             self.EXPECT_LEFT_PAREN             : "***Syntax Error: Expected left parenthesis '('",
-            self.EXPECT_NO_QUALIFIER           : "***Syntax Error: Expected no qualifier",
+            self.EXPECT_NO_QUALIFIER           : "***Syntax Error: Expected no qualifier for the device type '{device_type}'",
             self.EXPECT_PORT_NAME              : "***Syntax Error: Expected a valid port name after '.'",
             self.EXPECT_PORT_NAME_DTYPE        : "***Semantic Error: DTYPE device should have a port name",
-            self.EXPECT_QUALIFIER              : "***Syntax Error: Expected qualifier for the device(s)",
+            self.EXPECT_QUALIFIER              : "***Syntax Error: Expected a qualifier for the device type '{device_type}'",
             self.EXPECT_RIGHT_PAREN            : "***Syntax Error: Expected right parenthesis ')'",
             self.INPUT_CONNECTED               : "***Semantic Error: Attempt to connect multiple outputs to an input",
             self.INPUT_TO_INPUT                : "***Semantic Error: Attempt to connect two inputs",
-            self.INPUT_UNCONNECTED             : "***Semantic Error: Not all input ports are connected to outputs",
-            self.INVALID_DEVICE_NAME           : "***Syntax Error: Invalid device name",
-            self.INVALID_DEVICE_TYPE           : "***Syntax Error: Invalid device type",
-            self.INVALID_FUNCTION_NAME         : "***Syntax Error: Invalid function, please specify 'DEVICE', 'CONNECT' or 'MONITOR'",
+            self.INPUT_UNCONNECTED             : "***Semantic Error: Some input ports are not connected to any outputs",
+            self.INVALID_DEVICE_NAME           : "***Syntax Error: Invalid device name '{symbol_name}'",
+            self.INVALID_DEVICE_TYPE           : "***Syntax Error: Invalid device type '{device_type}'",
+            self.INVALID_FUNCTION_NAME         : "***Syntax Error: Invalid function '{symbol_name}', please specify 'DEVICE', 'CONNECT' or 'MONITOR'",
             self.INVALID_PORT_NAME             : "***Semantic Error: Invalid port name for the device",
-            self.INVALID_QUALIFIER             : "***Semantic Error: Invalid qualifier for the given device type",
-            self.KEYWORD_AS_DEVICE_NAME        : "***Syntax Error: Can't use keyword as device name",
+            self.INVALID_QUALIFIER             : "***Semantic Error: Invalid qualifier for the device type '{device_type}'",
+            self.KEYWORD_AS_DEVICE_NAME        : "***Syntax Error: Can't use keyword '{symbol_name}' as device name",
             self.MONITOR_NOT_OUTPUT            : "***Semantic Error: Attempt to monitor an input",
             self.MONITOR_PRESENT               : "***Semantic Error: Monitor already exists for the given signal",
             self.OUTPUT_TO_OUTPUT              : "***Semantic Error: Attempt to connect two outputs"
         }
+        self.errormsg_format_dict = {} # used for str.format(**dict)
 
         self.error_code = self.NO_ERROR
         self.error_count = 0
@@ -184,6 +185,7 @@ class Parser:
         self.last_error_pos = len(self.scanner.current_line)
         self.last_error_linum = self.scanner.line_number
         self.symbol_type, self.symbol_id = self.scanner.get_symbol()
+        self.errormsg_format_dict['symbol_name'] = self.get_name_string()
 
     def parse_network(self):
         """Parse the circuit definition file."""
@@ -198,6 +200,7 @@ class Parser:
             if not self.statement():
                 # First check syntax error from scanner
                 if self.symbol_type == self.scanner.SYNTAX_ERROR:
+                    self.last_error_pos_overwrite = False # cannot use previous pos
                     if self.is_target_name('Unrecogonized character'):
                         self.error_code = self.BAD_CHARACTER
                     elif self.is_target_name('Number starting with 0'):
@@ -402,6 +405,10 @@ class Parser:
     def get_device_type(self):
         """Parse device type (and qualifier).
         Return (None, None) if failed."""
+
+        device_type_str = self.get_name_string()
+        self.errormsg_format_dict['device_type'] = device_type_str
+
         if self.is_right_paren():
             self.error_code = self.DEVICE_TYPE_ABSENT
             self.last_error_pos_overwrite = True
@@ -410,12 +417,12 @@ class Parser:
             self.error_code = self.INVALID_DEVICE_TYPE
             return None, None
         # Classify device type
-        device_type_str = self.get_name_string()
         if device_type_str in self.device_with_qualifier:
             # Check and update the qualifier
             self.move_to_next_symbol()
             if not self.is_number():
                 self.error_code = self.EXPECT_QUALIFIER
+                self.last_error_pos_overwrite = True
                 return None, None
             device_kind = self.device_with_qualifier[device_type_str]
             qualifier = self.symbol_id
@@ -576,7 +583,7 @@ class Parser:
             + str(line_number))
         print(indent + current_line)
         print(indent + ' '*(error_position-1) + '^')
-        print(self.errormsg[self.error_code] + '')
+        print(self.errormsg[self.error_code].format(**self.errormsg_format_dict))
         self.error_additional_info()
         return True
 
