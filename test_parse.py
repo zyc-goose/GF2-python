@@ -300,14 +300,69 @@ def test_error_invalid_function_name(testcase):
     testcase.execute()
     assert testcase.passed()
 
-def test_error_invalid_function_name(testcase):
+def test_error_invalid_port_name(testcase):
     """INVALID_PORT_NAME"""
-    testcase.add_input_line('(DEVICES )')
-    testcase.add_input_line('(CONNECTION C1 C2 C3 are .)')
-    testcase.add_input_line('(MONICA D1 )')
-    testcase.add_expected_error('INVALID_FUNCTION_NAME', line_number=1, cursor_pos=8)
-    testcase.add_expected_error('INVALID_FUNCTION_NAME', line_number=2, cursor_pos=11)
-    testcase.add_expected_error('INVALID_FUNCTION_NAME', line_number=3, cursor_pos=7)
+    testcase.add_input_line('(DEVICE A is NAND 4)')
+    testcase.add_input_line('(DEVICE B is DTYPE)')
+    testcase.add_input_line('(CONNECT A.I5 to sb)')
+    testcase.add_input_line('(MONITOR B.QQQ)')
+    testcase.add_expected_error('INVALID_PORT_NAME', line_number=3, cursor_pos=13)
+    testcase.add_expected_error('INVALID_PORT_NAME', line_number=4, cursor_pos=14)
+    testcase.execute()
+    assert testcase.passed()
+
+def test_error_invalid_qualifier(testcase):
+    """INVALID_QUALIFIER"""
+    testcase.add_input_line('(DEVICE A is NAND 0)')
+    testcase.add_input_line('(DEVICE B is NOR 17)')
+    testcase.add_input_line('(DEVICE C is SWITCH 2)')
+    testcase.add_expected_error('INVALID_QUALIFIER', line_number=1, cursor_pos=19)
+    testcase.add_expected_error('INVALID_QUALIFIER', line_number=2, cursor_pos=19)
+    testcase.add_expected_error('INVALID_QUALIFIER', line_number=3, cursor_pos=21)
+    testcase.execute()
+    assert testcase.passed()
+
+def test_error_keyword_as_device_name(testcase):
+    """KEYWORD_AS_DEVICE_NAME"""
+    testcase.add_input_line('(DEVICE DEVICE)')
+    testcase.add_input_line('(DEVICE csbg CONNECT)')
+    testcase.add_input_line('(DEVICE A B to)')
+    testcase.add_expected_error('KEYWORD_AS_DEVICE_NAME', line_number=1, cursor_pos=14)
+    testcase.add_expected_error('KEYWORD_AS_DEVICE_NAME', line_number=2, cursor_pos=20)
+    testcase.add_expected_error('KEYWORD_AS_DEVICE_NAME', line_number=3, cursor_pos=14)
+    testcase.execute()
+    assert testcase.passed()
+
+def test_error_monitor_not_output(testcase):
+    """MONITOR_NOT_OUTPUT"""
+    testcase.add_input_line('(DEVICE csbg is DTYPE)')
+    testcase.add_input_line('(DEVICE zyf is NAND 2)')
+    testcase.add_input_line('(MONITOR csbg.CLK)')
+    testcase.add_input_line('(MONITOR zyf.I1)')
+    testcase.add_expected_error('MONITOR_NOT_OUTPUT', line_number=3, cursor_pos=17)
+    testcase.add_expected_error('MONITOR_NOT_OUTPUT', line_number=4, cursor_pos=15)
+    testcase.execute()
+    assert testcase.passed()
+
+def test_error_monitor_present(testcase):
+    """MONITOR_PRESENT"""
+    testcase.add_input_line('(DEVICE A B C are OR 4)')
+    testcase.add_input_line('(MONITOR A B C)')
+    testcase.add_input_line('(MONITOR C)')
+    testcase.add_input_line('(MONITOR A)')
+    testcase.add_expected_error('MONITOR_PRESENT', line_number=3, cursor_pos=10)
+    testcase.add_expected_error('MONITOR_PRESENT', line_number=4, cursor_pos=10)
+    testcase.execute()
+    assert testcase.passed()
+
+def test_error_output_to_output(testcase):
+    """OUTPUT_TO_OUTPUT"""
+    testcase.add_input_line('(DEVICE A B C are XOR)')
+    testcase.add_input_line('(DEVICE D is DTYPE)')
+    testcase.add_input_line('(CONNECT A to B)')
+    testcase.add_input_line('(CONNECT D.Q to D.QBAR)')
+    testcase.add_expected_error('OUTPUT_TO_OUTPUT', line_number=3, cursor_pos=15)
+    testcase.add_expected_error('OUTPUT_TO_OUTPUT', line_number=4, cursor_pos=22)
     testcase.execute()
     assert testcase.passed()
 

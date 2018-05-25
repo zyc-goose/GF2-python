@@ -312,6 +312,7 @@ class Parser:
             error_code = self.devices.make_device(device_id, device_kind, qualifier)
             if error_code == self.devices.INVALID_QUALIFIER:
                 self.error_code = self.INVALID_QUALIFIER
+                self.last_error_pos_overwrite = True
                 return False
         return True
 
