@@ -312,6 +312,7 @@ class Parser:
             error_code = self.devices.make_device(device_id, device_kind, qualifier)
             if error_code == self.devices.INVALID_QUALIFIER:
                 self.error_code = self.INVALID_QUALIFIER
+                self.last_error_pos_overwrite = True
                 return False
         return True
 
@@ -385,7 +386,6 @@ class Parser:
             return None, None
         # Classify device type
         device_type_str = self.get_name_string()
-        print(device_type_str)
         if device_type_str in self.device_with_qualifier:
             # Check and update the qualifier
             self.move_to_next_symbol()
@@ -408,7 +408,6 @@ class Parser:
         else:
             self.error_code = self.INVALID_DEVICE_TYPE
             line, linum = self.scanner.complete_current_line()
-            print(linum, line)
             return None, None
 
     def device_terminal(self, monitor_mode = False):
