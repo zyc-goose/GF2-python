@@ -46,6 +46,7 @@ Aluba
 Aluba.Q
 (DEVICE or is OR 2)
 or.I1
-CONNECT or to and.I1)
+CONNECT or to and.I1
 DEVICE
 CONNECT
+CONNECt or
