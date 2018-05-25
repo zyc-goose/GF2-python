@@ -401,7 +401,7 @@ class Gui(wx.Frame):
 
         # Basic cycle control widgets
         self.text = wx.StaticText(self, wx.ID_ANY, "Cycles")
-        self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")
+        self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10", max = 10000000)
         self.run_button = wx.Button(self, wx.ID_ANY, "Run")
         self.cont_button = wx.Button(self,wx.ID_ANY,"Add")
         self.del_button = wx.Button(self, wx.ID_ANY, "Delete")
