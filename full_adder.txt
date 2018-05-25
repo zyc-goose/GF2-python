@@ -1,1 +1,3 @@
-(DEVICE D1 D2 D3 are MONITOR        )
+(DEVICE csbg is NAND 1)
+(CONNECT csbg to csbg.I1)
+(MONITOR csbg)

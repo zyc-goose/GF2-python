@@ -66,6 +66,7 @@ class Parser:
          self.EXPECT_RIGHT_PAREN,
          self.INPUT_CONNECTED,
          self.INPUT_TO_INPUT,
+         self.INPUT_UNCONNECTED,
          self.INVALID_DEVICE_NAME,
          self.INVALID_DEVICE_TYPE,
          self.INVALID_FUNCTION_NAME,
@@ -74,7 +75,7 @@ class Parser:
          self.KEYWORD_AS_DEVICE_NAME,
          self.MONITOR_NOT_OUTPUT,
          self.MONITOR_PRESENT,
-         self.OUTPUT_TO_OUTPUT] = names.unique_error_codes(31)
+         self.OUTPUT_TO_OUTPUT] = names.unique_error_codes(32)
 
         # FOR TEST
         self.error_names = {
@@ -100,6 +101,7 @@ class Parser:
             self.EXPECT_RIGHT_PAREN            : "EXPECT_RIGHT_PAREN",
             self.INPUT_CONNECTED               : "INPUT_CONNECTED",
             self.INPUT_TO_INPUT                : "INPUT_TO_INPUT",
+            self.INPUT_UNCONNECTED             : "INPUT_UNCONNECTED",
             self.INVALID_DEVICE_NAME           : "INVALID_DEVICE_NAME",
             self.INVALID_DEVICE_TYPE           : "INVALID_DEVICE_TYPE",
             self.INVALID_FUNCTION_NAME         : "INVALID_FUNCTION_NAME",
@@ -134,6 +136,7 @@ class Parser:
             self.EXPECT_RIGHT_PAREN            : "***Syntax Error: Expected right parenthesis ')'",
             self.INPUT_CONNECTED               : "***Semantic Error: Attempt to connect multiple outputs to an input",
             self.INPUT_TO_INPUT                : "***Semantic Error: Attempt to connect two inputs",
+            self.INPUT_UNCONNECTED             : "***Semantic Error: Not all input ports are connected to outputs",
             self.INVALID_DEVICE_NAME           : "***Syntax Error: Invalid device name",
             self.INVALID_DEVICE_TYPE           : "***Syntax Error: Invalid device type",
             self.INVALID_FUNCTION_NAME         : "***Syntax Error: Invalid function, please specify 'DEVICE', 'CONNECT' or 'MONITOR'",
@@ -201,6 +204,11 @@ class Parser:
                 # move to next '(' to resume parsing
                 while (not self.is_left_paren()) and (not self.is_EOF()):
                     self.move_to_next_symbol()
+        if self.error_count == 0: # only check network when no other errors
+            if not self.network.check_network():
+                self.error_code = self.INPUT_UNCONNECTED
+                self.error_display()
+                self.error_code = self.NO_ERROR
         if self.error_count > 0:
             print()
             if self.error_count == 1:
