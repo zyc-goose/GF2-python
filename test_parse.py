@@ -497,3 +497,18 @@ def test_device_terminal_error(new_parser):
     assert new_parser.device_terminal(monitor_mode=True) == (None, None)
     assert new_parser.error_code == new_parser.MONITOR_PRESENT
     new_parser.error_code = new_parser.NO_ERROR
+
+def test_device_terminal(new_parser):
+    new_parser.move_to_next_symbol()
+    new_parser.statement()
+    assert new_parser.device_terminal() == (42, 31)
+
+def test_connect(new_parser):
+    assert new_parser.connect()
+
+def test_connect_error(new_parser):
+    assert not new_parser.connect()
+    new_parser.move_to_next_symbol()
+    new_parser.error_code = new_parser.NO_ERROR
+    assert not new_parser.connect()
+    assert new_parser.error_code == new_parser.EXPECT_DEVICE_TERMINAL_NAME
