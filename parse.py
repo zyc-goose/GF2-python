@@ -132,7 +132,7 @@ class Parser:
             self.EXPECT_NO_QUALIFIER           : "***Syntax Error: Expected no qualifier",
             self.EXPECT_PORT_NAME              : "***Syntax Error: Expected a valid port name after '.'",
             self.EXPECT_PORT_NAME_DTYPE        : "***Semantic Error: DTYPE device should have a port name",
-            self.EXPECT_QUALIFIER              : "***Syntax Error: Expected qualifier for the device",
+            self.EXPECT_QUALIFIER              : "***Syntax Error: Expected qualifier for the device(s)",
             self.EXPECT_RIGHT_PAREN            : "***Syntax Error: Expected right parenthesis ')'",
             self.INPUT_CONNECTED               : "***Semantic Error: Attempt to connect multiple outputs to an input",
             self.INPUT_TO_INPUT                : "***Semantic Error: Attempt to connect two inputs",
@@ -150,6 +150,11 @@ class Parser:
 
         self.error_code = self.NO_ERROR
         self.error_count = 0
+
+        # For errormsg display
+        self.Location = namedtuple('Location', 'linum, pos')
+        self.device_locations = {} # id -> location
+        self.monitor_locations = {}
 
         # For error cursor position correction
         self.last_error_pos_overwrite = False
@@ -176,7 +181,7 @@ class Parser:
 
     def move_to_next_symbol(self):
         """Get next symbol from scanner."""
-        cur_line, self.last_error_pos = self.scanner.complete_current_line()
+        self.last_error_pos = len(self.scanner.current_line)
         self.last_error_linum = self.scanner.line_number
         self.symbol_type, self.symbol_id = self.scanner.get_symbol()
 
@@ -324,6 +329,16 @@ class Parser:
                 return False
         return True
 
+    def add_device_location(self):
+        """Add current (linum, pos) to the dict of device locations."""
+        self.device_locations[self.symbol_id] = \
+        self.Location(self.scanner.line_number, len(self.scanner.current_line))
+
+    def add_monitor_location(self):
+        """Add current (linum, pos) to the dict of monitor locations."""
+        self.monitor_locations[self.symbol_id] = \
+        self.Location(self.scanner.line_number, len(self.scanner.current_line))
+
     def get_first_device_id(self, new_device_ids):
         """Parse the first device name by force.
         If successful, return device_id.
@@ -345,6 +360,7 @@ class Parser:
             self.error_code = self.DEVICE_REDEFINED
             return None
         new_device_ids.add(device_id)
+        self.add_device_location()
         self.move_to_next_symbol()
         return device_id
 
@@ -361,6 +377,7 @@ class Parser:
             self.error_code = self.DEVICE_REDEFINED
             return None
         new_device_ids.add(device_id)
+        self.add_device_location()
         self.move_to_next_symbol()
         return device_id
 
@@ -423,7 +440,7 @@ class Parser:
         Return (None, None) if error occurs."""
         if not self.is_name():
             return None, None  # no error code at this point
-        device_id = self.symbol_id
+        device_id = self.device_id = self.symbol_id
         device = self.devices.get_device(device_id)
         if device is None:
             self.error_code = self.DEVICE_UNDEFINED
@@ -435,7 +452,7 @@ class Parser:
                 self.error_code = self.EXPECT_PORT_NAME
                 self.last_error_pos_overwrite = True
                 return None, None
-            port_id = self.symbol_id
+            port_id = self.port_id = self.symbol_id
             if port_id not in device.inputs and port_id not in device.outputs:
                 self.error_code = self.INVALID_PORT_NAME
                 return None, None
@@ -447,19 +464,25 @@ class Parser:
                 elif (device_id, port_id) in self.monitors.monitors_dictionary:
                     self.error_code = self.MONITOR_PRESENT
                     return None, None
+                else:
+                    self.monitor_locations[(device_id, port_id)] = \
+                    self.Location(self.scanner.line_number, len(self.scanner.current_line))
             self.move_to_next_symbol()
         else:
-            port_id = None
+            port_id = self.port_id = None
             if port_id not in device.outputs:
                 self.error_code = self.EXPECT_PORT_NAME_DTYPE
                 self.last_error_pos_overwrite = True
                 return None, None
             # monitor mode
-            if monitor_mode and \
-               (device_id, port_id) in self.monitors.monitors_dictionary:
-                self.error_code = self.MONITOR_PRESENT
-                self.last_error_pos_overwrite = True
-                return None, None
+            if monitor_mode:
+                if (device_id, port_id) in self.monitors.monitors_dictionary:
+                    self.error_code = self.MONITOR_PRESENT
+                    self.last_error_pos_overwrite = True
+                    return None, None
+                else:
+                    self.monitor_locations[(device_id, port_id)] = \
+                    self.Location(self.last_error_linum, self.last_error_pos)
         return device_id, port_id
 
     def connect(self):
@@ -554,4 +577,22 @@ class Parser:
         print(indent + current_line)
         print(indent + ' '*(error_position-1) + '^')
         print(self.errormsg[self.error_code] + '')
+        self.error_additional_info()
         return True
+
+    def error_additional_info(self):
+        """Add additional information to the error display."""
+        indent = ' '*2
+        if self.error_code in (self.DEVICE_REDEFINED, self.MONITOR_PRESENT):
+            if self.error_code == self.DEVICE_REDEFINED:
+                location = self.device_locations[self.symbol_id]
+            else:
+                location = self.monitor_locations[(self.device_id, self.port_id)]
+            print('-----------------------------------------')
+            print('Previous definition here, in line', location.linum)
+            if location.linum < self.scanner.line_number:
+                line = self.scanner.previous_lines[location.linum]
+            else:
+                line, pos = self.scanner.complete_current_line()
+            print(indent + line)
+            print(indent + ' '*(location.pos-1) + '^')
