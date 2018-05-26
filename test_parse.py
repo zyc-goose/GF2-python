@@ -233,7 +233,7 @@ def test_error_expect_qualifier(testcase):
     """EXPECT_QUALIFIER"""
     testcase.add_input_line('(DEVICE A B is NAND 3 )')
     testcase.add_input_line('(DEVICE C D is NAND   )')
-    testcase.add_expected_error('EXPECT_QUALIFIER', line_number=2, cursor_pos=23)
+    testcase.add_expected_error('EXPECT_QUALIFIER', line_number=2, cursor_pos=19)
     testcase.execute()
     assert testcase.passed()
 
