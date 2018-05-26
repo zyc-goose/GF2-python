@@ -134,7 +134,7 @@ class Parser:
             self.EXPECT_PORT_NAME_DTYPE        : "***Semantic Error: DTYPE device should have a port name",
             self.EXPECT_QUALIFIER              : "***Syntax Error: Expected a qualifier for the device type '{device_type}'",
             self.EXPECT_RIGHT_PAREN            : "***Syntax Error: Expected right parenthesis ')'",
-            self.INPUT_CONNECTED               : "***Semantic Error: Attempt to connect multiple outputs to an input",
+            self.INPUT_CONNECTED               : "***Semantic Error: Input '{input_name}' is already connected to output '{output_name}'",
             self.INPUT_TO_INPUT                : "***Semantic Error: Attempt to connect two inputs",
             self.INPUT_UNCONNECTED             : "***Semantic Error: Some input ports are not connected to any outputs",
             self.INVALID_DEVICE_NAME           : "***Syntax Error: Invalid device name '{symbol_name}'",
@@ -155,6 +155,7 @@ class Parser:
         # For errormsg display
         self.Location = namedtuple('Location', 'linum, pos')
         self.device_locations = {} # id -> location
+        self.connect_locations = {}
         self.monitor_locations = {}
 
         # For error cursor position correction
@@ -213,10 +214,14 @@ class Parser:
                 while (not self.is_left_paren()) and (not self.is_EOF()):
                     self.move_to_next_symbol()
         if self.error_count == 0: # only check network when no other errors
-            if not self.network.check_network():
-                self.error_code = self.INPUT_UNCONNECTED
-                self.error_display()
-                self.error_code = self.NO_ERROR
+            unconnected_inputs = self.network.find_unconnected_inputs()
+            if len(unconnected_inputs) > 0:
+                print('The following inputs are not connected to any outputs:')
+                for i, (device_id, input_id) in enumerate(unconnected_inputs):
+                    terminal_name = self.get_terminal_name(device_id, input_id)
+                    print('  [%d] %s' % (i + 1, terminal_name))
+                print('Please check your circuit connection before running the parser again.')
+                self.error_count = 1
         if self.error_count > 0:
             print()
             if self.error_count == 1:
@@ -272,6 +277,15 @@ class Parser:
         if self.is_number():
             return str(self.symbol_id)
         return self.names.get_name_string(self.symbol_id)
+
+    def get_terminal_name(self, device_id, port_id):
+        """Return the terminal name from (device_id, port_id)."""
+        device_name = self.names.get_name_string(device_id)
+        assert device_name is not None, "device_id not exist"
+        if port_id is None:
+            return device_name
+        port_name = self.names.get_name_string(port_id)
+        return device_name + '.' + port_name
 
     def statement(self):
         """Parse a statement, which starts with '(' and ends with ')'."""
@@ -505,6 +519,7 @@ class Parser:
             if self.error_code == self.NO_ERROR:
                 self.error_code = self.EXPECT_DEVICE_TERMINAL_NAME
             return False
+        first_location = self.Location(self.last_error_linum, self.last_error_pos)
         # Check keyword 'to'
         if not (self.is_keyword() and self.is_target_name('to')):
             self.error_code = self.EXPECT_KEYWORD_TO
@@ -516,12 +531,31 @@ class Parser:
             if self.error_code == self.NO_ERROR:
                 self.error_code = self.EXPECT_DEVICE_TERMINAL_NAME
             return False
+        second_location = self.Location(self.last_error_linum, self.last_error_pos)
         # Make connection now (use network module)
         error_code = self.network.make_connection(first_device_id, first_port_id,
                                                  second_device_id, second_port_id)
         if error_code != self.network.NO_ERROR:
             if error_code == self.network.INPUT_CONNECTED:
                 self.error_code = self.INPUT_CONNECTED
+                # for errormsg display
+                first_device = self.devices.get_device(first_device_id)
+                if first_port_id in first_device.inputs:
+                    input_device_id = first_device_id
+                    input_port_id = first_port_id
+                    input_location = first_location
+                else:
+                    input_device_id = second_device_id
+                    input_port_id = second_port_id
+                    input_location = second_location
+                self.errormsg_format_dict['input_name'] = \
+                    self.get_terminal_name(input_device_id, input_port_id)
+                output_device_id, output_port_id = \
+                    self.network.get_connected_output(input_device_id, input_port_id)
+                self.errormsg_format_dict['output_name'] = \
+                    self.get_terminal_name(output_device_id, output_port_id)
+                self.device_id, self.port_id = input_device_id, input_port_id
+                self.last_error_linum, self.last_error_pos = input_location
             elif error_code == self.network.INPUT_TO_INPUT:
                 self.error_code = self.INPUT_TO_INPUT
             elif error_code == self.network.OUTPUT_TO_OUTPUT:
@@ -530,6 +564,8 @@ class Parser:
                 raise ValueError('zao yu feng')
             self.last_error_pos_overwrite = True
             return False
+        self.connect_locations[(first_device_id, first_port_id)] = first_location
+        self.connect_locations[(second_device_id, second_port_id)] = second_location
         return True
 
     def monitor(self):
@@ -597,6 +633,16 @@ class Parser:
                 location = self.monitor_locations[(self.device_id, self.port_id)]
             print('-----------------------------------------')
             print('Previous definition here, in line', location.linum)
+            if location.linum < self.scanner.line_number:
+                line = self.scanner.previous_lines[location.linum]
+            else:
+                line, pos = self.scanner.complete_current_line()
+            print(indent + line)
+            print(indent + ' '*(location.pos-1) + '^')
+        elif self.error_code == self.INPUT_CONNECTED:
+            location = self.connect_locations[(self.device_id, self.port_id)]
+            print('-----------------------------------------')
+            print('Previous connection here, in line', location.linum)
             if location.linum < self.scanner.line_number:
                 line = self.scanner.previous_lines[location.linum]
             else:

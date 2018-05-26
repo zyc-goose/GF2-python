@@ -1,1 +1,4 @@
-(DEVICE A is NAND 16)
+(DEVICE A is NAND 1)
+(DEVICE B C D E A are NAND 2)
+(CONNECT A.I1 to B)
+(CONNECT A.I1 to B)
