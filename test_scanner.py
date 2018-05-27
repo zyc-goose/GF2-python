@@ -35,7 +35,7 @@ def test_get_symbol(new_names, new_scanner):
     assert new_scanner.get_symbol() == [5, 3154]
 
 def test_complete_current_line(new_names,new_scanner):
-    new_scanner.input_file.seek(0)
+    #new_scanner.input_file.seek(0)
     i = 0
     desired_output = [
     ['(DEVICE Q is DTYPE)', 1],
@@ -59,7 +59,7 @@ def test_complete_current_line(new_names,new_scanner):
     ['(DEVICE clk is CLOCK 1)', 14],
     ['(DEVICE clk is CLOCK 1)', 20],
     ['(DEVICE clk is CLOCK 1)', 22],
-    ['(DEVICE clk is CLOCK 1)', 23]
+    ['(DEVICE clk is CLOCK 1)', 23],
     ['(CONNECT set to Q.SET)', 1],
     ['(CONNECT set to Q.SET)', 8],
     ['(CONNECT set to Q.SET)', 12],
@@ -90,15 +90,14 @@ def test_complete_current_line(new_names,new_scanner):
     ['(CONNECT clk to Q.CLK)', 15],
     ['(CONNECT clk to Q.CLK)', 17],
     ['(CONNECT clk to Q.CLK)', 18],
-    ['(CONNECT clk to Q.CLK)', 23],
-    ['(CONNECT clk to Q.CLK)', 24],
+    ['(CONNECT clk to Q.CLK)', 21],
+    ['(CONNECT clk to Q.CLK)', 22],
     ['(MONITOR clk)', 1],
     ['(MONITOR clk)', 8],
     ['(MONITOR clk)', 12],
     ['(MONITOR clk)', 13]]
-    new_scanner.get_symbol()
     [symbol_type, symbol_id] = new_scanner.get_symbol()
     while symbol_type != new_scanner.EOF:
-        assert new_scanner.complete_current_line() == desired_out[i]
+        assert new_scanner.complete_current_line() == desired_output[i]
         i += 1
         [symbol_type, symbol_id] = new_scanner.get_symbol()
