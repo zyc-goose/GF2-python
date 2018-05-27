@@ -34,7 +34,7 @@ def test_get_symbol(new_names, new_scanner):
 
     assert new_scanner.get_symbol() == [5, 3154]
 
-def test_complete_current_line(new_names):
+def test_complete_current_line(new_names,new_scanner):
     new_scanner.input_file.seek(0)
     i = 0
     desired_output = [

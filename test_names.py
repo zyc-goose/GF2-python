@@ -33,13 +33,13 @@ def test_lookup(new_names):
     assert new_names.lookup('G2') == 7
 
 def test_query(new_names_with_items):
-    assert new_names.query('DEVICE') == 0
-    assert new_names.query('device') == None
-    assert new_names.query('AND') == 5
-    assert new_names.query('G1') == None
+    assert new_names_with_items.query('DEVICE') == 0
+    assert new_names_with_items.query('device') == None
+    assert new_names_with_items.query('AND') == 5
+    assert new_names_with_items.query('G1') == None
 
 def test_get_name_string(new_names_with_items):
-    assert new_names.get_name_string(0) == 'DEVICE'
-    assert new_names.get_name_string(3) == 'CLOCK'
-    assert new_names.get_name_string(12) == None
-    assert new_names.get_name_string(7) == 'G2'
+    assert new_names_with_items.get_name_string(0) == 'DEVICE'
+    assert new_names_with_items.get_name_string(3) == 'CLOCK'
+    assert new_names_with_items.get_name_string(12) == None
+    assert new_names_with_items.get_name_string(7) == 'G2'
