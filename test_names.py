@@ -11,7 +11,7 @@ def new_names():
 def new_names_with_items():
     '''returns an instance of class Names with items '''
     new_names_with_items = Names()
-    new_names.lookup(['DEVICE', 'CONNECT', 'MONITOR', 'CLOCK', 'SWITCH', 'AND', 'NAND', 'G2')
+    new_names.lookup(['DEVICE', 'CONNECT', 'MONITOR', 'CLOCK', 'SWITCH', 'AND', 'NAND', 'G2'])
     return new_names
 
 def test_unique_error_code(new_names):

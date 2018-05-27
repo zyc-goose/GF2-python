@@ -28,12 +28,13 @@ def test_get_symbol(new_names, new_scanner):
     [symbol_type, symbol_id] = new_scanner.get_symbol()
     while symbol_type != new_scanner.EOF:
         assert [symbol_type, symbol_id] == desired_output[i]
+        i += 1
         [symbol_type, symbol_id] = new_scanner.get_symbol()
 
     assert new_scanner.get_symbol() == [5, 3154]
 
 def test_complete_current_line(new_names):
-    new_names.input_file.seek(0)
+    new_scanner.input_file.seek(0)
     i = 0
     desired_output = [
     ['(DEVICE Q is DTYPE)', 1],
@@ -98,4 +99,5 @@ def test_complete_current_line(new_names):
     [symbol_type, symbol_id] = new_scanner.get_symbol()
     while symbol_type != new_scanner.EOF:
         assert new_scanner.complete_current_line() == desired_out[i]
+        i += 1
         [symbol_type, symbol_id] = new_scanner.get_symbol()
