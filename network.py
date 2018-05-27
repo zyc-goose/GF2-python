@@ -165,6 +165,16 @@ class Network:
                     return False
         return True
 
+    def find_unconnected_inputs(self):
+        """Return the list of the unconnected inputs."""
+        unconnected_inputs = []
+        for device_id in self.devices.find_devices():
+            device = self.devices.get_device(device_id)
+            for input_id in device.inputs:
+                if self.get_connected_output(device_id, input_id) is None:
+                    unconnected_inputs.append((device_id, input_id))
+        return unconnected_inputs
+
     def update_signal(self, signal, target):
         """Update the signal in the direction of the target.
 
