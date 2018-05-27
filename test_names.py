@@ -8,15 +8,16 @@ def new_names():
     new_names = Names()
     return new_names
 
+@pytest.fixture
 def new_names_with_items():
     '''returns an instance of class Names with items '''
     new_names_with_items = Names()
-    new_names.lookup(['DEVICE', 'CONNECT', 'MONITOR', 'CLOCK', 'SWITCH', 'AND', 'NAND', 'G2'])
-    return new_names
+    new_names_with_items.lookup(['DEVICE', 'CONNECT', 'MONITOR', 'CLOCK', 'SWITCH', 'AND', 'NAND', 'G2'])
+    return new_names_with_items
 
 def test_unique_error_code(new_names):
-    assert new_names.unique_error_codes(3) == [0,1,2]
-    assert new_names.unique_error_codes(2) == [3,4]
+    assert list(new_names.unique_error_codes(3)) == [0,1,2]
+    assert list(new_names.unique_error_codes(2)) == [3,4]
     assert new_names.error_code_count == 5
 
 

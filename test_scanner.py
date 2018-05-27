@@ -10,8 +10,9 @@ def new_names():
     return new_names
 
 @pytest.fixture
-def new_scanner (new_names):
+def new_scanner ():
     '''returns an instance of class Scanner'''
+    new_names = Names()
     new_scanner = Scanner('ripple_counter.txt', new_names)
     return new_scanner
 
