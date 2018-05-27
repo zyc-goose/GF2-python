@@ -812,6 +812,7 @@ class Frame(wx.Frame):
 
     def on_add(self, event):
         signals = []
+        text = ''
         index = -1
         while True:
             index = self.list_ctrl_2.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
@@ -838,6 +839,7 @@ class Frame(wx.Frame):
 
     def on_delete(self, event):
         signals = []
+        text = ''
         index = -1
         while True:
             index = self.list_ctrl_1.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
