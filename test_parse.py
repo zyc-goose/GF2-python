@@ -368,8 +368,12 @@ def test_error_output_to_output(testcase):
 
 
 ###### FUNCTION TESTS ######
+''' The following tests are intended to test each function in parser.py,
+and assert all the possible returns of the functions. It omits testing 
+error display as this has been thoroughly tested above'''
 @pytest.fixture(scope="session")
 def new_parser():
+    # Build a fixture and all the following tests uses it
     path = 'test_def.txt'
     names = Names()
     scanner = Scanner(path, names)
@@ -384,6 +388,7 @@ def move_to_next_symbol(new_parser):
     new_parser.move_to_next_symbol()
     return new_parser
 
+# Series of tests for the individual assertion functions
 def test_is_left_paren(move_to_next_symbol):
     assert move_to_next_symbol.is_left_paren()
 
@@ -409,21 +414,25 @@ def test_get_name_string(move_to_next_symbol):
     assert move_to_next_symbol.get_name_string() == 'wtf'
 
 def test_statement_error(move_to_next_symbol):
+    # Missing left parenthesis
     move_to_next_symbol.statement()
     error_code_1 = move_to_next_symbol.error_code
     move_to_next_symbol.error_code = move_to_next_symbol.NO_ERROR
     move_to_next_symbol.move_to_next_symbol()
 
+    # Empty statement
     move_to_next_symbol.statement()
     error_code_2 = move_to_next_symbol.error_code
     move_to_next_symbol.error_code = move_to_next_symbol.NO_ERROR
     move_to_next_symbol.move_to_next_symbol()
 
+    # First keyword is invalid
     move_to_next_symbol.statement()
     error_code_3 = move_to_next_symbol.error_code
     move_to_next_symbol.error_code = move_to_next_symbol.NO_ERROR
     move_to_next_symbol.move_to_next_symbol()
 
+    # Missing right parenthesis
     move_to_next_symbol.statement()
     error_code_4 = move_to_next_symbol.error_code
     move_to_next_symbol.error_code = move_to_next_symbol.NO_ERROR
@@ -433,166 +442,261 @@ def test_statement_error(move_to_next_symbol):
     assert error_code_4 == move_to_next_symbol.EXPECT_RIGHT_PAREN
 
 def test_statement(new_parser):
+    # function statement all pass
     assert new_parser.statement()
 
 def test_device_error(new_parser):
+    # keyword not DEVICE
     assert not new_parser.device()
     error_code_1 = new_parser.error_code
     assert error_code_1 == new_parser.NO_ERROR
     new_parser.move_to_next_symbol()
 
+    # No device name given
     assert not new_parser.device()
     new_parser.error_code = new_parser.NO_ERROR
     new_parser.move_to_next_symbol()
 
+    # Invalid character
     assert not new_parser.device()
     new_parser.error_code = new_parser.NO_ERROR
     new_parser.move_to_next_symbol()
 
+    # missing first device name
     assert not new_parser.device()
     new_parser.error_code = new_parser.NO_ERROR
     new_parser.move_to_next_symbol()
 
+    # Missing device type
     assert not new_parser.device()
     new_parser.error_code = new_parser.NO_ERROR
     new_parser.move_to_next_symbol()
 
+    # Invalid Qualifier
     assert not new_parser.device()
     error_code_2 = new_parser.error_code
     assert error_code_2 == new_parser.INVALID_QUALIFIER
     new_parser.error_code = new_parser.NO_ERROR
 
 def test_device(move_to_next_symbol):
+    # Function device all pass
     assert move_to_next_symbol.device()
 
 def test_get_first_device_id_error(new_parser):
+    # No device is given
     assert new_parser.get_first_device_id(set()) is None
     assert new_parser.error_code == new_parser.EMPTY_DEVICE_LIST
     new_parser.move_to_next_symbol()
 
+    # Keyword as device name
     assert new_parser.get_first_device_id(set()) is None
     assert new_parser.error_code == new_parser.KEYWORD_AS_DEVICE_NAME
     new_parser.move_to_next_symbol()
 
+    # Empty list
     assert new_parser.get_first_device_id(set()) is None
     assert new_parser.error_code == new_parser.EMPTY_DEVICE_LIST
     new_parser.move_to_next_symbol()
 
+    # Device name is invalid
     assert new_parser.get_first_device_id(set()) is None
     assert new_parser.error_code == new_parser.INVALID_DEVICE_NAME
     new_parser.move_to_next_symbol()
 
+    # Repeated definition of devices, made use of previously defined device
     new_parser.get_first_device_id(set())
     assert new_parser.error_code == new_parser.DEVICE_REDEFINED
     new_parser.move_to_next_symbol()
 
 def test_get_first_device_id(new_parser):
+    # get_first_device_id all pass
     assert new_parser.get_first_device_id(set()) is not None
 
 def test_get_optional_device_id_error(new_parser):
+    # Repeated definition of devices, made use of previously defined device
     assert new_parser.get_optional_device_id(set()) is None
     assert new_parser.error_code == new_parser.DEVICE_REDEFINED
     new_parser.move_to_next_symbol()
 
 def test_get_optional_device_id(new_parser):
-    assert new_parser.get_optional_device_id(set()) is not None
+    # get_optional_device_id all pass
+    assert new_parser.get_optional_device_id(set()) is 37
 
 def test_check_keyword_is_are_error(new_parser):
+    # missing keyword is/are
     assert not new_parser.check_keyword_is_are()
     assert new_parser.error_code == new_parser.EXPECT_KEYWORD_IS_ARE
     new_parser.move_to_next_symbol()
 
+    # Invalid name, unknown character
     assert not new_parser.check_keyword_is_are()
     assert new_parser.error_code == new_parser.INVALID_DEVICE_NAME
     new_parser.move_to_next_symbol()
 
+    # Got device with qualifier instead
     assert not new_parser.check_keyword_is_are()
     assert new_parser.error_code == new_parser.EXPECT_KEYWORD_IS_ARE
     new_parser.move_to_next_symbol()
 
+    # Got device without qualifier instead
     assert not new_parser.check_keyword_is_are()
     assert new_parser.error_code == new_parser.EXPECT_KEYWORD_IS_ARE
     new_parser.move_to_next_symbol()
 
+    # Got keyword but not is/are instead
     assert not new_parser.check_keyword_is_are()
     assert new_parser.error_code == new_parser.KEYWORD_AS_DEVICE_NAME
     new_parser.move_to_next_symbol()
 
 def test_check_keyword_is_are(new_parser):
+    # check_keyword_is_are all pass
     assert new_parser.check_keyword_is_are()
     new_parser.move_to_next_symbol()
 
 def test_get_device_type_error(new_parser):
+    # Got right parenthesis
     assert new_parser.get_device_type() == (None, None)
     assert new_parser.error_code == new_parser.DEVICE_TYPE_ABSENT
     new_parser.move_to_next_symbol()
 
+    # not a keyword
     assert new_parser.get_device_type() == (None, None)
     assert new_parser.error_code == new_parser.INVALID_DEVICE_TYPE
     new_parser.move_to_next_symbol()
 
+    # Qualifier missing
     assert new_parser.get_device_type() == (None, None)
     assert new_parser.error_code == new_parser.EXPECT_QUALIFIER
 
+    # Should have no qualifier
     assert new_parser.get_device_type() == (None, None)
     assert new_parser.error_code == new_parser.EXPECT_NO_QUALIFIER
     new_parser.move_to_next_symbol()
 
+    # is a keyword but not a device type
     assert new_parser.get_device_type() == (None, None)
     assert new_parser.error_code == new_parser.INVALID_DEVICE_TYPE
     new_parser.move_to_next_symbol()
 
 def test_get_device_type(new_parser):
+    # Device with qualidier test pass
     assert new_parser.get_device_type() == (new_parser.devices.CLOCK, 10)
+    # Device without qualidier test pass
     assert new_parser.get_device_type() == (new_parser.devices.XOR, None)
     new_parser.move_to_next_symbol()
 
 def test_device_terminal_error(new_parser):
+    # Not a valid name
     assert new_parser.device_terminal() == (None, None)
     new_parser.move_to_next_symbol()
+
+    # Undefined device
     assert new_parser.device_terminal() == (None, None)
     assert new_parser.error_code == new_parser.DEVICE_UNDEFINED
     new_parser.move_to_next_symbol()
+
+    # No port name given but followed by 'to'
     assert new_parser.device_terminal() == (None, None)
     assert new_parser.error_code == new_parser.EXPECT_PORT_NAME
     new_parser.move_to_next_symbol()
+
+    # Port name exceed the range
     assert new_parser.device_terminal() == (None, None)
     assert new_parser.error_code == new_parser.INVALID_PORT_NAME
     new_parser.move_to_next_symbol()
+
+    # In monitor mode, not monitoring output
     assert new_parser.device_terminal(monitor_mode=True) == (None, None)
     assert new_parser.error_code == new_parser.MONITOR_NOT_OUTPUT
     new_parser.error_code = new_parser.NO_ERROR
     new_parser.move_to_next_symbol()
+
+    # already being monitored
     new_parser.statement()
     assert new_parser.device_terminal(monitor_mode=True) == (None, None)
     assert new_parser.error_code == new_parser.MONITOR_PRESENT
     new_parser.error_code = new_parser.NO_ERROR
+
+    # Monitor mode, DTYPE to be monitored, missing port name
     new_parser.statement()
     assert new_parser.device_terminal() == (None, None)
     assert new_parser.error_code == new_parser.EXPECT_PORT_NAME_DTYPE
     new_parser.error_code = new_parser.NO_ERROR
+
+    # already being monitored, for DTYPE branch
     new_parser.statement()
     assert new_parser.device_terminal(monitor_mode=True) == (None, None)
     assert new_parser.error_code == new_parser.MONITOR_PRESENT
     new_parser.error_code = new_parser.NO_ERROR
 
 def test_device_terminal(new_parser):
+    # device_terminal all pass
     new_parser.move_to_next_symbol()
     new_parser.statement()
     assert new_parser.device_terminal() == (42, 31)
 
 def test_connect(new_parser):
+    # connect all pass
     assert new_parser.connect()
 
 def test_connect_error(new_parser):
+    # Incorrect keyword
     assert not new_parser.connect()
     new_parser.move_to_next_symbol()
+
+    # missing first device
     new_parser.error_code = new_parser.NO_ERROR
     assert not new_parser.connect()
     assert new_parser.error_code == new_parser.EXPECT_DEVICE_TERMINAL_NAME
-    new_parser.move_to_next_symbol()
 
+    # missing keyword to
     new_parser.error_code = new_parser.NO_ERROR
     assert not new_parser.connect()
-    print(new_parser.symbol_id)
     assert new_parser.error_code == new_parser.EXPECT_KEYWORD_TO
+
+    # missing second device
+    new_parser.error_code = new_parser.NO_ERROR
+    new_parser.move_to_next_symbol()
+    assert not new_parser.connect()
+    assert new_parser.error_code == new_parser.EXPECT_DEVICE_TERMINAL_NAME
+
+    # Input already connected
+    new_parser.error_code = new_parser.NO_ERROR
+    assert not new_parser.connect()
+    assert new_parser.error_code == new_parser.INPUT_CONNECTED
+
+    # Input connected to input
+    new_parser.error_code = new_parser.NO_ERROR
+    assert not new_parser.connect()
+    assert new_parser.error_code == new_parser.INPUT_TO_INPUT
+
+    # Output connected to output
+    new_parser.error_code = new_parser.NO_ERROR
+    assert not new_parser.connect()
+    assert new_parser.error_code == new_parser.OUTPUT_TO_OUTPUT
+
+def test_monitor_error(new_parser):
+    # Keyword not MONITOR
+    new_parser.error_code = new_parser.NO_ERROR
+    assert not new_parser.monitor()
+    new_parser.move_to_next_symbol()
+
+    # No monitor given
+    new_parser.error_code = new_parser.NO_ERROR
+    assert not new_parser.monitor()
+    assert new_parser.error_code == new_parser.EMPTY_MONITOR_LIST
+
+    # Device name invalid, undefined device is tested in device terminal test
+    new_parser.error_code = new_parser.NO_ERROR
+    new_parser.move_to_next_symbol()
+    assert not new_parser.monitor()
+    assert new_parser.error_code == new_parser.INVALID_DEVICE_NAME
+
+    # Check other device branch
+    new_parser.error_code = new_parser.NO_ERROR
+    assert not new_parser.monitor()
+
+def test_monitor(new_parser):
+    # Function monitor all pass
+    new_parser.error_code = new_parser.NO_ERROR
+    assert not new_parser.monitor()
