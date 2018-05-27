@@ -1,10 +1,12 @@
 ( ) . DEVICE G1 2 
 target wtf
+
 DEVICE
 ()
 (DEVICES
 (DEVICE a1 is AND 2
 (DEVICE G1 is AND 2)
+
 MONITOR
 DEVICE
 DEVICE !
@@ -12,20 +14,24 @@ DEVICE is
 DEVICE andgate is)
 DEVICE and is AND 100)
 DEVICE and and2 are AND 2
+
 is
 DEVICE
 )
 250
 and
 and1
+
 and
 and3
+
 (
 *
 AND
 DTYPE
 DEVICE
 is
+
 )
 NOT
 AND
@@ -33,6 +39,7 @@ DTYPE 2
 DEVICE
 CLOCK 10
 XOR)
+
 1
 and5
 and. to
@@ -44,9 +51,21 @@ and
 Aluba
 (MONITOR Aluba.Q)
 Aluba.Q
+
 (DEVICE or is OR 2)
 or.I1
+
 CONNECT or to and.I1
 DEVICE
 CONNECT
-CONNECt or
+CONNECT or and
+CONNECT or to
+CONNECT and2 to and.I1
+CONNECT and2.I1 to and.I2
+CONNECT and2 to and
+
+DEVICE
+MONITOR)
+MONITOR 321
+MONITOR and 321
+MONITOR and
