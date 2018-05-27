@@ -145,9 +145,6 @@ class Scanner:
             self.advance()
             return 1
 
-    def move_to_next_valid_statement(self):
-        pass
-
     def get_symbol(self):
         """Return the symbol type and ID of the next sequence of characters.
 
