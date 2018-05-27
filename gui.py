@@ -551,19 +551,17 @@ class Gui(wx.Frame):
 
     def on_run_button(self, event):
         """Handle the event when the user clicks the run button."""
-        if self.canvas.run == 0:
-            self.canvas.run = 1
-            self.canvas.cycles = self.spin.GetValue()
-            self.canvas.page_number = int(self.canvas.cycles/60)+1
-            self.canvas.current_page = 1
-            self.cycles_completed = self.canvas.cycles
-            if self.run_network(self.canvas.cycles):
-                text = "Run button pressed."
-            else:
-                device_name = self.names.get_name_string(self.network.device_no_input)
-                text = 'DEVICE \"' + device_name + '\" is oscillatory!'
+        self.canvas.run = 1
+        self.canvas.cycles = self.spin.GetValue()
+        self.canvas.page_number = int(self.canvas.cycles/60)+1
+        self.canvas.current_page = 1
+        self.cycles_completed = self.canvas.cycles
+        self.monitors.reset_monitors()
+        if self.run_network(self.canvas.cycles):
+            text = "Run button pressed."
         else:
-            text = "Already in Run mode"
+            device_name = self.names.get_name_string(self.network.device_no_input)
+            text = 'DEVICE \"' + device_name + '\" is oscillatory!'
         self.canvas.render(text)
         self.update_scroll_bar()
 
