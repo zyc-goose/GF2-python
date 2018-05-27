@@ -25,8 +25,11 @@ def test_get_symbol(new_names, new_scanner):
     [3, 14], [0, 1], [1, 23], [0,13], [1, 20], [3, 16], [1, 27], [3, 15],
     [3, 14], [0, 1], [1, 24], [0, 13], [1, 20], [3, 16], [1, 28], [3, 15],
     [3, 14], [0, 2], [1, 24], [3, 15]]
+    [symbol_type, symbol_id] = new_scanner.get_symbol()
     while symbol_type != new_scanner.EOF:
-        assert new_scanner.get_symbol() == desired_output[i]
+        assert [symbol_type, symbol_id] == desired_output[i]
+        [symbol_type, symbol_id] = new_scanner.get_symbol()
+
     assert new_scanner.get_symbol() == [5, 3154]
 
 def test_complete_current_line(new_names):
@@ -92,6 +95,7 @@ def test_complete_current_line(new_names):
     ['(MONITOR clk)', 12],
     ['(MONITOR clk)', 13]]
     new_scanner.get_symbol()
+    [symbol_type, symbol_id] = new_scanner.get_symbol()
     while symbol_type != new_scanner.EOF:
         assert new_scanner.complete_current_line() == desired_out[i]
-        new_scanner.get_symbol()
+        [symbol_type, symbol_id] = new_scanner.get_symbol()
