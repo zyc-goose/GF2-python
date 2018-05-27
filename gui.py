@@ -156,7 +156,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         if self.run == 1:
             # If run button clicked, render all signals
             self.render_signal()
-        # self.parent.update_scroll_bar()
+        self.parent.update_scroll_bar()
 
         # We have been drawing to the back buffer, flush the graphics pipeline
         # and swap the back buffer to the front
@@ -551,19 +551,17 @@ class Gui(wx.Frame):
 
     def on_run_button(self, event):
         """Handle the event when the user clicks the run button."""
-        if self.canvas.run == 0:
-            self.canvas.run = 1
-            self.canvas.cycles = self.spin.GetValue()
-            self.canvas.page_number = int(self.canvas.cycles/60)+1
-            self.canvas.current_page = 1
-            self.cycles_completed = self.canvas.cycles
-            if self.run_network(self.canvas.cycles):
-                text = "Run button pressed."
-            else:
-                device_name = self.names.get_name_string(self.network.device_no_input)
-                text = 'DEVICE \"' + device_name + '\" is oscillatory!'
+        self.canvas.run = 1
+        self.canvas.cycles = self.spin.GetValue()
+        self.canvas.page_number = int(self.canvas.cycles/60)+1
+        self.canvas.current_page = 1
+        self.cycles_completed = min(self.canvas.cycles, 60)
+        self.monitors.reset_monitors()
+        if self.run_network(self.cycles_completed):
+            text = "Run button pressed."
         else:
-            text = "Already in Run mode"
+            device_name = self.names.get_name_string(self.network.device_no_input)
+            text = 'DEVICE \"' + device_name + '\" is oscillatory!'
         self.canvas.render(text)
         self.update_scroll_bar()
 
@@ -795,7 +793,7 @@ class Frame(wx.Frame):
 
         side_sizer = wx.BoxSizer(wx.HORIZONTAL)
         box.Add(side_sizer, 1, wx.ALL, 5)
-        
+
         add = wx.Button(panel, wx.ID_CLOSE, "ADD")
         delete = wx.Button(panel, wx.ID_CLOSE, "DELETE")
         close = wx.Button(panel, wx.ID_CLOSE, "CLOSE")
@@ -805,13 +803,13 @@ class Frame(wx.Frame):
         side_sizer.Add(add, 1, wx.ALL, 5)
         side_sizer.Add(delete, 1, wx.ALL, 5)
         side_sizer.Add(close, 1, wx.ALL, 5)
-        
+
         panel.SetSizer(box)
         panel.Layout()
 
     def on_close(self, event):
         self.Destroy()
-    
+
     def on_add(self, event):
         signals = []
         index = -1
@@ -837,7 +835,7 @@ class Frame(wx.Frame):
                     text = "Error! Could not make monitor: "+ signal
         self.parent.canvas.render(text)
         self.Destroy()
-    
+
     def on_delete(self, event):
         signals = []
         index = -1
@@ -846,7 +844,7 @@ class Frame(wx.Frame):
             if index == -1:
                 break
             signals.append(self.monitored[index])
-        
+
         # Delete monitor using the IDs above
         if self.parent.canvas.run != 1:
             text = 'You should run the simulation first'
