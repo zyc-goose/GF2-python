@@ -156,7 +156,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         if self.run == 1:
             # If run button clicked, render all signals
             self.render_signal()
-        self.parent.update_scroll_bar()
+        # self.parent.update_scroll_bar()
 
         # We have been drawing to the back buffer, flush the graphics pipeline
         # and swap the back buffer to the front
@@ -440,8 +440,9 @@ class Gui(wx.Frame):
         #self.hero_button = wx.Button(self, wx.ID_ANY, "HERO")
         self.prev_button = wx.Button(self, wx.ID_ANY, "Prev Page")
         self.next_button = wx.Button(self, wx.ID_ANY, "Next Page")
-        # self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
-        #                            style=wx.TE_PROCESS_ENTER)
+        self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
+                                   style=wx.TE_PROCESS_ENTER)
+        self.goto_button = wx.Button(self, wx.ID_ANY, "Goto")
 
         # Scroll Bars
         self.full_width = 600
@@ -468,7 +469,8 @@ class Gui(wx.Frame):
         self.hbar.Bind(wx.EVT_SCROLL, self.on_hbar)
         self.prev_button.Bind(wx.EVT_BUTTON, self.on_prev_button)
         self.next_button.Bind(wx.EVT_BUTTON, self.on_next_button)
-        # self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
+        self.goto_button.Bind(wx.EVT_BUTTON, self.on_goto_button)
+        self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
 
         # Configure sizers for layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -479,6 +481,7 @@ class Gui(wx.Frame):
         double_butt_3 = wx.BoxSizer(wx.HORIZONTAL)
         double_butt_4 = wx.BoxSizer(wx.HORIZONTAL)
         double_butt_5 = wx.BoxSizer(wx.HORIZONTAL)
+        double_butt_6 = wx.BoxSizer(wx.HORIZONTAL)
 
 
         main_sizer.Add(main_sizer_second, 5, wx.EXPAND | wx.RIGHT | wx.TOP | wx.LEFT, 5)
@@ -512,8 +515,10 @@ class Gui(wx.Frame):
         side_sizer.Add(double_butt_5, 1, wx.ALL, 0)
         double_butt_5.Add(self.prev_button, 0.8 , wx.ALL, 0)
         double_butt_5.Add(self.next_button, 0.8, wx.ALL, 0)
+        side_sizer.Add(double_butt_6, 1, wx.ALL, 0)
+        double_butt_6.Add(self.text_box, 0.8 , wx.ALL, 0)
+        double_butt_6.Add(self.goto_button, 0.8, wx.ALL, 0)
         # side_sizer.Add(self.hero_button, 1 , wx.ALL, 5)
-        # side_sizer.Add(self.text_box, 1, wx.TOP, 10)
 
         # side_sizer.Add(self.clear_button, 1, wx.ALL, 5)
 
@@ -551,8 +556,8 @@ class Gui(wx.Frame):
             self.canvas.cycles = self.spin.GetValue()
             self.canvas.page_number = int(self.canvas.cycles/60)+1
             self.canvas.current_page = 1
-            self.cycles_completed = 60
-            if self.run_network(60):
+            self.cycles_completed = self.canvas.cycles
+            if self.run_network(self.canvas.cycles):
                 text = "Run button pressed."
             else:
                 device_name = self.names.get_name_string(self.network.device_no_input)
@@ -574,10 +579,9 @@ class Gui(wx.Frame):
         added_cycles = self.spin.GetValue()
         self.canvas.cycles += added_cycles
         self.canvas.page_number = int(self.canvas.cycles/60)+1
-        if self.cycles_completed%60 != 0:
-            next_to_run = min((60-self.cycles_completed%60), added_cycles)
-            self.run_network(next_to_run)
-            self.cycles_completed += next_to_run
+        next_to_run = min((60-self.cycles_completed%60), added_cycles)
+        self.run_network(next_to_run)
+        self.cycles_completed += next_to_run
         # self.run_network(self.spin.GetValue())
         self.canvas.render(text)
         self.update_scroll_bar()
@@ -742,3 +746,8 @@ class Gui(wx.Frame):
         else:
             self.canvas.current_page = self.canvas.page_number
         self.canvas.render('Turn to Next Page')
+
+    def on_goto_button(self, event):
+        page_number = self.text_box.GetValue()
+        text = "Go to page: " + page_number
+        self.canvas.current_page = 1
