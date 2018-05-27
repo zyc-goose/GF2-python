@@ -635,7 +635,7 @@ class Gui(wx.Frame):
 
     def on_sig_add_button(self, event):
         # Get user selected signal and split to get IDs
-        top = Frame(self, "Monitors", self.monitored_list, self.unmonitored_list)
+        top = MonitorFrame(self, "Monitors", self.monitored_list, self.unmonitored_list)
         top.Show()
 
         # Add monitor using the IDs above
@@ -748,7 +748,7 @@ class Gui(wx.Frame):
         self.canvas.current_page = 1
 
 
-class Frame(wx.Frame):
+class MonitorFrame(wx.Frame):
     def __init__(self, parent, title, monitored, unmonitored):
         wx.Frame.__init__(self, None, title=title, pos=(350,150), size=(350,300))
         self.parent = parent
