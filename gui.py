@@ -378,9 +378,9 @@ class Gui(wx.Frame):
         self.monitors = monitors
         self.names = names
 
-        # Get device terminals
-        monitored_list, unmonitored_list = self.monitors.get_signal_names()
-        self.total_list = monitored_list + unmonitored_list
+        # Get monitors
+        self.monitored_list, self.unmonitored_list = self.monitors.get_signal_names()
+        self.total_list = self.monitored_list + self.unmonitored_list
 
         # Cycles completed
         self.cycles_completed = 0
@@ -401,7 +401,7 @@ class Gui(wx.Frame):
 
         # Canvas for drawing signals
         self.canvas = MyGLCanvas(self, devices, monitors)
-        self.canvas.signals = monitored_list
+        self.canvas.signals = self.monitored_list
 
         # Preparing Bitmaps for zoom buttons
         image_1 = wx.Image("./graphics/plus.png") 
@@ -419,10 +419,10 @@ class Gui(wx.Frame):
         self.del_button = wx.Button(self, wx.ID_ANY, "Delete")
 
         # Monitor add/delete widgets
-        self.cb_monitor = wx.ComboBox(self,wx.ID_ANY,size=(100,30),choices=self.total_list)
+        # self.cb_monitor = wx.ComboBox(self,wx.ID_ANY,size=(100,30),choices=self.total_list)
         self.text2 = wx.StaticText(self, wx.ID_ANY, "Monitors")
-        self.sig_add_button = wx.Button(self,wx.ID_ANY,"Add")
-        self.sig_del_button = wx.Button(self, wx.ID_ANY, "Delete")
+        self.sig_add_button = wx.Button(self,wx.ID_ANY,"Add/Delete Monitor")
+        # self.sig_del_button = wx.Button(self, wx.ID_ANY, "Delete")
 
         # Switch toggle widgets
         self.text3 = wx.StaticText(self, wx.ID_ANY, "Switches")
@@ -460,7 +460,7 @@ class Gui(wx.Frame):
         self.clr_button.Bind(wx.EVT_BUTTON, self.on_clr_button)
 
         self.sig_add_button.Bind(wx.EVT_BUTTON, self.on_sig_add_button)
-        self.sig_del_button.Bind(wx.EVT_BUTTON, self.on_sig_del_button)
+        # self.sig_del_button.Bind(wx.EVT_BUTTON, self.on_sig_del_button)
 
         self.zoom_in_button.Bind(wx.EVT_BUTTON, self.on_zoom_in_button)
         self.zoom_out_button.Bind(wx.EVT_BUTTON, self.on_zoom_out_button)
@@ -497,10 +497,10 @@ class Gui(wx.Frame):
         double_butt.Add(self.del_button, 1, wx.ALL, 5)  # Currently not using
 
         side_sizer.Add(self.text2, 1, wx.TOP, 10)
-        side_sizer.Add(self.cb_monitor, 1, wx.ALL, 5)
+        # side_sizer.Add(self.cb_monitor, 1, wx.ALL, 5)
         side_sizer.Add(double_butt_2, 1, wx.ALL, 0)
         double_butt_2.Add(self.sig_add_button, 1, wx.ALL, 5)
-        double_butt_2.Add(self.sig_del_button, 1, wx.ALL, 5)
+        # double_butt_2.Add(self.sig_del_button, 1, wx.ALL, 5)
 
         side_sizer.Add(self.text3, 1, wx.TOP, 10)
         side_sizer.Add(self.cb_switch, 1, wx.ALL, 5)
@@ -624,11 +624,7 @@ class Gui(wx.Frame):
         else:
             self.switch_signal(0)
 
-    def get_monitor_ids(self):
-        if self.cb_monitor.GetSelection() != wx.NOT_FOUND:
-            signal = self.total_list[self.cb_monitor.GetSelection()]
-        else:
-            signal = None
+    def get_monitor_ids(self, signal):
         if signal is not None and '.' in signal:
             device, port = signal.split('.')
             device_id = self.names.query(device)
@@ -641,21 +637,22 @@ class Gui(wx.Frame):
 
     def on_sig_add_button(self, event):
         # Get user selected signal and split to get IDs
-        device_id, port_id = self.get_monitor_ids()
+        top = Frame(self, "Monitors", self.monitored_list, self.unmonitored_list)
+        top.Show()
 
         # Add monitor using the IDs above
-        if self.canvas.run != 1:
-            text = 'You should run the simulation first'
-        elif device_id is not None:
-            monitor_error = self.monitors.make_monitor(device_id, port_id,
-                                                       self.canvas.cycles)
-            if monitor_error == self.monitors.NO_ERROR:
-                text = "Successfully made monitor."
-            else:
-                text = "Error! Could not make monitor."
-        else:
-            text = "Button no effect!"
-        self.canvas.render(text)
+        # if self.canvas.run != 1:
+        #     text = 'You should run the simulation first'
+        # else:
+        #     for signal in self.to_add:
+        #         device_id, port_id = self.get_monitor_ids(signal)
+        #         monitor_error = self.monitors.make_monitor(device_id, port_id,
+        #                                                self.canvas.cycles)
+        #         if monitor_error == self.monitors.NO_ERROR:
+        #             text = "Successfully made monitor."
+        #         else:
+        #             text = "Error! Could not make monitor: "+ signal
+        # self.canvas.render(text)
 
     def on_sig_del_button(self, event):
         # Get user selected signal and split to get IDs
@@ -751,3 +748,116 @@ class Gui(wx.Frame):
         page_number = self.text_box.GetValue()
         text = "Go to page: " + page_number
         self.canvas.current_page = 1
+
+
+class Frame(wx.Frame):
+    def __init__(self, parent, title, monitored, unmonitored):
+        wx.Frame.__init__(self, None, title=title, pos=(350,150), size=(350,300))
+        self.parent = parent
+        self.monitored = monitored
+        self.unmonitored = unmonitored
+        self.Bind(wx.EVT_CLOSE, self.on_close)
+
+        menuBar = wx.MenuBar()
+        menu = wx.Menu()
+        m_exit = menu.Append(wx.ID_EXIT, "E&xit\tAlt-X", "Close window and exit program.")
+        self.Bind(wx.EVT_MENU, self.on_close, m_exit)
+        menuBar.Append(menu, "&File")
+        self.SetMenuBar(menuBar)
+        
+        self.statusbar = self.CreateStatusBar()
+
+        panel = wx.Panel(self)
+        box = wx.BoxSizer(wx.VERTICAL)
+        list_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        m_text = wx.StaticText(panel, -1, "Select Signal")
+        m_text.SetFont(wx.Font(14, wx.SWISS, wx.NORMAL, wx.BOLD))
+        m_text.SetSize(m_text.GetBestSize())
+        box.Add(m_text, 1, wx.ALL, 5)
+
+        self.list_ctrl_1 = wx.ListCtrl(panel, size=(-1,100), style=wx.LC_REPORT|wx.BORDER_SUNKEN)
+        self.list_ctrl_2 = wx.ListCtrl(panel, size=(-1,100), style=wx.LC_REPORT|wx.BORDER_SUNKEN)
+        self.list_ctrl_1.InsertColumn(0, 'Monitored', width = 160)
+        self.list_ctrl_2.InsertColumn(0, 'Unmonitored', width = 160)
+        index = 0
+        for signal in self.monitored:
+            self.list_ctrl_1.InsertItem(index, signal)
+            index = index+1
+
+        for signal in self.unmonitored:
+            self.list_ctrl_2.InsertItem(index, signal)
+            index = index+1
+
+        box.Add(list_sizer, 10, wx.ALL, 0)
+        list_sizer.Add(self.list_ctrl_1, 1, wx.EXPAND|wx.ALL, 5)
+        list_sizer.Add(self.list_ctrl_2, 1, wx.EXPAND|wx.ALL, 5)
+
+        side_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        box.Add(side_sizer, 1, wx.ALL, 5)
+        
+        add = wx.Button(panel, wx.ID_CLOSE, "ADD")
+        delete = wx.Button(panel, wx.ID_CLOSE, "DELETE")
+        close = wx.Button(panel, wx.ID_CLOSE, "CLOSE")
+        add.Bind(wx.EVT_BUTTON, self.on_add)
+        delete.Bind(wx.EVT_BUTTON, self.on_delete)
+        close.Bind(wx.EVT_BUTTON, self.on_close)
+        side_sizer.Add(add, 1, wx.ALL, 5)
+        side_sizer.Add(delete, 1, wx.ALL, 5)
+        side_sizer.Add(close, 1, wx.ALL, 5)
+        
+        panel.SetSizer(box)
+        panel.Layout()
+
+    def on_close(self, event):
+        self.Destroy()
+    
+    def on_add(self, event):
+        signals = []
+        index = -1
+        while True:
+            index = self.list_ctrl_2.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            if index == -1:
+                break
+            signals.append(self.unmonitored[index])
+
+        # Delete monitor using the IDs above
+        if self.parent.canvas.run != 1:
+            text = 'You should run the simulation first'
+        else:
+            for signal in signals:
+                device_id, port_id = self.parent.get_monitor_ids(signal)
+                monitor_error = self.parent.monitors.make_monitor(device_id, port_id,
+                                                       self.parent.canvas.cycles)
+                if monitor_error == self.parent.monitors.NO_ERROR:
+                    text = "Successfully made monitor."
+                    self.parent.monitored_list.append(signal)
+                    self.parent.unmonitored_list.remove(signal)
+                else:
+                    text = "Error! Could not make monitor: "+ signal
+        self.parent.canvas.render(text)
+        self.Destroy()
+    
+    def on_delete(self, event):
+        signals = []
+        index = -1
+        while True:
+            index = self.list_ctrl_1.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            if index == -1:
+                break
+            signals.append(self.monitored[index])
+        
+        # Delete monitor using the IDs above
+        if self.parent.canvas.run != 1:
+            text = 'You should run the simulation first'
+        else:
+            for signal in signals:
+                device_id, port_id = self.parent.get_monitor_ids(signal)
+                if self.parent.monitors.remove_monitor(device_id, port_id):
+                    text = "Successfully zapped monitor"
+                    self.parent.unmonitored_list.append(signal)
+                    self.parent.monitored_list.remove(signal)
+                else:
+                    text = "Error! Could not zap monitor: "+ signal
+        self.parent.canvas.render(text)
+        self.Destroy()
