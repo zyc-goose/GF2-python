@@ -12,6 +12,10 @@ import os
 from collections import namedtuple
 
 ###### ERROR CODE TESTS ######
+"""This section of test intends to check whether the parser is able to generate
+the correct error messages when given a poorly defined input file. The class
+ParserTestCase acts as a virtual machine to handle the input and output and
+check whethe the output is as desired."""
 class ParserTestCase:
     """Receive an input file (as strings), run the parser and check the error code."""
 
