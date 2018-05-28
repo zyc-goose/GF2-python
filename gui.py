@@ -830,6 +830,14 @@ class MonitorFrame(wx.Frame):
         panel.SetSizer(box)
         panel.Layout()
 
+    def refresh_lists(self):
+        self.list_ctrl_1.DeleteAllItems()
+        self.list_ctrl_2.DeleteAllItems()
+        for index, signal in enumerate(self.monitored):
+            self.list_ctrl_1.InsertItem(index, signal)
+        for index, signal in enumerate(self.unmonitored):
+            self.list_ctrl_2.InsertItem(index, signal)
+
     def on_close(self, event):
         self.Destroy()
 
@@ -858,7 +866,7 @@ class MonitorFrame(wx.Frame):
                 else:
                     text = "Error! Could not make monitor: "+ signal
         self.parent.canvas.render(text)
-        self.Destroy()
+        self.refresh_lists()
 
     def on_delete(self, event):
         signals = []
@@ -883,4 +891,4 @@ class MonitorFrame(wx.Frame):
                 else:
                     text = "Error! Could not zap monitor: "+ signal
         self.parent.canvas.render(text)
-        self.Destroy()
+        self.refresh_lists()
