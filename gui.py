@@ -12,6 +12,8 @@ import wx
 import wx.glcanvas as wxcanvas
 from OpenGL import GL, GLUT
 from PIL import Image
+import threading
+import time
 
 from names import Names
 from devices import Devices
@@ -405,8 +407,9 @@ class Gui(wx.Frame):
         self.monitored_list, self.unmonitored_list = self.monitors.get_signal_names()
         self.total_list = self.monitored_list + self.unmonitored_list
 
-        # Cycles completed
+        # Cycles completed and worker for multithread
         self.cycles_completed = 0
+        self.worker = RunThread(self, 1)
 
         # Get switch list
         self.switch_ids = self.devices.find_devices(self.devices.SWITCH)
@@ -436,7 +439,7 @@ class Gui(wx.Frame):
 
         # Basic cycle control widgets
         self.text = wx.StaticText(self, wx.ID_ANY, "Cycles")
-        self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10", max = 10000000)
+        self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10", max = 10**10)
         self.run_button = wx.Button(self, wx.ID_ANY, "Run")
         self.cont_button = wx.Button(self,wx.ID_ANY,"Add")
         self.del_button = wx.Button(self, wx.ID_ANY, "Delete")
@@ -585,6 +588,8 @@ class Gui(wx.Frame):
         else:
             device_name = self.names.get_name_string(self.network.device_no_input)
             text = 'DEVICE \"' + device_name + '\" is oscillatory!'
+        self.worker = RunThread(self, 1)
+        self.worker.start()
         self.canvas.render(text)
         self.update_scroll_bar()
 
@@ -766,11 +771,23 @@ class Gui(wx.Frame):
         self.canvas.render('Turn to Next Page')
 
     def on_goto_button(self, event):
+        self.worker.stop()
+        time.sleep(.100)
         page_number = self.text_box.GetValue()
         text = "Go to page: " + page_number
-        self.canvas.current_page = 1
+        page_number = page_number if page_number is not '' else self.canvas.current_page
+        to_run = int(page_number)*60-self.cycles_completed
+        if to_run > 0:
+            self.run_network(to_run)
+            self.cycles_completed += to_run
+        self.canvas.current_page = int(page_number)
+        self.canvas.render(text)
+
+        #self.worker = RunThread(self, 1)
+        #self.worker.start()
 
 
+# Monitor Selection Frame
 class MonitorFrame(wx.Frame):
     def __init__(self, parent, title, monitored, unmonitored):
         wx.Frame.__init__(self, None, title=title, pos=(350,150), size=(350,300))
@@ -884,3 +901,30 @@ class MonitorFrame(wx.Frame):
                     text = "Error! Could not zap monitor: "+ signal
         self.parent.canvas.render(text)
         self.Destroy()
+
+
+# Multithreading
+class RunThread(threading.Thread):
+    def __init__(self, parent, value):
+        """
+        @param parent: The gui object that should recieve the value
+        @param value: value to 'calculate' to
+        """
+        threading.Thread.__init__(self)
+        self._stop_event = threading.Event()
+        self._parent = parent
+        self._value = value
+
+    def run(self):
+        """Overrides Thread.run. Don't call this directly its called internally
+        when you call Thread.start().
+        """ 
+        while self._parent.cycles_completed+1000 <= self._parent.canvas.cycles:
+            time.sleep(.100)
+            self._parent.run_network(1000)
+            self._parent.cycles_completed += 1000
+            if self._stop_event.is_set():
+                break
+    def stop(self):
+        self._stop_event.set()
+        # wx.PostEvent(self._parent, evt)
