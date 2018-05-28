@@ -86,6 +86,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SIZE, self.on_size)
         self.Bind(wx.EVT_MOUSE_EVENTS, self.on_mouse)
+        self.Bind(wx.EVT_KEY_DOWN, self.on_key)
 
     def initTexture(self):
         """init the texture - this has to happen after an OpenGL context
@@ -237,6 +238,28 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             self.parent.update_scroll_bar()
         else:
             self.Refresh()  # triggers the paint event
+
+    def on_key(self,event):
+        key_code = event.GetKeyCode()
+
+        if key_code in (wx.WXK_LEFT, wx.WXK_RIGHT):
+            full_width = self.parent.full_width
+            length = self.parent.hbar.GetRange()
+            thumb_size = self.parent.hbar.GetThumbSize()
+            if key_code == wx.WXK_LEFT:
+                self.pan_x += 10
+                if self.pan_x > 0:
+                    self.pan_x = 0
+            elif key_code == wx.WXK_RIGHT:
+                self.pan_x -= 10
+                if self.pan_x < -(self.signal_width-self.parent.full_width):
+                    self.pan_x = -(self.signal_width-self.parent.full_width)
+            thumb_pos = self.pan_x * (length - thumb_size) / (self.signal_width - full_width)
+            self.parent.hbar.SetThumbPosition(thumb_pos)
+        if key_code == wx.WXK_UP:
+            pass
+        if key_code == wx.WXK_DOWN:
+            pass
 
     def render_text(self, text, x_pos, y_pos):
         """Handle text drawing operations."""
@@ -404,12 +427,12 @@ class Gui(wx.Frame):
         self.canvas.signals = self.monitored_list
 
         # Preparing Bitmaps for zoom buttons
-        image_1 = wx.Image("./graphics/plus.png") 
-        image_1.Rescale(30, 30) 
+        image_1 = wx.Image("./graphics/plus.png")
+        image_1.Rescale(30, 30)
         plus = wx.Bitmap(image_1)
-        image_2 = wx.Image("./graphics/minus.png") 
-        image_2.Rescale(30, 30) 
-        minus = wx.Bitmap(image_2) 
+        image_2 = wx.Image("./graphics/minus.png")
+        image_2.Rescale(30, 30)
+        minus = wx.Bitmap(image_2)
 
         # Basic cycle control widgets
         self.text = wx.StaticText(self, wx.ID_ANY, "Cycles")
@@ -762,13 +785,13 @@ class MonitorFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_close, m_exit)
         menuBar.Append(menu, "&File")
         self.SetMenuBar(menuBar)
-        
+
         self.statusbar = self.CreateStatusBar()
 
         panel = wx.Panel(self)
         box = wx.BoxSizer(wx.VERTICAL)
         list_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        
+
         m_text = wx.StaticText(panel, -1, "Select Signal")
         m_text.SetFont(wx.Font(14, wx.SWISS, wx.NORMAL, wx.BOLD))
         m_text.SetSize(m_text.GetBestSize())
