@@ -152,7 +152,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             self.texture_mapping()
 
         # Draw specified text at position (10, 10)
-        self.render_text(text, 10/self.zoom, 10)
+        self.render_text(text, (10-self.pan_x)/self.zoom, 10)
         page_disp = 'Page: '+str(self.current_page)+'/'+str(self.page_number)
         self.render_text(page_disp, (self.GetClientSize().width-80-self.pan_x)/self.zoom, 10)
 
@@ -431,6 +431,7 @@ class Gui(wx.Frame):
         # Get monitors
         self.monitored_list, self.unmonitored_list = self.monitors.get_signal_names()
         self.total_list = self.monitored_list + self.unmonitored_list
+        self.monitor_window = 0
 
         # Cycles completed and worker for multithread
         self.cycles_completed = 0
@@ -477,7 +478,7 @@ class Gui(wx.Frame):
         self.text3 = wx.StaticText(self, wx.ID_ANY, "Switches")
         # Define switch table
         self.list_ctrl = wx.ListCtrl(self, size=(-1,100), style=wx.LC_REPORT|wx.BORDER_SUNKEN)
-        self.list_ctrl.InsertColumn(0, 'Switches', width = 75)
+        self.list_ctrl.InsertColumn(0, 'Switches', width = 90)
         self.list_ctrl.InsertColumn(1, 'Values', width = 75)
         self.pop_switch_list(new_instance = 1)
         # self.cb_switch = wx.ComboBox(self,wx.ID_ANY,size=(100,30),choices=self.switches)
@@ -504,6 +505,7 @@ class Gui(wx.Frame):
         self.hbar.SetScrollbar(0, self.full_width, self.full_width, 1)
 
         # Bind events to widgets
+        self.Bind(wx.EVT_CLOSE, self.on_close)
         self.Bind(wx.EVT_MENU, self.on_menu)
         self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
         self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
@@ -573,6 +575,11 @@ class Gui(wx.Frame):
 
         self.SetSizeHints(700, 600)
         self.SetSizer(main_sizer)
+
+    def on_close(self, event):
+        if self.monitor_window == 1:
+            self.top.program_close()
+        self.Destroy()
 
     def on_menu(self, event):
         """Handle the event when the user selects a menu item."""
@@ -693,8 +700,10 @@ class Gui(wx.Frame):
 
     def on_sig_add_button(self, event):
         # Get user selected signal and split to get IDs
-        top = MonitorFrame(self, "Monitors", self.monitored_list, self.unmonitored_list)
-        top.Show()
+        if self.monitor_window == 0:
+            self.top = MonitorFrame(self, "Monitors", self.monitored_list, self.unmonitored_list)
+            self.top.Show()
+            self.monitor_window = 1
 
     # Should be added together with delete cycle function
     # def on_clear_button(self, event):
