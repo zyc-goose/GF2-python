@@ -154,7 +154,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Draw specified text at position (10, 10)
         self.render_text(text, 10/self.zoom, 10)
         page_disp = 'Page: '+str(self.current_page)+'/'+str(self.page_number)
-        self.render_text(page_disp, (520-self.pan_x)/self.zoom, 10)
+        self.render_text(page_disp, (self.GetClientSize().width-80-self.pan_x)/self.zoom, 10)
 
         if self.run == 1:
             # If run button clicked, render all signals
@@ -420,7 +420,7 @@ class Gui(wx.Frame):
 
     def __init__(self, title, path, names, devices, network, monitors):
         """Initialise widgets and layout."""
-        super().__init__(parent=None, title=title, size=(800, 600))
+        super().__init__(parent=None, title=title, size=(900, 700))
 
         # Make objects local
         self.devices = devices
@@ -499,8 +499,8 @@ class Gui(wx.Frame):
         self.goto_button = wx.Button(self, wx.ID_ANY, "Goto")
 
         # Scroll Bars
-        self.full_width = 600
-        self.hbar = wx.ScrollBar(self, id=wx.ID_ANY, size=(600,15), style=wx.SB_HORIZONTAL)
+        self.full_width = 700
+        self.hbar = wx.ScrollBar(self, id=wx.ID_ANY, size=(-1,15), style=wx.SB_HORIZONTAL)
         self.hbar.SetScrollbar(0, self.full_width, self.full_width, 1)
 
         # Bind events to widgets
@@ -538,7 +538,7 @@ class Gui(wx.Frame):
 
         main_sizer.Add(main_sizer_second, 5, wx.EXPAND | wx.RIGHT | wx.TOP | wx.LEFT, 5)
         main_sizer_second.Add(self.canvas, 25, wx.EXPAND | wx.ALL, 5)
-        main_sizer_second.Add(self.hbar, 1, wx.ALL, 5)
+        main_sizer_second.Add(self.hbar, 1, wx.EXPAND |wx.ALL, 5)
         main_sizer.Add(side_sizer, 1, wx.ALL, 5)
 
         side_sizer.Add(self.text, 1, wx.TOP, 10)
@@ -571,7 +571,7 @@ class Gui(wx.Frame):
 
         # side_sizer.Add(self.clear_button, 1, wx.ALL, 5)
 
-        self.SetSizeHints(600, 600)
+        self.SetSizeHints(700, 600)
         self.SetSizer(main_sizer)
 
     def on_menu(self, event):
