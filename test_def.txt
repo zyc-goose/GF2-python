@@ -1,6 +1,71 @@
+( ) . DEVICE G1 2 
+target wtf
+
+DEVICE
+()
+(DEVICES
+(DEVICE a1 is AND 2
 (DEVICE G1 is AND 2)
-(DEVICE S1 is SWITCH 0)
-(DEVICE S2 is SWITCH 0)
-(CONNECT S1 to G1.I1)
-(CONNECT S2 to G1.I2)
-(MONITOR G1)
+
+MONITOR
+DEVICE
+DEVICE !
+DEVICE is
+DEVICE andgate is)
+DEVICE and is AND 100)
+DEVICE and and2 are AND 2
+
+is
+DEVICE
+)
+250
+and
+and1
+
+and
+and3
+
+(
+*
+AND
+DTYPE
+DEVICE
+is
+
+)
+NOT
+AND
+DTYPE 2
+DEVICE
+CLOCK 10
+XOR)
+
+1
+and5
+and. to
+and.I3
+and.I1
+(MONITOR and)
+and
+(DEVICE Aluba is DTYPE)
+Aluba
+(MONITOR Aluba.Q)
+Aluba.Q
+
+(DEVICE or is OR 2)
+or.I1
+
+CONNECT or to and.I1
+DEVICE
+CONNECT
+CONNECT or and
+CONNECT or to
+CONNECT and2 to and.I1
+CONNECT and2.I1 to and.I2
+CONNECT and2 to and
+
+DEVICE
+MONITOR)
+MONITOR 321
+MONITOR and 321
+MONITOR and

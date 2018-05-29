@@ -73,15 +73,19 @@ class Scanner:
         'Unterminated comment']
         dummy = names.lookup(self.error_list)
 
+        self.previous_lines = [] # for errormsg display
+
         self.line_number = 0
         self.current_line = ''
         self.current_character = ''
         self.advance()
 
+
     def advance(self):
         if self.current_character not in ('\n', ''):
             self.current_line += self.current_character
         else:
+            self.previous_lines.append(self.current_line)
             self.current_line = ''
             self.line_number += 1
 
@@ -140,9 +144,6 @@ class Scanner:
                     return 2
             self.advance()
             return 1
-
-    def move_to_next_valid_statement(self):
-        pass
 
     def get_symbol(self):
         """Return the symbol type and ID of the next sequence of characters.

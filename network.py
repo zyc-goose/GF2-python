@@ -70,6 +70,7 @@ class Network:
          self.INPUT_CONNECTED, self.PORT_ABSENT,
          self.DEVICE_ABSENT] = self.names.unique_error_codes(6)
         self.steady_state = True  # for checking if signals have settled
+        self.device_no_input = -1
 
     def get_connected_output(self, device_id, input_id):
         """Return the output connected to the given input.
@@ -163,6 +164,16 @@ class Network:
                 if self.get_connected_output(device_id, input_id) is None:
                     return False
         return True
+
+    def find_unconnected_inputs(self):
+        """Return the list of the unconnected inputs."""
+        unconnected_inputs = []
+        for device_id in self.devices.find_devices():
+            device = self.devices.get_device(device_id)
+            for input_id in device.inputs:
+                if self.get_connected_output(device_id, input_id) is None:
+                    unconnected_inputs.append((device_id, input_id))
+        return unconnected_inputs
 
     def update_signal(self, signal, target):
         """Update the signal in the direction of the target.
@@ -345,6 +356,10 @@ class Network:
                     device.outputs[None] = self.devices.RISING
             device.clock_counter += 1
 
+    def is_steady_state(self, device_id):
+        if self.device_no_input == -1 and not self.steady_state:
+            self.device_no_input = device_id
+
     def execute_network(self):
         """Execute all the devices in the network for one simulation cycle.
 
@@ -374,33 +389,47 @@ class Network:
             for device_id in switch_devices:  # execute switch devices
                 if not self.execute_switch(device_id):
                     return False
+                self.is_steady_state(device_id)
             # Execute D-type devices before clocks to catch the rising edge of
             # the clock
             for device_id in d_type_devices:  # execute DTYPE devices
                 if not self.execute_d_type(device_id):
+                    self.device_no_input = device_id
                     return False
+                self.is_steady_state(device_id)
             for device_id in clock_devices:  # complete clock executions
                 if not self.execute_clock(device_id):
                     return False
+                self.is_steady_state(device_id)
             for device_id in and_devices:  # execute AND gate devices
                 if not self.execute_gate(device_id, self.devices.HIGH,
                                          self.devices.HIGH):
+                    self.device_no_input = device_id
                     return False
+                self.is_steady_state(device_id)
             for device_id in or_devices:  # execute OR gate devices
                 if not self.execute_gate(device_id, self.devices.LOW,
                                          self.devices.LOW):
+                    self.device_no_input = device_id
                     return False
+                self.is_steady_state(device_id)
             for device_id in nand_devices:  # execute NAND gate devices
                 if not self.execute_gate(device_id, self.devices.HIGH,
                                          self.devices.LOW):
+                    self.device_no_input = device_id
                     return False
+                self.is_steady_state(device_id)
             for device_id in nor_devices:  # execute NOR gate devices
                 if not self.execute_gate(device_id, self.devices.LOW,
                                          self.devices.HIGH):
+                    self.device_no_input = device_id
                     return False
+                self.is_steady_state(device_id)
             for device_id in xor_devices:  # execute XOR devices
                 if not self.execute_gate(device_id, None, None):
+                    self.device_no_input = device_id
                     return False
+                self.is_steady_state(device_id)
             if self.steady_state:
                 break
         return self.steady_state

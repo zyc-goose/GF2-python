@@ -1,7 +1,4 @@
-(#   DEVICE AA is AND 0003)
-(   DEVICE AA is AND 0003)
-(   DEVICE AA is AND 0003)
-(   DEVICE AA is AND 0003)
-( foo bar)
-/* Jianran shi da sha bi
-Unterminated comment
+(DEVICE A is NAND 1)
+(DEVICE B C D E A are NAND 2)
+(CONNECT A.I1 to B)
+(CONNECT A.I1 to B)
