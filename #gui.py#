@@ -294,6 +294,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glVertex2f(x_next/self.zoom, y)
 
     def draw_rect_background(self, start_x, start_y, end_x, end_y):
+        """Draw grey-level rectangular background."""
         greylevel_f = 0.94
         GL.glColor3f(greylevel_f, greylevel_f, greylevel_f)
         GL.glBegin(GL.GL_QUADS)
@@ -302,6 +303,39 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glVertex2f(end_x, end_y)
         GL.glVertex2f(end_x, start_y)
         GL.glEnd()
+
+    def draw_ruler(self, step, start_x, start_y):
+        """Draw ruler under monitors"""
+        GL.glColor3f(1, 69.0/255, 0) # orangered
+        GL.glBegin(GL.GL_LINE_STRIP)
+        cur_x = start_x
+        cur_y = start_y
+        GL.glVertex2f(cur_x, cur_y)
+        for cycle in range(60):
+            if cycle % 10 == 0:
+                scale_len = 8
+            elif cycle % 5 == 0:
+                scale_len = 6
+            else:
+                scale_len = 4
+            GL.glVertex2f(cur_x, cur_y + scale_len)
+            GL.glVertex2f(cur_x, cur_y)
+            GL.glVertex2f(cur_x + step, cur_y)
+            cur_x += step
+        GL.glVertex2f(cur_x, cur_y + 8)
+        GL.glEnd()
+        # Draw scale numbers
+        scale_num = 60 * (self.current_page - 1)
+        cur_x = start_x
+        cur_y = start_y - 15
+        offset_ratio = 3.5/self.zoom
+        for cycle in range(6):
+            self.render_text(str(scale_num),
+                             cur_x - len(str(scale_num))*offset_ratio, cur_y)
+            scale_num += 10
+            cur_x += step * 10
+        self.render_text(str(scale_num),
+                         cur_x - len(str(scale_num))*offset_ratio, cur_y)
 
     def render_signal(self):
         """Display the signal trace(s) in GUI"""
@@ -325,9 +359,13 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Use below when texture is mapped
         # self.signal_width = max(end+10, self.GetClientSize().width*self.zoom)
 
+        # Draw the ruler
+        self.draw_ruler(step/self.zoom, 50/self.zoom, 45)
+
         # Draw the first strip under the first device
         strip_raise = 113
-        self.draw_rect_background(0, strip_raise+2-50, 600/self.zoom, strip_raise-2-50)
+        self.draw_rect_background(0, strip_raise+2-50,
+                                  max(2000, 2000/self.zoom), strip_raise-2-50)
 
         # Iterate over each device and render
         for device_id, output_id in self.monitors.monitors_dictionary:
@@ -335,7 +373,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             signal_list = self.monitors.monitors_dictionary[(device_id, output_id)]
 
             # Draw the grey strip between devices
-            self.draw_rect_background(0, strip_raise+2+pos*50, 600/self.zoom, strip_raise-2+pos*50)
+            self.draw_rect_background(0, strip_raise+2+pos*50,
+                                      max(2000, 2000/self.zoom), strip_raise-2+pos*50)
             #if pos % 2 == 0:
                 #self.draw_rect_background(0, 110+pos*50, 600/self.zoom, 60+pos*50)
 
@@ -365,7 +404,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 #    break
             pos = pos+1
             GL.glEnd()
-
+   
     def texture_mapping(self):
         """draw function """
         self.SetCurrent(self.context)
@@ -550,7 +589,7 @@ class Gui(wx.Frame):
         main_sizer_second.Add(self.canvas, 25, wx.EXPAND | wx.ALL, 5)
         main_sizer_second.Add(self.hbar, 1, wx.EXPAND, 5)
         main_sizer.Add(main_sizer_third, 1, wx.ALL, 5)
-        main_sizer_third.Add(self.vbar, 1, wx.EXPAND  wx.BOTTOM, 5)
+        main_sizer_third.Add(self.vbar, 1, wx.BOTTOM, 5)
         main_sizer.Add(side_sizer, 1, wx.ALL, 5)
 
         side_sizer.Add(self.text, 1, wx.TOP, 10)
