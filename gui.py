@@ -318,7 +318,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         # Draw the first strip under the first device
         strip_raise = 113
-        self.draw_rect_background(0, strip_raise+2-50, 600/self.zoom, strip_raise-2-50)
+        self.draw_rect_background(0, strip_raise+2-50,
+                                  max(600, 600/self.zoom), strip_raise-2-50)
 
         # Iterate over each device and render
         for device_id, output_id in self.monitors.monitors_dictionary:
@@ -326,7 +327,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             signal_list = self.monitors.monitors_dictionary[(device_id, output_id)]
 
             # Draw the grey strip between devices
-            self.draw_rect_background(0, strip_raise+2+pos*50, 600/self.zoom, strip_raise-2+pos*50)
+            self.draw_rect_background(0, strip_raise+2+pos*50,
+                                      max(600, 600/self.zoom), strip_raise-2+pos*50)
             #if pos % 2 == 0:
                 #self.draw_rect_background(0, 110+pos*50, 600/self.zoom, 60+pos*50)
 
