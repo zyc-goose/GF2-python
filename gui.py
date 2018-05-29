@@ -810,7 +810,7 @@ class Gui(wx.Frame):
 # Monitor Selection Frame
 class MonitorFrame(wx.Frame):
     def __init__(self, parent, title, monitored, unmonitored):
-        wx.Frame.__init__(self, None, title=title, pos=(350,150), size=(350,300))
+        wx.Frame.__init__(self, None, title=title, pos=(350,150), size=(350,600))
         self.parent = parent
         self.monitored = monitored
         self.unmonitored = unmonitored
