@@ -507,9 +507,9 @@ class Gui(wx.Frame):
         self.hbar.SetScrollbar(0, self.full_width, self.full_width, 1)
 
         # Vertical Scroll Bar
-        #self.full_length = 495
-        #self.vbar = wx.ScrollBar(self, id=wx.ID_ANY, size=(15, 495), style=wx.SB_VERTICAL)
-        #self.vbar.SetScrollbar(0, self.full_length, self.full_length, 1)
+        self.full_length = 495
+        self.vbar = wx.ScrollBar(self, id=wx.ID_ANY, size=(15, 495), style=wx.SB_VERTICAL)
+        self.vbar.SetScrollbar(0, self.full_length, self.full_length, 1)
 
         # Bind events to widgets
         self.Bind(wx.EVT_CLOSE, self.on_close)
@@ -537,6 +537,7 @@ class Gui(wx.Frame):
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
         side_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer_second = wx.BoxSizer(wx.VERTICAL)
+        main_sizer_third  = wx.BoxSizer(wx.HORIZONTAL)
         double_butt = wx.BoxSizer(wx.HORIZONTAL)
         double_butt_2 = wx.BoxSizer(wx.HORIZONTAL)
         double_butt_3 = wx.BoxSizer(wx.HORIZONTAL)
@@ -545,12 +546,11 @@ class Gui(wx.Frame):
         double_butt_6 = wx.BoxSizer(wx.HORIZONTAL)
 
 
-        main_sizer.Add(main_sizer_second, 5, wx.EXPAND | wx.RIGHT | wx.TOP | wx.LEFT, 5)
+        main_sizer.Add(main_sizer_second, 25, wx.EXPAND | wx.RIGHT  wx.TOP | wx.LEFT, 5)
         main_sizer_second.Add(self.canvas, 25, wx.EXPAND | wx.ALL, 5)
-        main_sizer_second.Add(self.hbar, 1, wx.ALL, 5)
-
-        main_sizer_second.Add(self.hbar, 1, wx.EXPAND |wx.ALL, 5)
-
+        main_sizer_second.Add(self.hbar, 1, wx.EXPAND, 5)
+        main_sizer.Add(main_sizer_third, 1, wx.ALL, 5)
+        main_sizer_third.Add(self.vbar, 1, wx.EXPAND  wx.BOTTOM, 5)
         main_sizer.Add(side_sizer, 1, wx.ALL, 5)
 
         side_sizer.Add(self.text, 1, wx.TOP, 10)

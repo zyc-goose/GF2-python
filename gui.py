@@ -78,6 +78,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.texture = None  # texture ID
         self.use_hero = 0  # whether to use texture or not
         self.signal_width = 0  # Total signal length on canvas
+        self.signal_count = 0
         self.page_number = 1
         self.current_page = 1
 
@@ -330,7 +331,9 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.draw_rect_background(0, strip_raise+2-50, 600/self.zoom, strip_raise-2-50)
 
         # Iterate over each device and render
+        self.signal_count = 0
         for device_id, output_id in self.monitors.monitors_dictionary:
+            self.signal_count += 1
             monitor_name = self.devices.get_signal_name(device_id, output_id)
             signal_list = self.monitors.monitors_dictionary[(device_id, output_id)]
 
@@ -507,9 +510,9 @@ class Gui(wx.Frame):
         self.hbar.SetScrollbar(0, self.full_width, self.full_width, 1)
 
         # Vertical Scroll Bar
-        #self.full_length = 495
-        #self.vbar = wx.ScrollBar(self, id=wx.ID_ANY, size=(15, 495), style=wx.SB_VERTICAL)
-        #self.vbar.SetScrollbar(0, self.full_length, self.full_length, 1)
+        self.full_length = 1000
+        self.vbar = wx.ScrollBar(self, id=wx.ID_ANY, size=(15, 1000), style=wx.SB_VERTICAL)
+        self.vbar.SetScrollbar(0, self.full_length, self.full_length, 1)
 
         # Bind events to widgets
         self.Bind(wx.EVT_CLOSE, self.on_close)
@@ -528,6 +531,7 @@ class Gui(wx.Frame):
         # self.clear_button.Bind(wx.EVT_BUTTON, self.on_clear_button)
         #self.hero_button.Bind(wx.EVT_BUTTON, self.on_hero_button)
         self.hbar.Bind(wx.EVT_SCROLL, self.on_hbar)
+        self.vbar.Bind(wx.EVT_SCROLL, self.on_vbar)
         self.prev_button.Bind(wx.EVT_BUTTON, self.on_prev_button)
         self.next_button.Bind(wx.EVT_BUTTON, self.on_next_button)
         self.goto_button.Bind(wx.EVT_BUTTON, self.on_goto_button)
@@ -537,6 +541,7 @@ class Gui(wx.Frame):
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
         side_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer_second = wx.BoxSizer(wx.VERTICAL)
+        main_sizer_third  = wx.BoxSizer(wx.HORIZONTAL)
         double_butt = wx.BoxSizer(wx.HORIZONTAL)
         double_butt_2 = wx.BoxSizer(wx.HORIZONTAL)
         double_butt_3 = wx.BoxSizer(wx.HORIZONTAL)
@@ -545,9 +550,11 @@ class Gui(wx.Frame):
         double_butt_6 = wx.BoxSizer(wx.HORIZONTAL)
 
 
-        main_sizer.Add(main_sizer_second, 5, wx.EXPAND | wx.RIGHT | wx.TOP | wx.LEFT, 5)
+        main_sizer.Add(main_sizer_second, 25, wx.EXPAND | wx.RIGHT | wx.TOP | wx.LEFT, 5)
         main_sizer_second.Add(self.canvas, 25, wx.EXPAND | wx.ALL, 5)
         main_sizer_second.Add(self.hbar, 1, wx.EXPAND, 5)
+        main_sizer.Add(main_sizer_third, 1, wx.BOTTOM, 30)
+        main_sizer_third.Add(self.vbar, 1)
         main_sizer.Add(side_sizer, 1, wx.ALL, 5)
 
         side_sizer.Add(self.text, 1, wx.TOP, 10)
@@ -756,13 +763,29 @@ class Gui(wx.Frame):
             self.canvas.pan_x = -int((self.canvas.signal_width-self.full_width)*(pos/(length-thumbsize)))
             self.canvas.init = False
             self.canvas.render(str(self.canvas.pan_x))
+	
+    def on_vbar(self, event):
+        pos = self.vbar.GetThumbPosition()
+        length = self.vbar.GetRange()
+        thumbsize = self.vbar.GetThumbSize()
+        if length > thumbsize:
+            self.canvas.pan_y = -100+pos*100*(self.canvas.signal_count-10)/(self.full_length*(self.canvas.signal_count - 10)/self.canvas.signal_count + pos)
+            self.canvas.init = False
+            self.canvas.render(str(self.canvas.pan_y))
 
     def update_scroll_bar(self):
-        pos = self.hbar.GetThumbPosition()
+        hpos = self.hbar.GetThumbPosition()
         if self.full_width < self.canvas.signal_width:
-            self.hbar.SetScrollbar(pos, self.full_width, self.canvas.signal_width, self.canvas.zoom)
+            self.hbar.SetScrollbar(hpos, self.full_width, self.canvas.signal_width, self.canvas.zoom)
         else:
-            self.hbar.SetScrollbar(pos, self.full_width, self.full_width, self.canvas.zoom)
+            self.hbar.SetScrollbar(hpos, self.full_width, self.full_width, self.canvas.zoom)
+
+        vpos = self.vbar.GetThumbPosition()
+        if 10 < self.canvas.signal_count:
+            self.vbar.SetScrollbar(vpos, 10*self.full_length/self.canvas.signal_count, self.full_length, self.canvas.zoom)
+        else:
+            self.vbar.SetScrollbar(vpos, self.full_length, self.full_length, self.canvas.zoom)
+            
 
     def on_prev_button(self, event):
         if self.canvas.current_page > 1:
