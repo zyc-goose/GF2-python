@@ -65,6 +65,15 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.devices = devices
         self.parent = parent
 
+        self.init_parameters()
+
+        # Bind events to the canvas
+        self.Bind(wx.EVT_PAINT, self.on_paint)
+        self.Bind(wx.EVT_SIZE, self.on_size)
+        self.Bind(wx.EVT_MOUSE_EVENTS, self.on_mouse)
+        self.Bind(wx.EVT_KEY_DOWN, self.on_key)
+
+    def init_parameters(self):
         # Initialise variables for panning
         self.pan_x = 0
         self.pan_y = 0
@@ -84,12 +93,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         # Initialise variables for zooming
         self.zoom = 1
-
-        # Bind events to the canvas
-        self.Bind(wx.EVT_PAINT, self.on_paint)
-        self.Bind(wx.EVT_SIZE, self.on_size)
-        self.Bind(wx.EVT_MOUSE_EVENTS, self.on_mouse)
-        self.Bind(wx.EVT_KEY_DOWN, self.on_key)
 
     def initTexture(self):
         """init the texture - this has to happen after an OpenGL context
@@ -150,7 +153,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Clear everything
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
         if self.use_hero == 1:
-            self.texture_mapping()        
+            self.texture_mapping()      
 
         if self.run == 1:
             # If run button clicked, render all signals
@@ -160,7 +163,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Draw specified text at position (10, 10)
         self.render_text(text, (10-self.pan_x)/self.zoom, 10)
         page_disp = 'Page: '+str(self.current_page)+'/'+str(self.page_number)
-        self.render_text_stationary(page_disp, (self.GetClientSize().width-80)/self.zoom, 10)
+        self.render_text(page_disp, (self.GetClientSize().width- \
+            len(page_disp)*8-self.pan_x)/self.zoom, 10)
 
         # We have been drawing to the back buffer, flush the graphics pipeline
         # and swap the back buffer to the front
@@ -518,14 +522,14 @@ class Gui(wx.Frame):
         # Configure the file menu
         fileMenu = wx.Menu()
         menuBar = wx.MenuBar()
-        fileMenu.Append(wx.ID_ABOUT, "&About")
-        fileMenu.Append(wx.ID_EXIT, "&Exit")
+        fileMenu.Append(wx.ID_ABOUT, "&About\tCTRL+A")
+        fileMenu.Append(wx.ID_OPEN, "&Open\tCTRL+N")
+        fileMenu.Append(wx.ID_EXIT, "&Exit\tCTRL+Q")
         menuBar.Append(fileMenu, "&File")
         self.SetMenuBar(menuBar)
 
         # Canvas for drawing signals
         self.canvas = MyGLCanvas(self, devices, monitors)
-        self.canvas.signals = self.monitored_list
 
         # Preparing Bitmaps for zoom buttons
         image_1 = wx.Image("./graphics/plus.png")
@@ -658,11 +662,49 @@ class Gui(wx.Frame):
         self.SetSizeHints(700, 600)
         self.SetSizer(main_sizer)
 
+    def open_new(self, path):
+        # Initialise instances of the four inner simulator classes
+        new_names = Names()
+        new_devices = Devices(new_names)
+        new_network = Network(new_names, new_devices)
+        new_monitors = Monitors(new_names, new_devices, new_network)
+        new_scanner = Scanner(path, new_names)
+        parser = Parser(new_names, new_devices, new_network, new_monitors, new_scanner)
+        if parser.parse_network():
+            if self.monitor_window == 1:
+                self.top.program_close()
+            self.worker.stop()
+            self.reinit(new_names, new_devices, new_network, new_monitors)
+        else:
+            wx.MessageBox("File Conatins Error, See Terminal", "Please confirm",
+                             wx.ICON_QUESTION | wx.YES_NO, self)
+
+    def on_open(self):
+        # if self.contentNotSaved:
+        #     if wx.MessageBox("Current content has not been saved! Proceed?", "Please confirm",
+        #                      wx.ICON_QUESTION | wx.YES_NO, self) == wx.NO:
+        #         return
+
+        # otherwise ask the user what new file to open
+        with wx.FileDialog(self, "Open definition file", wildcard="XYZ files (*.txt)|*.txt",
+                           style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as fileDialog:
+
+            if fileDialog.ShowModal() == wx.ID_CANCEL:
+                return     # the user changed their mind
+
+            # Proceed loading the file chosen by the user
+            pathname = fileDialog.GetPath()
+            try:
+                self.open_new(pathname)
+            except IOError:
+                wx.LogError("Cannot open file '%s'." % newfile)
+        fileDialog.Destroy()
+
     def on_close(self, event):
         if self.monitor_window == 1:
             self.top.program_close()
         self.worker.stop()
-        self.Destroy()
+        event.Skip()
 
     def on_menu(self, event):
         """Handle the event when the user selects a menu item."""
@@ -672,6 +714,8 @@ class Gui(wx.Frame):
         if Id == wx.ID_ABOUT:
             wx.MessageBox("Logic Simulator\nTeam 4 Version\n2018",
                           "About Logsim", wx.ICON_INFORMATION | wx.OK)
+        if Id == wx.ID_OPEN:
+            self.on_open()
 
     def on_spin(self, event):
         """Handle the event when the user changes the spin control value."""
@@ -899,6 +943,39 @@ class Gui(wx.Frame):
         self.worker = RunThread(self, 1)
         self.worker.start()
 
+    def reinit(self, names, devices, network, monitors):
+        # Make objects local
+        self.devices = devices
+        self.network = network
+        self.monitors = monitors
+        self.names = names
+
+        # Get monitors
+        self.monitored_list, self.unmonitored_list = self.monitors.get_signal_names()
+        self.total_list = self.monitored_list + self.unmonitored_list
+        self.monitor_window = 0
+
+        # Cycles completed and worker for multithread
+        self.cycles_completed = 0
+        self.worker = RunThread(self, 1)
+
+        self.switch_ids = self.devices.find_devices(self.devices.SWITCH)
+        self.switches = []
+        self.get_switch_signals()
+
+        self.list_ctrl.ClearAll()
+        self.list_ctrl.InsertColumn(0, 'Switches', width = 90)
+        self.list_ctrl.InsertColumn(1, 'Values', width = 75)
+        self.pop_switch_list(new_instance = 1)
+
+        self.hbar.SetScrollbar(0, self.full_width, self.full_width, 1)
+        self.canvas.init = False
+        self.canvas.monitors = self.monitors
+        self.canvas.devices = self.devices
+        self.canvas.parent = self
+        self.canvas.init_parameters()
+
+
 
 # Monitor Selection Frame
 class MonitorFrame(wx.Frame):
@@ -1039,6 +1116,7 @@ class RunThread(threading.Thread):
         when you call Thread.start().
         """
         while self._parent.cycles_completed+1000 <= self._parent.canvas.cycles:
+            time.sleep(.050)
             self._parent.run_network(1000)
             self._parent.cycles_completed += 1000
             if self._stop_event.is_set():
