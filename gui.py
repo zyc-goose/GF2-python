@@ -323,8 +323,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def render_signal(self):
         """Display the signal trace(s) in GUI"""
-
-        # To confine name lengths, edit in the future
+       
+	# To confine name lengths, edit in the future
         margin = 10
 
         # local variables
@@ -739,6 +739,7 @@ class Gui(wx.Frame):
             self.top = MonitorFrame(self, "Monitors", self.monitored_list, self.unmonitored_list)
             self.top.Show()
             self.monitor_window = 1
+            self.update_scroll_bar()
 
     # Should be added together with delete cycle function
     # def on_clear_button(self, event):
@@ -791,8 +792,6 @@ class Gui(wx.Frame):
         thumbsize = self.vbar.GetThumbSize()
         if length > thumbsize:
             self.canvas.pan_y = -(self.canvas.signal_count-11)*100+100*pos*self.canvas.signal_count/self.full_length
-
-
             self.canvas.init = False
             self.canvas.render(str(self.canvas.pan_y))
 
@@ -803,11 +802,12 @@ class Gui(wx.Frame):
         else:
             self.hbar.SetScrollbar(hpos, self.full_width, self.full_width, self.canvas.zoom)
 
-        vpos = self.vbar.GetThumbPosition()
-        if 10 < self.canvas.signal_count:
+        
+        if 11 < self.canvas.signal_count:
+            vpos = self.canvas.pan_y+100*(self.canvas.signal_count-11)*self.full_length/(self.canvas.signal_count*100)
             self.vbar.SetScrollbar(vpos, 11*self.full_length/self.canvas.signal_count, self.full_length, self.canvas.zoom)
         else:
-            self.vbar.SetScrollbar(vpos, self.full_length, self.full_length, self.canvas.zoom)
+            self.vbar.SetScrollbar(0, self.full_length, self.full_length, self.canvas.zoom)
             
 
     def on_prev_button(self, event):
