@@ -250,18 +250,18 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             length = self.parent.hbar.GetRange()
             thumb_size = self.parent.hbar.GetThumbSize()
             if key_code == wx.WXK_LEFT:
-                self.pan_x += 10
-                if self.pan_x > 0:
+                self.pan_x -= 10
+                if self.pan_x < 0:
                     self.pan_x = 0
                 else:
                     text = 'scroll to left'
             elif key_code == wx.WXK_RIGHT:
-                self.pan_x -= 10
-                if self.pan_x < -(self.signal_width-full_width):
-                    self.pan_x = -(self.signal_width-full_width)
+                self.pan_x += 10
+                if self.pan_x > self.signal_width-full_width:
+                    self.pan_x = self.signal_width-full_width
                 else:
                     text = 'scroll to right'
-            thumb_pos = -self.pan_x * (length - thumb_size) / (self.signal_width - full_width)
+            thumb_pos = self.pan_x * (length - thumb_size) / (self.signal_width - full_width)
             self.parent.hbar.SetThumbPosition(thumb_pos)
         if key_code == wx.WXK_UP:
             pass
