@@ -161,10 +161,10 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.parent.update_scroll_bar()
 
         # Draw specified text at position (10, 10)
-        self.render_text(text, (10-self.pan_x)/self.zoom, 10)
+        self.render_text(text, (10-self.pan_x)/self.zoom, 10 - self.pan_y)
         page_disp = 'Page: '+str(self.current_page)+'/'+str(self.page_number)
         self.render_text(page_disp, (self.GetClientSize().width- \
-            len(page_disp)*8-self.pan_x)/self.zoom, 10)
+            len(page_disp)*8-self.pan_x)/self.zoom, 10 - self.pan_y)
 
         # We have been drawing to the back buffer, flush the graphics pipeline
         # and swap the back buffer to the front
@@ -305,19 +305,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 GL.glRasterPos2f(x_pos, y_pos)
             else:
                 GLUT.glutBitmapCharacter(font, ord(character))
-    
-    def render_text_stationary(self, text, x_pos, y_pos):
-        """Handle text drawing operations."""
-        GL.glColor3f(0.0, 0.0, 0.0)  # text is black
-        GL.glRasterPos2f(x_pos-self.pan_x, y_pos-self.pan_y)
-        font = GLUT.GLUT_BITMAP_HELVETICA_12
-
-        for character in text:
-            if character == '\n':
-                y_pos = y_pos - 20
-                GL.glRasterPos2f(x_pos-self.pan_x, y_pos-self.pan_y)
-            else:
-                GLUT.glutBitmapCharacter(font, ord(character))
 
     def draw_horizontal_signal(self, start, cycle_count, step, level, pos):
         # Two vertices having same y coord
@@ -327,9 +314,9 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glVertex2f(x/self.zoom, y)
         GL.glVertex2f(x_next/self.zoom, y)
 
-    def draw_rect_background(self, start_x, start_y, end_x, end_y):
+    def draw_rect_background(self, start_x, start_y, end_x, end_y, grey=0.94):
         """Draw grey-level rectangular background."""
-        greylevel_f = 0.94
+        greylevel_f = grey
         GL.glColor3f(greylevel_f, greylevel_f, greylevel_f)
         GL.glBegin(GL.GL_QUADS)
         GL.glVertex2f(start_x, start_y)
@@ -361,7 +348,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Draw scale numbers
         scale_num = 60 * (self.current_page - 1)
         cur_x = start_x
-        cur_y = start_y - 15
+        cur_y = start_y - 15 - self.pan_y
         offset_ratio = 3.5/self.zoom
         for cycle in range(6):
             self.render_text(str(scale_num),
@@ -392,9 +379,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.signal_width = end+10
         # Use below when texture is mapped
         # self.signal_width = max(end+10, self.GetClientSize().width*self.zoom)
-
-        # Draw the ruler
-        self.draw_ruler(step/self.zoom, 50/self.zoom, 45)
 
         # Draw the first strip under the first device
         strip_raise = 113
@@ -440,6 +424,16 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 #    break
             pos = pos+1
             GL.glEnd()
+        # Draw grey background for ruler
+        self.draw_rect_background(0, 29-self.pan_y,
+                                      max(2000, 2000/self.zoom), 65-self.pan_y)
+
+        # Draw white background for text
+        self.draw_rect_background(0, 0-self.pan_y,
+                                      max(2000, 2000/self.zoom), 29-self.pan_y, 1)
+
+        # Draw the ruler
+        self.draw_ruler(step/self.zoom, 50/self.zoom, 49)
 
     def texture_mapping(self):
         """draw function """
@@ -625,7 +619,7 @@ class Gui(wx.Frame):
         main_sizer.Add(main_sizer_second, 25, wx.EXPAND | wx.RIGHT | wx.TOP | wx.LEFT, 5)
         main_sizer_second.Add(self.canvas, 25, wx.EXPAND | wx.ALL, 5)
         main_sizer_second.Add(self.hbar, 1, wx.EXPAND, 5)
-        main_sizer.Add(main_sizer_third, 1, wx.BOTTOM, 30)
+        main_sizer.Add(main_sizer_third, 1, wx.BOTTOM, 90)
         main_sizer_third.Add(self.vbar, 1)
         main_sizer.Add(side_sizer, 1, wx.ALL, 5)
 
