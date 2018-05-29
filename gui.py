@@ -593,6 +593,7 @@ class Gui(wx.Frame):
     def on_close(self, event):
         if self.monitor_window == 1:
             self.top.program_close()
+        self.worker.stop()
         self.Destroy()
 
     def on_menu(self, event):
@@ -662,14 +663,17 @@ class Gui(wx.Frame):
         self.canvas.render(text)
 
     def on_cont_button(self, event):
-        text = "Add Cycles button pressed."
-        self.canvas.run = 1
-        added_cycles = self.spin.GetValue()
-        self.canvas.cycles += added_cycles
-        self.canvas.page_number = int(self.canvas.cycles/60)+1
-        next_to_run = min((60-self.cycles_completed%60), added_cycles)
-        self.run_network(next_to_run)
-        self.cycles_completed += next_to_run
+        text = ''
+        if self.canvas.run == 0:
+            text = 'Press Run Button First!'
+        else:
+            text = 'Continue Button Pressed'
+            added_cycles = self.spin.GetValue()
+            self.canvas.cycles += added_cycles
+            self.canvas.page_number = int(self.canvas.cycles/60)+1
+            next_to_run = min((60-self.cycles_completed%60), added_cycles)
+            self.run_network(next_to_run)
+            self.cycles_completed += next_to_run
         # self.run_network(self.spin.GetValue())
         self.canvas.render(text)
         self.update_scroll_bar()
@@ -822,14 +826,14 @@ class Gui(wx.Frame):
         self.canvas.current_page = int(page_number)
         self.canvas.render(text)
 
-        #self.worker = RunThread(self, 1)
-        #self.worker.start()
+        self.worker = RunThread(self, 1)
+        self.worker.start()
 
 
 # Monitor Selection Frame
 class MonitorFrame(wx.Frame):
     def __init__(self, parent, title, monitored, unmonitored):
-        wx.Frame.__init__(self, None, title=title, pos=(350,150), size=(350,300))
+        wx.Frame.__init__(self, None, title=title, pos=(350,150), size=(350,600))
         self.parent = parent
         self.monitored = monitored
         self.unmonitored = unmonitored
@@ -895,6 +899,7 @@ class MonitorFrame(wx.Frame):
             self.list_ctrl_2.InsertItem(index, signal)
 
     def on_close(self, event):
+        self.parent.monitor_window = 0
         self.Destroy()
 
     def program_close(self):
@@ -964,7 +969,6 @@ class RunThread(threading.Thread):
         when you call Thread.start().
         """
         while self._parent.cycles_completed+1000 <= self._parent.canvas.cycles:
-            time.sleep(.100)
             self._parent.run_network(1000)
             self._parent.cycles_completed += 1000
             if self._stop_event.is_set():
