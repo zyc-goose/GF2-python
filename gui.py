@@ -332,7 +332,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 if signal == self.devices.FALLING:
                     continue
                 if signal == self.devices.BLANK:
-                    # ASK TOMORROW
                     cycle_count += 1
                 # if cycle_count > self.cycles:
                 #    break
@@ -442,7 +441,6 @@ class Gui(wx.Frame):
         self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10", max = 10**10)
         self.run_button = wx.Button(self, wx.ID_ANY, "Run")
         self.cont_button = wx.Button(self,wx.ID_ANY,"Add")
-        self.del_button = wx.Button(self, wx.ID_ANY, "Delete")
 
         # Monitor add/delete widgets
         # self.cb_monitor = wx.ComboBox(self,wx.ID_ANY,size=(100,30),choices=self.total_list)
@@ -480,13 +478,11 @@ class Gui(wx.Frame):
         self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
         self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
         self.cont_button.Bind(wx.EVT_BUTTON, self.on_cont_button)
-        # self.del_button.Bind(wx.EVT_BUTTON, self.on_del_button)
 
         self.set_button.Bind(wx.EVT_BUTTON, self.on_set_button)
         self.clr_button.Bind(wx.EVT_BUTTON, self.on_clr_button)
 
         self.sig_add_button.Bind(wx.EVT_BUTTON, self.on_sig_add_button)
-        # self.sig_del_button.Bind(wx.EVT_BUTTON, self.on_sig_del_button)
 
         self.zoom_in_button.Bind(wx.EVT_BUTTON, self.on_zoom_in_button)
         self.zoom_out_button.Bind(wx.EVT_BUTTON, self.on_zoom_out_button)
@@ -517,16 +513,13 @@ class Gui(wx.Frame):
 
         side_sizer.Add(self.text, 1, wx.TOP, 10)
         side_sizer.Add(self.spin, 1, wx.ALL, 5)
-        side_sizer.Add(self.run_button, 1, wx.ALL, 5)
         side_sizer.Add(double_butt, 1, wx.ALL, 0)
+        double_butt.Add(self.run_button, 1, wx.ALL, 5)
         double_butt.Add(self.cont_button, 1, wx.ALL, 5)
-        double_butt.Add(self.del_button, 1, wx.ALL, 5)  # Currently not using
 
         side_sizer.Add(self.text2, 1, wx.TOP, 10)
-        # side_sizer.Add(self.cb_monitor, 1, wx.ALL, 5)
         side_sizer.Add(double_butt_2, 1, wx.ALL, 0)
         double_butt_2.Add(self.sig_add_button, 1, wx.ALL, 5)
-        # double_butt_2.Add(self.sig_del_button, 1, wx.ALL, 5)
 
         side_sizer.Add(self.text3, 1, wx.TOP, 10)
         side_sizer.Add(self.cb_switch, 1, wx.ALL, 5)
@@ -612,14 +605,6 @@ class Gui(wx.Frame):
         self.canvas.render(text)
         self.update_scroll_bar()
 
-    # def on_del_button(self, event):
-    #     text = "Delete Cycles button pressed."
-    #     self.canvas.run = 1
-    #     self.canvas.cycles -= self.spin.GetValue()
-    #     if self.canvas.cycles<0:
-    #         self.canvas.cycles=0
-    #     self.canvas.render(text)
-
     def switch_signal(self, switch_state):
         text = ""
         if self.cb_switch.GetSelection() != wx.NOT_FOUND:
@@ -665,20 +650,6 @@ class Gui(wx.Frame):
         # Get user selected signal and split to get IDs
         top = MonitorFrame(self, "Monitors", self.monitored_list, self.unmonitored_list)
         top.Show()
-
-        # Add monitor using the IDs above
-        # if self.canvas.run != 1:
-        #     text = 'You should run the simulation first'
-        # else:
-        #     for signal in self.to_add:
-        #         device_id, port_id = self.get_monitor_ids(signal)
-        #         monitor_error = self.monitors.make_monitor(device_id, port_id,
-        #                                                self.canvas.cycles)
-        #         if monitor_error == self.monitors.NO_ERROR:
-        #             text = "Successfully made monitor."
-        #         else:
-        #             text = "Error! Could not make monitor: "+ signal
-        # self.canvas.render(text)
 
     def on_sig_del_button(self, event):
         # Get user selected signal and split to get IDs
