@@ -252,16 +252,23 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 self.pan_x += 10
                 if self.pan_x > 0:
                     self.pan_x = 0
+                else:
+                    text = 'scroll to left'
             elif key_code == wx.WXK_RIGHT:
                 self.pan_x -= 10
-                if self.pan_x < -(self.signal_width-self.parent.full_width):
-                    self.pan_x = -(self.signal_width-self.parent.full_width)
+                if self.pan_x < -(self.signal_width-full_width):
+                    self.pan_x = -(self.signal_width-full_width)
+                else:
+                    text = 'scroll to right'
             thumb_pos = self.pan_x * (length - thumb_size) / (self.signal_width - full_width)
             self.parent.hbar.SetThumbPosition(thumb_pos)
         if key_code == wx.WXK_UP:
             pass
         if key_code == wx.WXK_DOWN:
             pass
+        if text:
+            self.render(text)
+
 
     def render_text(self, text, x_pos, y_pos):
         """Handle text drawing operations."""
@@ -319,7 +326,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Draw the first strip under the first device
         strip_raise = 113
         self.draw_rect_background(0, strip_raise+2-50,
-                                  max(600, 600/self.zoom), strip_raise-2-50)
+                                  max(2000, 2000/self.zoom), strip_raise-2-50)
 
         # Iterate over each device and render
         for device_id, output_id in self.monitors.monitors_dictionary:
@@ -328,7 +335,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
             # Draw the grey strip between devices
             self.draw_rect_background(0, strip_raise+2+pos*50,
-                                      max(600, 600/self.zoom), strip_raise-2+pos*50)
+                                      max(2000, 2000/self.zoom), strip_raise-2+pos*50)
             #if pos % 2 == 0:
                 #self.draw_rect_background(0, 110+pos*50, 600/self.zoom, 60+pos*50)
 
@@ -353,7 +360,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 if signal == self.devices.FALLING:
                     continue
                 if signal == self.devices.BLANK:
-                    # ASK TOMORROW
                     cycle_count += 1
                 # if cycle_count > self.cycles:
                 #    break
@@ -435,8 +441,7 @@ class Gui(wx.Frame):
         # Get switch list
         self.switch_ids = self.devices.find_devices(self.devices.SWITCH)
         self.switches = []
-        for each_id in self.switch_ids:
-            self.switches.append(names.get_name_string(each_id))
+        self.get_switch_signals()
 
         # Configure the file menu
         fileMenu = wx.Menu()
@@ -463,7 +468,6 @@ class Gui(wx.Frame):
         self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10", max = 10**10)
         self.run_button = wx.Button(self, wx.ID_ANY, "Run")
         self.cont_button = wx.Button(self,wx.ID_ANY,"Add")
-        self.del_button = wx.Button(self, wx.ID_ANY, "Delete")
 
         # Monitor add/delete widgets
         # self.cb_monitor = wx.ComboBox(self,wx.ID_ANY,size=(100,30),choices=self.total_list)
@@ -473,7 +477,12 @@ class Gui(wx.Frame):
 
         # Switch toggle widgets
         self.text3 = wx.StaticText(self, wx.ID_ANY, "Switches")
-        self.cb_switch = wx.ComboBox(self,wx.ID_ANY,size=(100,30),choices=self.switches)
+        # Define switch table
+        self.list_ctrl = wx.ListCtrl(self, size=(-1,100), style=wx.LC_REPORT|wx.BORDER_SUNKEN)
+        self.list_ctrl.InsertColumn(0, 'Switches', width = 75)
+        self.list_ctrl.InsertColumn(1, 'Values', width = 75)
+        self.pop_switch_list(new_instance = 1)
+        # self.cb_switch = wx.ComboBox(self,wx.ID_ANY,size=(100,30),choices=self.switches)
         self.set_button = wx.Button(self, wx.ID_ANY, "1")
         self.clr_button = wx.Button(self, wx.ID_ANY, "0")
 
@@ -501,13 +510,11 @@ class Gui(wx.Frame):
         self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
         self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
         self.cont_button.Bind(wx.EVT_BUTTON, self.on_cont_button)
-        # self.del_button.Bind(wx.EVT_BUTTON, self.on_del_button)
 
         self.set_button.Bind(wx.EVT_BUTTON, self.on_set_button)
         self.clr_button.Bind(wx.EVT_BUTTON, self.on_clr_button)
 
         self.sig_add_button.Bind(wx.EVT_BUTTON, self.on_sig_add_button)
-        # self.sig_del_button.Bind(wx.EVT_BUTTON, self.on_sig_del_button)
 
         self.zoom_in_button.Bind(wx.EVT_BUTTON, self.on_zoom_in_button)
         self.zoom_out_button.Bind(wx.EVT_BUTTON, self.on_zoom_out_button)
@@ -538,19 +545,16 @@ class Gui(wx.Frame):
 
         side_sizer.Add(self.text, 1, wx.TOP, 10)
         side_sizer.Add(self.spin, 1, wx.ALL, 5)
-        side_sizer.Add(self.run_button, 1, wx.ALL, 5)
         side_sizer.Add(double_butt, 1, wx.ALL, 0)
+        double_butt.Add(self.run_button, 1, wx.ALL, 5)
         double_butt.Add(self.cont_button, 1, wx.ALL, 5)
-        double_butt.Add(self.del_button, 1, wx.ALL, 5)  # Currently not using
 
         side_sizer.Add(self.text2, 1, wx.TOP, 10)
-        # side_sizer.Add(self.cb_monitor, 1, wx.ALL, 5)
         side_sizer.Add(double_butt_2, 1, wx.ALL, 0)
         double_butt_2.Add(self.sig_add_button, 1, wx.ALL, 5)
-        # double_butt_2.Add(self.sig_del_button, 1, wx.ALL, 5)
 
         side_sizer.Add(self.text3, 1, wx.TOP, 10)
-        side_sizer.Add(self.cb_switch, 1, wx.ALL, 5)
+        side_sizer.Add(self.list_ctrl, 1, wx.ALL, 5)
         side_sizer.Add(double_butt_3, 1, wx.ALL, 0)
         double_butt_3.Add(self.set_button, 1, wx.ALL, 5)
         double_butt_3.Add(self.clr_button, 1, wx.ALL, 5)
@@ -586,6 +590,24 @@ class Gui(wx.Frame):
         spin_value = self.spin.GetValue()
         text = "".join(["New spin control value: ", str(spin_value)])
         self.canvas.render(text)
+
+    def get_switch_signals(self):
+        self.switches = []
+        for each_id in self.switch_ids:
+            switch_pair = (self.names.get_name_string(each_id), \
+                self.devices.get_device(each_id).switch_state)
+            self.switches.append(switch_pair)
+
+    def pop_switch_list(self, new_instance = 0):
+        # pop in switch table
+        index = 0
+        for switch in self.switches:
+            if new_instance == 1:
+                self.list_ctrl.InsertItem(index, switch[0])
+            else:
+                self.list_ctrl.SetItem(index, 0, switch[0])
+            self.list_ctrl.SetItem(index, 1, str(switch[1]))
+            index = index+1
 
     def run_network(self, cycles):
         """Run the network for the specified number of simulation cycles."""
@@ -633,28 +655,23 @@ class Gui(wx.Frame):
         self.canvas.render(text)
         self.update_scroll_bar()
 
-    # def on_del_button(self, event):
-    #     text = "Delete Cycles button pressed."
-    #     self.canvas.run = 1
-    #     self.canvas.cycles -= self.spin.GetValue()
-    #     if self.canvas.cycles<0:
-    #         self.canvas.cycles=0
-    #     self.canvas.render(text)
-
     def switch_signal(self, switch_state):
-        text = ""
-        if self.cb_switch.GetSelection() != wx.NOT_FOUND:
-            device = self.switches[self.cb_switch.GetSelection()]
-        else:
-            device = None
-        if device is not None:
+        devices = []
+        text = ''
+        index = -1
+        while True:
+            index = self.list_ctrl.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            if index == -1:
+                break
+            devices.append(self.switches[index][0])
+        for device in devices:
             switch_id = self.names.query(device)
             if self.devices.set_switch(switch_id, switch_state):
-                text = "Successfully set switch."
+                text = "Successfully set switches."
             else:
                 text = "Error! Invalid switch."
-        else:
-            text = "Button no effect!"
+        self.get_switch_signals()
+        self.pop_switch_list()
         self.canvas.render(text)
 
     def on_set_button(self, event):
@@ -686,20 +703,6 @@ class Gui(wx.Frame):
         # Get user selected signal and split to get IDs
         top = MonitorFrame(self, "Monitors", self.monitored_list, self.unmonitored_list)
         top.Show()
-
-        # Add monitor using the IDs above
-        # if self.canvas.run != 1:
-        #     text = 'You should run the simulation first'
-        # else:
-        #     for signal in self.to_add:
-        #         device_id, port_id = self.get_monitor_ids(signal)
-        #         monitor_error = self.monitors.make_monitor(device_id, port_id,
-        #                                                self.canvas.cycles)
-        #         if monitor_error == self.monitors.NO_ERROR:
-        #             text = "Successfully made monitor."
-        #         else:
-        #             text = "Error! Could not make monitor: "+ signal
-        # self.canvas.render(text)
 
     def on_sig_del_button(self, event):
         # Get user selected signal and split to get IDs
