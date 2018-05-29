@@ -252,16 +252,23 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 self.pan_x += 10
                 if self.pan_x > 0:
                     self.pan_x = 0
+                else:
+                    text = 'scroll to left'
             elif key_code == wx.WXK_RIGHT:
                 self.pan_x -= 10
-                if self.pan_x < -(self.signal_width-self.parent.full_width):
-                    self.pan_x = -(self.signal_width-self.parent.full_width)
+                if self.pan_x < -(self.signal_width-full_width):
+                    self.pan_x = -(self.signal_width-full_width)
+                else:
+                    text = 'scroll to right'
             thumb_pos = self.pan_x * (length - thumb_size) / (self.signal_width - full_width)
             self.parent.hbar.SetThumbPosition(thumb_pos)
         if key_code == wx.WXK_UP:
             pass
         if key_code == wx.WXK_DOWN:
             pass
+        if text:
+            self.render(text)
+
 
     def render_text(self, text, x_pos, y_pos):
         """Handle text drawing operations."""
@@ -283,6 +290,16 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         y = 75+25*level+pos*50
         GL.glVertex2f(x/self.zoom, y)
         GL.glVertex2f(x_next/self.zoom, y)
+
+    def draw_rect_background(self, start_x, start_y, end_x, end_y):
+        greylevel_f = 0.94
+        GL.glColor3f(greylevel_f, greylevel_f, greylevel_f)
+        GL.glBegin(GL.GL_QUADS)
+        GL.glVertex2f(start_x, start_y)
+        GL.glVertex2f(start_x, end_y)
+        GL.glVertex2f(end_x, end_y)
+        GL.glVertex2f(end_x, start_y)
+        GL.glEnd()
 
     def render_signal(self):
         """Display the signal trace(s) in GUI"""
@@ -306,10 +323,19 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Use below when texture is mapped
         # self.signal_width = max(end+10, self.GetClientSize().width*self.zoom)
 
+        # Draw the first strip under the first device
+        strip_raise = 113
+        self.draw_rect_background(0, strip_raise+2-50, 600/self.zoom, strip_raise-2-50)
+
         # Iterate over each device and render
         for device_id, output_id in self.monitors.monitors_dictionary:
             monitor_name = self.devices.get_signal_name(device_id, output_id)
             signal_list = self.monitors.monitors_dictionary[(device_id, output_id)]
+
+            # Draw the grey strip between devices
+            self.draw_rect_background(0, strip_raise+2+pos*50, 600/self.zoom, strip_raise-2+pos*50)
+            #if pos % 2 == 0:
+                #self.draw_rect_background(0, 110+pos*50, 600/self.zoom, 60+pos*50)
 
             # Display signal name
             self.render_text(monitor_name[0:margin], 10/self.zoom, 80+pos*50)
@@ -413,8 +439,7 @@ class Gui(wx.Frame):
         # Get switch list
         self.switch_ids = self.devices.find_devices(self.devices.SWITCH)
         self.switches = []
-        for each_id in self.switch_ids:
-            self.switches.append(names.get_name_string(each_id))
+        self.get_switch_signals()
 
         # Configure the file menu
         fileMenu = wx.Menu()
@@ -450,7 +475,12 @@ class Gui(wx.Frame):
 
         # Switch toggle widgets
         self.text3 = wx.StaticText(self, wx.ID_ANY, "Switches")
-        self.cb_switch = wx.ComboBox(self,wx.ID_ANY,size=(100,30),choices=self.switches)
+        # Define switch table
+        self.list_ctrl = wx.ListCtrl(self, size=(-1,100), style=wx.LC_REPORT|wx.BORDER_SUNKEN)
+        self.list_ctrl.InsertColumn(0, 'Switches', width = 75)
+        self.list_ctrl.InsertColumn(1, 'Values', width = 75)
+        self.pop_switch_list(new_instance = 1)
+        # self.cb_switch = wx.ComboBox(self,wx.ID_ANY,size=(100,30),choices=self.switches)
         self.set_button = wx.Button(self, wx.ID_ANY, "1")
         self.clr_button = wx.Button(self, wx.ID_ANY, "0")
 
@@ -522,7 +552,7 @@ class Gui(wx.Frame):
         double_butt_2.Add(self.sig_add_button, 1, wx.ALL, 5)
 
         side_sizer.Add(self.text3, 1, wx.TOP, 10)
-        side_sizer.Add(self.cb_switch, 1, wx.ALL, 5)
+        side_sizer.Add(self.list_ctrl, 1, wx.ALL, 5)
         side_sizer.Add(double_butt_3, 1, wx.ALL, 0)
         double_butt_3.Add(self.set_button, 1, wx.ALL, 5)
         double_butt_3.Add(self.clr_button, 1, wx.ALL, 5)
@@ -558,6 +588,24 @@ class Gui(wx.Frame):
         spin_value = self.spin.GetValue()
         text = "".join(["New spin control value: ", str(spin_value)])
         self.canvas.render(text)
+
+    def get_switch_signals(self):
+        self.switches = []
+        for each_id in self.switch_ids:
+            switch_pair = (self.names.get_name_string(each_id), \
+                self.devices.get_device(each_id).switch_state)
+            self.switches.append(switch_pair)
+
+    def pop_switch_list(self, new_instance = 0):
+        # pop in switch table
+        index = 0
+        for switch in self.switches:
+            if new_instance == 1:
+                self.list_ctrl.InsertItem(index, switch[0])
+            else:
+                self.list_ctrl.SetItem(index, 0, switch[0])
+            self.list_ctrl.SetItem(index, 1, str(switch[1]))
+            index = index+1
 
     def run_network(self, cycles):
         """Run the network for the specified number of simulation cycles."""
@@ -606,19 +654,22 @@ class Gui(wx.Frame):
         self.update_scroll_bar()
 
     def switch_signal(self, switch_state):
-        text = ""
-        if self.cb_switch.GetSelection() != wx.NOT_FOUND:
-            device = self.switches[self.cb_switch.GetSelection()]
-        else:
-            device = None
-        if device is not None:
+        devices = []
+        text = ''
+        index = -1
+        while True:
+            index = self.list_ctrl.GetNextItem(index, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            if index == -1:
+                break
+            devices.append(self.switches[index][0])
+        for device in devices:
             switch_id = self.names.query(device)
             if self.devices.set_switch(switch_id, switch_state):
-                text = "Successfully set switch."
+                text = "Successfully set switches."
             else:
                 text = "Error! Invalid switch."
-        else:
-            text = "Button no effect!"
+        self.get_switch_signals()
+        self.pop_switch_list()
         self.canvas.render(text)
 
     def on_set_button(self, event):
