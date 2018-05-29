@@ -314,10 +314,19 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glVertex2f(x/self.zoom, y)
         GL.glVertex2f(x_next/self.zoom, y)
 
-    def draw_rect_background(self, start_x, start_y, end_x, end_y, grey=0.94):
-        """Draw grey-level rectangular background."""
-        greylevel_f = grey
-        GL.glColor3f(greylevel_f, greylevel_f, greylevel_f)
+    def draw_rect_background(self, start_x, start_y, end_x, end_y, color=0.94):
+        """Draw rectangular background.
+
+        if type(color) == float, then use grey level.
+        if type(color) == list, then use RGB.
+        """
+        if isinstance(color, (int, float)) and 0 <= color <= 1:
+            red_f = green_f = blue_f = color
+        elif isinstance(color, list) and len(color) == 3:
+            red_f, green_f, blue_f = color
+        else:
+            raise TypeError("wrong type or value for 'color'")
+        GL.glColor3f(red_f, green_f, blue_f)
         GL.glBegin(GL.GL_QUADS)
         GL.glVertex2f(start_x, start_y)
         GL.glVertex2f(start_x, end_y)
