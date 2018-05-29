@@ -674,17 +674,11 @@ class Gui(wx.Frame):
 
     def on_set_button(self, event):
         """Set the specified switch"""
-        if self.canvas.run != 1:
-            text = 'You should run the simulation first'
-        else:
-            self.switch_signal(1)
+        self.switch_signal(1)
 
     def on_clr_button(self, event):
         """Clear the specified switch"""
-        if self.canvas.run != 1:
-            text = 'You should run the simulation first'
-        else:
-            self.switch_signal(0)
+        self.switch_signal(0)
 
     def get_monitor_ids(self, signal):
         if signal is not None and '.' in signal:
@@ -701,22 +695,6 @@ class Gui(wx.Frame):
         # Get user selected signal and split to get IDs
         top = MonitorFrame(self, "Monitors", self.monitored_list, self.unmonitored_list)
         top.Show()
-
-    def on_sig_del_button(self, event):
-        # Get user selected signal and split to get IDs
-        device_id, port_id = self.get_monitor_ids()
-
-        # Delete monitor using the IDs above
-        if self.canvas.run != 1:
-            text = 'You should run the simulation first'
-        elif device_id is not None:
-            if self.monitors.remove_monitor(device_id, port_id):
-                text = "Successfully zapped monitor"
-            else:
-                text = "Error! Could not zap monitor."
-        else:
-            text = "Button no effect!"
-        self.canvas.render(text)
 
     # Should be added together with delete cycle function
     # def on_clear_button(self, event):
@@ -880,6 +858,9 @@ class MonitorFrame(wx.Frame):
     def on_close(self, event):
         self.Destroy()
 
+    def program_close(self):
+        self.Destroy()
+
     def on_add(self, event):
         signals = []
         text = ''
@@ -891,19 +872,16 @@ class MonitorFrame(wx.Frame):
             signals.append(self.unmonitored[index])
 
         # Delete monitor using the IDs above
-        if self.parent.canvas.run != 1:
-            text = 'You should run the simulation first'
-        else:
-            for signal in signals:
-                device_id, port_id = self.parent.get_monitor_ids(signal)
-                monitor_error = self.parent.monitors.make_monitor(device_id, port_id,
-                                                       self.parent.canvas.cycles)
-                if monitor_error == self.parent.monitors.NO_ERROR:
-                    text = "Successfully made monitor."
-                    self.parent.monitored_list.append(signal)
-                    self.parent.unmonitored_list.remove(signal)
-                else:
-                    text = "Error! Could not make monitor: "+ signal
+        for signal in signals:
+            device_id, port_id = self.parent.get_monitor_ids(signal)
+            monitor_error = self.parent.monitors.make_monitor(device_id, port_id,
+                                                   self.parent.canvas.cycles)
+            if monitor_error == self.parent.monitors.NO_ERROR:
+                text = "Successfully made monitor."
+                self.parent.monitored_list.append(signal)
+                self.parent.unmonitored_list.remove(signal)
+            else:
+                text = "Error! Could not make monitor: "+ signal
         self.parent.canvas.render(text)
         self.refresh_lists()
 
@@ -918,17 +896,14 @@ class MonitorFrame(wx.Frame):
             signals.append(self.monitored[index])
 
         # Delete monitor using the IDs above
-        if self.parent.canvas.run != 1:
-            text = 'You should run the simulation first'
-        else:
-            for signal in signals:
-                device_id, port_id = self.parent.get_monitor_ids(signal)
-                if self.parent.monitors.remove_monitor(device_id, port_id):
-                    text = "Successfully zapped monitor"
-                    self.parent.unmonitored_list.append(signal)
-                    self.parent.monitored_list.remove(signal)
-                else:
-                    text = "Error! Could not zap monitor: "+ signal
+        for signal in signals:
+            device_id, port_id = self.parent.get_monitor_ids(signal)
+            if self.parent.monitors.remove_monitor(device_id, port_id):
+                text = "Successfully zapped monitor"
+                self.parent.unmonitored_list.append(signal)
+                self.parent.monitored_list.remove(signal)
+            else:
+                text = "Error! Could not zap monitor: "+ signal
         self.parent.canvas.render(text)
         self.refresh_lists()
 
