@@ -252,16 +252,23 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 self.pan_x += 10
                 if self.pan_x > 0:
                     self.pan_x = 0
+                else:
+                    text = 'scroll to left'
             elif key_code == wx.WXK_RIGHT:
                 self.pan_x -= 10
-                if self.pan_x < -(self.signal_width-self.parent.full_width):
-                    self.pan_x = -(self.signal_width-self.parent.full_width)
+                if self.pan_x < -(self.signal_width-full_width):
+                    self.pan_x = -(self.signal_width-full_width)
+                else:
+                    text = 'scroll to right'
             thumb_pos = self.pan_x * (length - thumb_size) / (self.signal_width - full_width)
             self.parent.hbar.SetThumbPosition(thumb_pos)
         if key_code == wx.WXK_UP:
             pass
         if key_code == wx.WXK_DOWN:
             pass
+        if text:
+            self.render(text)
+
 
     def render_text(self, text, x_pos, y_pos):
         """Handle text drawing operations."""
