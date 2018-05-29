@@ -579,6 +579,7 @@ class Gui(wx.Frame):
     def on_close(self, event):
         if self.monitor_window == 1:
             self.top.program_close()
+        self.worker.stop()
         self.Destroy()
 
     def on_menu(self, event):
@@ -792,8 +793,8 @@ class Gui(wx.Frame):
         self.canvas.current_page = int(page_number)
         self.canvas.render(text)
 
-        #self.worker = RunThread(self, 1)
-        #self.worker.start()
+        self.worker = RunThread(self, 1)
+        self.worker.start()
 
 
 # Monitor Selection Frame
@@ -934,7 +935,6 @@ class RunThread(threading.Thread):
         when you call Thread.start().
         """
         while self._parent.cycles_completed+1000 <= self._parent.canvas.cycles:
-            time.sleep(.100)
             self._parent.run_network(1000)
             self._parent.cycles_completed += 1000
             if self._stop_event.is_set():
