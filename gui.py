@@ -656,14 +656,17 @@ class Gui(wx.Frame):
         self.canvas.render(text)
 
     def on_cont_button(self, event):
-        text = "Add Cycles button pressed."
-        self.canvas.run = 1
-        added_cycles = self.spin.GetValue()
-        self.canvas.cycles += added_cycles
-        self.canvas.page_number = int(self.canvas.cycles/60)+1
-        next_to_run = min((60-self.cycles_completed%60), added_cycles)
-        self.run_network(next_to_run)
-        self.cycles_completed += next_to_run
+        text = ''
+        if self.canvas.run == 0:
+            text = 'Press Run Button First!'
+        else:
+            text = 'Continue Button Pressed'
+            added_cycles = self.spin.GetValue()
+            self.canvas.cycles += added_cycles
+            self.canvas.page_number = int(self.canvas.cycles/60)+1
+            next_to_run = min((60-self.cycles_completed%60), added_cycles)
+            self.run_network(next_to_run)
+            self.cycles_completed += next_to_run
         # self.run_network(self.spin.GetValue())
         self.canvas.render(text)
         self.update_scroll_bar()
