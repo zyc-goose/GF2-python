@@ -150,17 +150,17 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Clear everything
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
         if self.use_hero == 1:
-            self.texture_mapping()
-
-        # Draw specified text at position (10, 10)
-        self.render_text(text, (10-self.pan_x)/self.zoom, 10)
-        page_disp = 'Page: '+str(self.current_page)+'/'+str(self.page_number)
-        self.render_text(page_disp, (self.GetClientSize().width-80-self.pan_x)/self.zoom, 10)
+            self.texture_mapping()        
 
         if self.run == 1:
             # If run button clicked, render all signals
             self.render_signal()
         self.parent.update_scroll_bar()
+
+        # Draw specified text at position (10, 10)
+        self.render_text(text, (10-self.pan_x)/self.zoom, 10)
+        page_disp = 'Page: '+str(self.current_page)+'/'+str(self.page_number)
+        self.render_text_stationary(page_disp, (self.GetClientSize().width-80)/self.zoom, 10)
 
         # We have been drawing to the back buffer, flush the graphics pipeline
         # and swap the back buffer to the front
@@ -289,7 +289,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             self.init = False
             self.render(text)
 
-
     def render_text(self, text, x_pos, y_pos):
         """Handle text drawing operations."""
         GL.glColor3f(0.0, 0.0, 0.0)  # text is black
@@ -302,6 +301,19 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 GL.glRasterPos2f(x_pos, y_pos)
             else:
                 GLUT.glutBitmapCharacter(font, ord(character))
+    
+    def render_text_stationary(self, text, x_pos, y_pos):
+        """Handle text drawing operations."""
+        GL.glColor3f(0.0, 0.0, 0.0)  # text is black
+        GL.glRasterPos2f(x_pos-self.pan_x, y_pos-self.pan_y)
+        font = GLUT.GLUT_BITMAP_HELVETICA_12
+
+        for character in text:
+            if character == '\n':
+                y_pos = y_pos - 20
+                GL.glRasterPos2f(x_pos-self.pan_x, y_pos-self.pan_y)
+            else:
+                GLUT.glutBitmapCharacter(font, ord(character))
 
     def draw_horizontal_signal(self, start, cycle_count, step, level, pos):
         # Two vertices having same y coord
@@ -312,6 +324,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glVertex2f(x_next/self.zoom, y)
 
     def draw_rect_background(self, start_x, start_y, end_x, end_y):
+        """Draw grey-level rectangular background."""
         greylevel_f = 0.94
         GL.glColor3f(greylevel_f, greylevel_f, greylevel_f)
         GL.glBegin(GL.GL_QUADS)
@@ -321,10 +334,43 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glVertex2f(end_x, start_y)
         GL.glEnd()
 
+    def draw_ruler(self, step, start_x, start_y):
+        """Draw ruler under monitors"""
+        GL.glColor3f(1, 69.0/255, 0) # orangered
+        GL.glBegin(GL.GL_LINE_STRIP)
+        cur_x = start_x
+        cur_y = start_y - self.pan_y
+        GL.glVertex2f(cur_x, cur_y)
+        for cycle in range(60):
+            if cycle % 10 == 0:
+                scale_len = 8
+            elif cycle % 5 == 0:
+                scale_len = 6
+            else:
+                scale_len = 4
+            GL.glVertex2f(cur_x, cur_y + scale_len)
+            GL.glVertex2f(cur_x, cur_y)
+            GL.glVertex2f(cur_x + step, cur_y)
+            cur_x += step
+        GL.glVertex2f(cur_x, cur_y + 8)
+        GL.glEnd()
+        # Draw scale numbers
+        scale_num = 60 * (self.current_page - 1)
+        cur_x = start_x
+        cur_y = start_y - 15
+        offset_ratio = 3.5/self.zoom
+        for cycle in range(6):
+            self.render_text(str(scale_num),
+                             cur_x - len(str(scale_num))*offset_ratio, cur_y)
+            scale_num += 10
+            cur_x += step * 10
+        self.render_text(str(scale_num),
+                         cur_x - len(str(scale_num))*offset_ratio, cur_y)
+
     def render_signal(self):
         """Display the signal trace(s) in GUI"""
-       
-	# To confine name lengths, edit in the future
+
+        # To confine name lengths, edit in the future
         margin = 10
 
         # local variables
@@ -343,19 +389,24 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Use below when texture is mapped
         # self.signal_width = max(end+10, self.GetClientSize().width*self.zoom)
 
+        # Draw the ruler
+        self.draw_ruler(step/self.zoom, 50/self.zoom, 45)
+
         # Draw the first strip under the first device
         strip_raise = 113
-        self.draw_rect_background(0, strip_raise+2-50, 600/self.zoom, strip_raise-2-50)
+        self.draw_rect_background(0, strip_raise+2-50,
+                                  max(2000, 2000/self.zoom), strip_raise-2-50)
 
-        # Iterate over each device and render
-        self.signal_count = 0
+        self.signal_count = 0        
+	# Iterate over each device and render
         for device_id, output_id in self.monitors.monitors_dictionary:
-            self.signal_count += 1
             monitor_name = self.devices.get_signal_name(device_id, output_id)
             signal_list = self.monitors.monitors_dictionary[(device_id, output_id)]
+            self.signal_count += 1
 
             # Draw the grey strip between devices
-            self.draw_rect_background(0, strip_raise+2+pos*50, 600/self.zoom, strip_raise-2+pos*50)
+            self.draw_rect_background(0, strip_raise+2+pos*50,
+                                      max(2000, 2000/self.zoom), strip_raise-2+pos*50)
             #if pos % 2 == 0:
                 #self.draw_rect_background(0, 110+pos*50, 600/self.zoom, 60+pos*50)
 
