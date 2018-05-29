@@ -252,16 +252,23 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 self.pan_x += 10
                 if self.pan_x > 0:
                     self.pan_x = 0
+                else:
+                    text = 'scroll to left'
             elif key_code == wx.WXK_RIGHT:
                 self.pan_x -= 10
-                if self.pan_x < -(self.signal_width-self.parent.full_width):
-                    self.pan_x = -(self.signal_width-self.parent.full_width)
+                if self.pan_x < -(self.signal_width-full_width):
+                    self.pan_x = -(self.signal_width-full_width)
+                else:
+                    text = 'scroll to right'
             thumb_pos = self.pan_x * (length - thumb_size) / (self.signal_width - full_width)
             self.parent.hbar.SetThumbPosition(thumb_pos)
         if key_code == wx.WXK_UP:
             pass
         if key_code == wx.WXK_DOWN:
             pass
+        if text:
+            self.render(text)
+
 
     def render_text(self, text, x_pos, y_pos):
         """Handle text drawing operations."""
@@ -283,6 +290,16 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         y = 75+25*level+pos*50
         GL.glVertex2f(x/self.zoom, y)
         GL.glVertex2f(x_next/self.zoom, y)
+
+    def draw_rect_background(self, start_x, start_y, end_x, end_y):
+        greylevel_f = 0.94
+        GL.glColor3f(greylevel_f, greylevel_f, greylevel_f)
+        GL.glBegin(GL.GL_QUADS)
+        GL.glVertex2f(start_x, start_y)
+        GL.glVertex2f(start_x, end_y)
+        GL.glVertex2f(end_x, end_y)
+        GL.glVertex2f(end_x, start_y)
+        GL.glEnd()
 
     def render_signal(self):
         """Display the signal trace(s) in GUI"""
@@ -306,10 +323,19 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Use below when texture is mapped
         # self.signal_width = max(end+10, self.GetClientSize().width*self.zoom)
 
+        # Draw the first strip under the first device
+        strip_raise = 113
+        self.draw_rect_background(0, strip_raise+2-50, 600/self.zoom, strip_raise-2-50)
+
         # Iterate over each device and render
         for device_id, output_id in self.monitors.monitors_dictionary:
             monitor_name = self.devices.get_signal_name(device_id, output_id)
             signal_list = self.monitors.monitors_dictionary[(device_id, output_id)]
+
+            # Draw the grey strip between devices
+            self.draw_rect_background(0, strip_raise+2+pos*50, 600/self.zoom, strip_raise-2+pos*50)
+            #if pos % 2 == 0:
+                #self.draw_rect_background(0, 110+pos*50, 600/self.zoom, 60+pos*50)
 
             # Display signal name
             self.render_text(monitor_name[0:margin], 10/self.zoom, 80+pos*50)
