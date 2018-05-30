@@ -197,7 +197,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         size = self.GetClientSize()
         self.current_y = size.height-self.current_y
         text = ''
-        #text = "".join(["X: ", str(self.current_x), " Y: ", str(self.current_y)])
+        text = "".join(["X: ", str(self.current_x), " Y: ", str(self.current_y)])
 
         # Double Click reset to original place, single click shows the position
         if event.ButtonDClick():
@@ -288,7 +288,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             thumb_pos = (self.pan_y+100*(self.signal_count-11)*full_length/(self.signal_count*100))
             self.parent.vbar.SetThumbPosition(thumb_pos)
 
-
         if text:
             self.init = False
             self.render(text)
@@ -334,12 +333,33 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glVertex2f(end_x, start_y)
         GL.glEnd()
 
+    def draw_rect_frame(self, start_x, start_y, end_x, end_y, color=0):
+        """Draw rectangular frame.
+
+        if type(color) == float, then use grey level.
+        if type(color) == list, then use RGB.
+        """
+        if isinstance(color, (int, float)) and 0 <= color <= 1:
+            red_f = green_f = blue_f = color
+        elif isinstance(color, list) and len(color) == 3:
+            red_f, green_f, blue_f = color
+        else:
+            raise TypeError("wrong type or value for 'color'")
+        GL.glColor3f(red_f, green_f, blue_f)
+        GL.glBegin(GL.GL_LINE_STRIP)
+        GL.glVertex2f(start_x, start_y)
+        GL.glVertex2f(start_x, end_y)
+        GL.glVertex2f(end_x, end_y)
+        GL.glVertex2f(end_x, start_y)
+        GL.glVertex2f(start_x, start_y)
+        GL.glEnd()
+
     def draw_ruler(self, step, start_x, start_y):
         """Draw ruler under monitors"""
         GL.glColor3f(1, 69.0/255, 0) # orangered
         GL.glBegin(GL.GL_LINE_STRIP)
         cur_x = start_x
-        cur_y = start_y - self.pan_y
+        cur_y = start_y
         GL.glVertex2f(cur_x, cur_y)
         for cycle in range(60):
             if cycle % 10 == 0:
@@ -357,7 +377,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Draw scale numbers
         scale_num = 60 * (self.current_page - 1)
         cur_x = start_x
-        cur_y = start_y - 15 - self.pan_y
+        cur_y = start_y - 15
         offset_ratio = 3.5/self.zoom
         for cycle in range(6):
             self.render_text(str(scale_num),
@@ -366,6 +386,14 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             cur_x += step * 10
         self.render_text(str(scale_num),
                          cur_x - len(str(scale_num))*offset_ratio, cur_y)
+
+    def get_ruler_cycle_num(self, step, start_x):
+        """Get the current cycle number based on current x pos."""
+        cursor_pos_on_ruler = self.current_x - self.pan_x - start_x*self.zoom
+        cursor_pos_on_ruler /= self.zoom
+        if cursor_pos_on_ruler < 0:
+            return 0
+        return int(cursor_pos_on_ruler / step) + 1
 
     def render_signal(self):
         """Display the signal trace(s) in GUI"""
@@ -389,23 +417,47 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Use below when texture is mapped
         # self.signal_width = max(end+10, self.GetClientSize().width*self.zoom)
 
+        size = self.GetClientSize()
+        # cycle num between 1 and 60
+        current_cycle_num = self.get_ruler_cycle_num(step/self.zoom, 50/self.zoom)
+        # real cycle num here
+        current_cycle_num_real = current_cycle_num + 60*(self.current_page - 1)
+
         # Draw the first strip under the first device
         strip_raise = 113
         self.draw_rect_background(0, strip_raise+2-50,
                                   max(2000, 2000/self.zoom), strip_raise-2-50)
 
-        self.signal_count = 0        
+        # infobox states
+        infobox_cycle = current_cycle_num_real
+        infobox_port = None
+        infobox_value = 'empty'
+
+        self.signal_count = 0
 	# Iterate over each device and render
         for device_id, output_id in self.monitors.monitors_dictionary:
             monitor_name = self.devices.get_signal_name(device_id, output_id)
             signal_list = self.monitors.monitors_dictionary[(device_id, output_id)]
             self.signal_count += 1
 
+            # Highlight current monitored device
+            if strip_raise + 50*(pos - 1) < self.current_y - self.pan_y <= strip_raise + 50*pos \
+            and 0 < self.current_x < size.width - 1:
+                self.draw_rect_background(0, strip_raise-2+pos*50,
+                                          max(2000, 2000/self.zoom), strip_raise+2+(pos-1)*50,
+                                          [0.9, 1, 0.95])
+                names = self.devices.names
+                if output_id is None:
+                    infobox_port = names.get_name_string(device_id)
+                else:
+                    infobox_port = names.get_name_string(device_id)+'.'+names.get_name_string(output_id)
+                monitor_highlighted = True
+            else:
+                monitor_highlighted = False
+
             # Draw the grey strip between devices
             self.draw_rect_background(0, strip_raise+2+pos*50,
                                       max(2000, 2000/self.zoom), strip_raise-2+pos*50)
-            #if pos % 2 == 0:
-                #self.draw_rect_background(0, 110+pos*50, 600/self.zoom, 60+pos*50)
 
             # Display signal name
             self.render_text(monitor_name[0:margin], 10/self.zoom, 80+pos*50)
@@ -420,9 +472,13 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 if signal == self.devices.HIGH:
                     self.draw_horizontal_signal(start, cycle_count, step, 1, pos)
                     cycle_count += 1
+                    if monitor_highlighted and cycle_count == current_cycle_num:
+                        infobox_value = 1
                 if signal == self.devices.LOW:
                     self.draw_horizontal_signal(start, cycle_count, step, 0, pos)
                     cycle_count += 1
+                    if monitor_highlighted and cycle_count == current_cycle_num:
+                        infobox_value = 0
                 if signal == self.devices.RISING:
                     continue
                 if signal == self.devices.FALLING:
@@ -433,16 +489,69 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 #    break
             pos = pos+1
             GL.glEnd()
+
         # Draw grey background for ruler
         self.draw_rect_background(0, 29-self.pan_y,
                                       max(2000, 2000/self.zoom), 65-self.pan_y)
+
+        # Draw the stipple line
+        stipple_y_bottom = 64 - self.pan_y
+        stipple_y_top = strip_raise+(pos-1)*50
+        if 0 < self.current_x < size.width - 1 \
+        and 1 <= current_cycle_num <= 60 \
+        and stipple_y_bottom <= self.current_y - self.pan_y <= stipple_y_top:
+            self.draw_vertical_stipple_line(stipple_y_bottom, stipple_y_top)
+            self.draw_info_box(infobox_cycle, infobox_port, infobox_value)
 
         # Draw white background for text
         self.draw_rect_background(0, 0-self.pan_y,
                                       max(2000, 2000/self.zoom), 29-self.pan_y, 1)
 
         # Draw the ruler
-        self.draw_ruler(step/self.zoom, 50/self.zoom, 49)
+        self.draw_ruler(step/self.zoom, 50/self.zoom, 49 - self.pan_y)
+
+    def draw_vertical_stipple_line(self, stipple_y_bottom, stipple_y_top):
+        """Draw the vertical dotted line for cycle number alignment."""
+        GL.glEnable(GL.GL_LINE_STIPPLE)
+        GL.glLineStipple(1, 0x3333)
+        GL.glColor3f(1, 0.65, 0)
+        GL.glBegin(GL.GL_LINES)
+        GL.glVertex2f((self.current_x - self.pan_x)/self.zoom, stipple_y_bottom - 14)
+        GL.glVertex2f((self.current_x - self.pan_x)/self.zoom, stipple_y_top)
+        GL.glEnd()
+        GL.glDisable(GL.GL_LINE_STIPPLE)
+
+    def draw_info_box(self, cycle, port, value):
+        """Draw the MATLAB-like yellow info box which moves with mouse."""
+        hsep = 6.2
+        vsep = 14
+        info1 = 'cycle: ' + str(cycle)
+        info2 = 'port: ' + str(port)
+        info3 = 'value: ' + str(value)
+        rect_width = max(map(len,(info1,info2,info3)))*hsep + 4
+        rect_height = 3*vsep + 4
+        size = self.GetClientSize()
+        if self.current_x + rect_width + 5 > size.width: # left aligned
+            x_pos = (self.current_x - self.pan_x + 3 - rect_width)/self.zoom
+            y_pos = self.current_y - self.pan_y + 6
+            rect_x_start = (self.current_x - self.pan_x - rect_width)/self.zoom
+            rect_y_start = self.current_y - self.pan_y
+            rect_x_end = (self.current_x - self.pan_x)/self.zoom
+            rect_y_end = self.current_y - self.pan_y + rect_height
+        else: # right aligned
+            x_pos = (self.current_x - self.pan_x + 2)/self.zoom
+            y_pos = self.current_y - self.pan_y + 6
+            rect_x_start = (self.current_x - self.pan_x)/self.zoom
+            rect_y_start = self.current_y - self.pan_y
+            rect_x_end = (self.current_x - self.pan_x + rect_width)/self.zoom
+            rect_y_end = self.current_y - self.pan_y + rect_height
+        self.draw_rect_background(rect_x_start, rect_y_start,
+                                  rect_x_end, rect_y_end, [1,0.98,0.81])
+        self.draw_rect_frame(rect_x_start, rect_y_start,
+                             rect_x_end, rect_y_end)
+        self.render_text(info1, x_pos, y_pos + vsep*2)
+        self.render_text(info2, x_pos, y_pos + vsep)
+        self.render_text(info3, x_pos, y_pos)
 
     def texture_mapping(self):
         """draw function """
