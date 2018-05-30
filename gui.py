@@ -280,12 +280,12 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                     text = 'scroll down'
             elif key_code == wx.WXK_UP:
                 self.pan_y -= 10
-                if self.pan_y < -100*(self.signal_count-11):
-                    self.pan_y = -100*(self.signal_count-11)
+                if self.pan_y < -50*(self.signal_count-11):
+                    self.pan_y = -50*(self.signal_count-11)
                 else:
                     text = 'scroll up'
 
-            thumb_pos = (self.pan_y+100*(self.signal_count-11)*full_length/(self.signal_count*100))
+            thumb_pos = (self.pan_y+50*(self.signal_count-11))*full_length/(self.signal_count*50)
             self.parent.vbar.SetThumbPosition(thumb_pos)
 
         if text:
@@ -689,13 +689,13 @@ class Gui(wx.Frame):
         self.goto_button = wx.Button(self, wx.ID_ANY, "Goto")
 
         # Scroll Bars
-        self.full_width = 700
+        self.full_width = 653
         self.hbar = wx.ScrollBar(self, id=wx.ID_ANY, size=(-1,15), style=wx.SB_HORIZONTAL)
         self.hbar.SetScrollbar(0, self.full_width, self.full_width, 1)
 
         # Vertical Scroll Bar
-        self.full_length = 1000
-        self.vbar = wx.ScrollBar(self, id=wx.ID_ANY, size=(15, 1000), style=wx.SB_VERTICAL)
+        self.full_length = 635
+        self.vbar = wx.ScrollBar(self, id=wx.ID_ANY, size=(15, 635-65), style=wx.SB_VERTICAL)
         self.vbar.SetScrollbar(0, self.full_length, self.full_length, 1)
 
         # Bind events to widgets
@@ -739,7 +739,7 @@ class Gui(wx.Frame):
         main_sizer_second.Add(self.hbar, 1, wx.EXPAND, 5)
         main_sizer.Add(main_sizer_third, 1, wx.BOTTOM, 90)
         main_sizer_third.Add(self.vbar, 1)
-        main_sizer.Add(side_sizer, 1, wx.ALL, 5)
+        main_sizer.Add(side_sizer, 5, wx.ALL, 5)
 
         side_sizer.Add(self.text, 1, wx.TOP, 10)
         side_sizer.Add(self.spin, 1, wx.ALL, 5)
@@ -946,7 +946,8 @@ class Gui(wx.Frame):
             self.top = MonitorFrame(self, "Monitors", self.monitored_list, self.unmonitored_list)
             self.top.Show()
             self.monitor_window = 1
-            self.update_scroll_bar()
+        else:
+            self.top.ToggleWindowStyle(wx.STAY_ON_TOP)
 
     # Should be added together with delete cycle function
     # def on_clear_button(self, event):
@@ -998,9 +999,18 @@ class Gui(wx.Frame):
         length = self.vbar.GetRange()
         thumbsize = self.vbar.GetThumbSize()
         if length > thumbsize:
-            self.canvas.pan_y = -(self.canvas.signal_count-11)*100+100*pos*self.canvas.signal_count/self.full_length
+            self.canvas.pan_y = -(self.canvas.signal_count-11)*50+50*pos*self.canvas.signal_count/self.full_length
             self.canvas.init = False
             self.canvas.render(str(self.canvas.pan_y))
+
+    def update_vbar(self):
+        self.canvas.pan_y = 0
+        if 11 < self.canvas.signal_count:
+            vpos = 50*(self.canvas.signal_count-11)*self.full_length/(self.canvas.signal_count*50)
+            self.vbar.SetScrollbar(vpos, 11*self.full_length/self.canvas.signal_count, self.full_length, 1)
+        else:
+            self.vbar.SetScrollbar(0, self.full_length, self.full_length, self.canvas.zoom)
+        
 
     def update_scroll_bar(self):
         hpos = self.hbar.GetThumbPosition()
@@ -1011,8 +1021,9 @@ class Gui(wx.Frame):
 
         
         if 11 < self.canvas.signal_count:
-            vpos = self.canvas.pan_y+100*(self.canvas.signal_count-11)*self.full_length/(self.canvas.signal_count*100)
-            self.vbar.SetScrollbar(vpos, 11*self.full_length/self.canvas.signal_count, self.full_length, self.canvas.zoom)
+            #vpos = (self.canvas.pan_y+50)*(self.canvas.signal_count-11)*self.full_length/(self.canvas.signal_count*50)
+            vpos = self.vbar.GetThumbPosition()
+            self.vbar.SetScrollbar(vpos, 11*self.full_length/self.canvas.signal_count, self.full_length, 1)
         else:
             self.vbar.SetScrollbar(0, self.full_length, self.full_length, self.canvas.zoom)
             
@@ -1183,10 +1194,13 @@ class MonitorFrame(wx.Frame):
                 text = "Successfully made monitor."
                 self.parent.monitored_list.append(signal)
                 self.parent.unmonitored_list.remove(signal)
+                self.parent.canvas.signal_count += 1
             else:
                 text = "Error! Could not make monitor: "+ signal
+        self.parent.update_vbar() 
+        self.parent.canvas.init = False
         self.parent.canvas.render(text)
-        self.refresh_lists()
+        self.refresh_lists() 
 
     def on_delete(self, event):
         signals = []
@@ -1205,8 +1219,11 @@ class MonitorFrame(wx.Frame):
                 text = "Successfully zapped monitor"
                 self.parent.unmonitored_list.append(signal)
                 self.parent.monitored_list.remove(signal)
+                self.parent.canvas.signal_count -= 1
             else:
                 text = "Error! Could not zap monitor: "+ signal
+        self.parent.update_vbar()
+        self.parent.canvas.init = False
         self.parent.canvas.render(text)
         self.refresh_lists()
 
