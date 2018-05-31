@@ -898,7 +898,8 @@ class Gui(wx.Frame):
             next_to_run = min((60-self.cycles_completed%60), added_cycles)
             self.run_network(next_to_run)
             self.cycles_completed += next_to_run
-        # self.run_network(self.spin.GetValue())
+        self.worker = RunThread(self, 1)
+        self.worker.start()
         self.canvas.render(text)
         self.update_scroll_bar()
 
@@ -923,11 +924,17 @@ class Gui(wx.Frame):
 
     def on_set_button(self, event):
         """Set the specified switch"""
-        self.switch_signal(1)
+        if self.cycles_completed >= self.canvas.cycles:
+            self.switch_signal(1)
+        else:
+            self.canvas.render("Warning! Still have uncompleted cycles!")
 
     def on_clr_button(self, event):
         """Clear the specified switch"""
-        self.switch_signal(0)
+        if self.cycles_completed >= self.canvas.cycles:
+            self.switch_signal(0)
+        else:
+            self.canvas.render("Warning! Still have uncompleted cycles!")
 
     def get_monitor_ids(self, signal):
         if signal is not None and '.' in signal:
@@ -1245,11 +1252,18 @@ class RunThread(threading.Thread):
         when you call Thread.start().
         """
         while self._parent.cycles_completed+1000 <= self._parent.canvas.cycles:
-            time.sleep(.050)
-            self._parent.run_network(1000)
-            self._parent.cycles_completed += 1000
+            time.sleep(.200)
+            self._parent.run_network(500)
+            self._parent.cycles_completed += 500
+            print(self._parent.cycles_completed)
             if self._stop_event.is_set():
                 break
+        if not self._stop_event.is_set():
+            left_to_run = self._parent.canvas.cycles - self._parent.cycles_completed
+            self._parent.run_network(left_to_run)
+            self._parent.cycles_completed += left_to_run
+            print(self._parent.cycles_completed)
+
     def stop(self):
         self._stop_event.set()
         # wx.PostEvent(self._parent, evt)
