@@ -1,4 +1,3 @@
-(DEVICE CLK is CLOCK 5)
-(DEVICE D is NAND 1)
-(CONNECT CLK to D.I1)
-(MONITOR CLK D)
+(DEVICE q w e r t y u i o p a s d f g h j k l z x c v is CLOCK 5)
+
+(MONITOR q w e r t y u i o p a s d f g h j k l z x c v)
