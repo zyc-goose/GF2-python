@@ -866,7 +866,10 @@ class Gui(wx.Frame):
         """Handle the event when the user clicks the run button."""
         self.canvas.run = 1
         self.canvas.cycles = self.spin.GetValue()
-        self.canvas.page_number = int(self.canvas.cycles/60)+1
+        if self.canvas.cycles%60 == 0:
+            self.canvas.page_number = int(self.canvas.cycles/60)
+        else:
+            self.canvas.page_number = int(self.canvas.cycles/60)+1
         self.canvas.current_page = 1
         self.cycles_completed = min(self.canvas.cycles, 60)
         self.monitors.reset_monitors()
@@ -894,7 +897,10 @@ class Gui(wx.Frame):
             text = 'Continue Button Pressed'
             added_cycles = self.spin.GetValue()
             self.canvas.cycles += added_cycles
-            self.canvas.page_number = int(self.canvas.cycles/60)+1
+            if self.canvas.cycles%60 == 0:
+                self.canvas.page_number = int(self.canvas.cycles/60)
+            else:
+                self.canvas.page_number = int(self.canvas.cycles/60)+1
             next_to_run = min((60-self.cycles_completed%60), added_cycles)
             self.run_network(next_to_run)
             self.cycles_completed += next_to_run
@@ -1255,14 +1261,12 @@ class RunThread(threading.Thread):
             time.sleep(.200)
             self._parent.run_network(500)
             self._parent.cycles_completed += 500
-            print(self._parent.cycles_completed)
             if self._stop_event.is_set():
                 break
         if not self._stop_event.is_set():
             left_to_run = self._parent.canvas.cycles - self._parent.cycles_completed
             self._parent.run_network(left_to_run)
             self._parent.cycles_completed += left_to_run
-            print(self._parent.cycles_completed)
 
     def stop(self):
         self._stop_event.set()
