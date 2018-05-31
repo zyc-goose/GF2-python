@@ -115,6 +115,3 @@ def test_complete_current_line(new_names,new_scanner):
         assert new_scanner.complete_current_line() == desired_output[i]
         i += 1
         [symbol_type, symbol_id] = new_scanner.get_symbol()
-
-    def test_get_name(new_names, new_scanner_names):
-	
