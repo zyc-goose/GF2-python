@@ -285,7 +285,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 else:
                     text = 'scroll up'
 
-            thumb_pos = (self.pan_y+50*(self.signal_count-11))*full_length/(self.signal_count*50)
+            thumb_pos = (self.pan_y+55*(self.signal_count-11))*full_length/(self.signal_count*55)
             self.parent.vbar.SetThumbPosition(thumb_pos)
 
         if text:
@@ -1012,14 +1012,14 @@ class Gui(wx.Frame):
         length = self.vbar.GetRange()
         thumbsize = self.vbar.GetThumbSize()
         if length > thumbsize:
-            self.canvas.pan_y = -(self.canvas.signal_count-11)*50+50*pos*self.canvas.signal_count/self.full_length
+            self.canvas.pan_y = -(self.canvas.signal_count-11)*55+55*pos*self.canvas.signal_count/self.full_length
             self.canvas.init = False
             self.canvas.render(str(self.canvas.pan_y))
 
     def update_vbar(self):
         self.canvas.pan_y = 0
         if 11 < self.canvas.signal_count:
-            vpos = 50*(self.canvas.signal_count-11)*self.full_length/(self.canvas.signal_count*50)
+            vpos = 55*(self.canvas.signal_count-11)*self.full_length/(self.canvas.signal_count*55)
             self.vbar.SetScrollbar(vpos, 11*self.full_length/self.canvas.signal_count, self.full_length, 1)
         else:
             self.vbar.SetScrollbar(0, self.full_length, self.full_length, self.canvas.zoom)
