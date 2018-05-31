@@ -634,9 +634,9 @@ class Gui(wx.Frame):
         # Configure the file menu
         fileMenu = wx.Menu()
         menuBar = wx.MenuBar()
-        fileMenu.Append(wx.ID_ABOUT, "&About\tCTRL+A")
-        fileMenu.Append(wx.ID_OPEN, "&Open\tCTRL+N")
-        fileMenu.Append(wx.ID_EXIT, "&Exit\tCTRL+Q")
+        fileMenu.Append(wx.ID_ABOUT, "&About")
+        fileMenu.Append(wx.ID_OPEN, "&Open")
+        fileMenu.Append(wx.ID_EXIT, "&Exit")
         menuBar.Append(fileMenu, "&File")
         self.SetMenuBar(menuBar)
 
@@ -676,8 +676,8 @@ class Gui(wx.Frame):
 
         # Zoom in/out functions
         self.text4 = wx.StaticText(self, wx.ID_ANY, "Zoom in/out")
-        self.zoom_in_button = wx.BitmapButton(self, wx.ID_ANY, plus, size=(40,40))
-        self.zoom_out_button = wx.BitmapButton(self, wx.ID_ANY, minus, size=(40,40))
+        self.zoom_in_button = wx.BitmapButton(self, wx.ID_ANY, plus, size=(50,50))
+        self.zoom_out_button = wx.BitmapButton(self, wx.ID_ANY, minus, size=(50,50))
         # self.clear_button = wx.Button(self, wx.ID_ANY, "Clear")
 
         # Display texture mapping
@@ -689,7 +689,7 @@ class Gui(wx.Frame):
         self.goto_button = wx.Button(self, wx.ID_ANY, "Goto")
 
         # Scroll Bars
-        self.full_width = 653
+        self.full_width = 645
         self.hbar = wx.ScrollBar(self, id=wx.ID_ANY, size=(-1,15), style=wx.SB_HORIZONTAL)
         self.hbar.SetScrollbar(0, self.full_width, self.full_width, 1)
 
@@ -758,9 +758,9 @@ class Gui(wx.Frame):
         double_butt_3.Add(self.clr_button, 1, wx.ALL, 5)
 
         side_sizer.Add(self.text4, 1, wx.TOP, 10)
-        side_sizer.Add(double_butt_4, 0.5, wx.ALL, 0)
-        double_butt_4.Add(self.zoom_in_button, 1, wx.ALL, 5)
-        double_butt_4.Add(self.zoom_out_button, 1, wx.ALL, 5)
+        side_sizer.Add(double_butt_4, 0.2, wx.BOTTOM|wx.LEFT|wx.RIGHT, 10)
+        double_butt_4.Add(self.zoom_in_button, 1, wx.RIGHT|wx.LEFT, 18)
+        double_butt_4.Add(self.zoom_out_button, 1, wx.RIGHT|wx.LEFT, 18)
         side_sizer.Add(double_butt_5, 1, wx.ALL, 0)
         double_butt_5.Add(self.prev_button, 0.8 , wx.ALL, 0)
         double_butt_5.Add(self.next_button, 0.8, wx.ALL, 0)
