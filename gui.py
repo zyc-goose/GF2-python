@@ -280,12 +280,12 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                     text = 'scroll down'
             elif key_code == wx.WXK_UP:
                 self.pan_y -= 10
-                if self.pan_y < -50*(self.signal_count-11):
-                    self.pan_y = -50*(self.signal_count-11)
+                if self.pan_y < -55*(self.signal_count-10):
+                    self.pan_y = -55*(self.signal_count-10)
                 else:
                     text = 'scroll up'
 
-            thumb_pos = (self.pan_y+55*(self.signal_count-11))*full_length/(self.signal_count*55)
+            thumb_pos = (self.pan_y+55*(self.signal_count-10))*full_length/(self.signal_count*55)
             self.parent.vbar.SetThumbPosition(thumb_pos)
 
         if text:
@@ -433,12 +433,11 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         infobox_port = None
         infobox_value = 'empty'
 
-        self.signal_count = 0
+        self.signal_count = len(self.monitors.monitors_dictionary)
 	# Iterate over each device and render
         for device_id, output_id in self.monitors.monitors_dictionary:
             monitor_name = self.devices.get_signal_name(device_id, output_id)
             signal_list = self.monitors.monitors_dictionary[(device_id, output_id)]
-            self.signal_count += 1
 
             # Highlight current monitored device
             if strip_raise + 50*(pos - 1) < self.current_y - self.pan_y <= strip_raise + 50*pos \
@@ -694,8 +693,8 @@ class Gui(wx.Frame):
         self.hbar.SetScrollbar(0, self.full_width, self.full_width, 1)
 
         # Vertical Scroll Bar
-        self.full_length = 635
-        self.vbar = wx.ScrollBar(self, id=wx.ID_ANY, size=(15, 635-65), style=wx.SB_VERTICAL)
+        self.full_length = 600
+        self.vbar = wx.ScrollBar(self, id=wx.ID_ANY, size=(15, 600), style=wx.SB_VERTICAL)
         self.vbar.SetScrollbar(0, self.full_length, self.full_length, 1)
 
         # Bind events to widgets
@@ -737,8 +736,8 @@ class Gui(wx.Frame):
         main_sizer.Add(main_sizer_second, 25, wx.EXPAND | wx.RIGHT | wx.TOP | wx.LEFT, 5)
         main_sizer_second.Add(self.canvas, 25, wx.EXPAND | wx.ALL, 5)
         main_sizer_second.Add(self.hbar, 1, wx.EXPAND, 5)
-        main_sizer.Add(main_sizer_third, 1, wx.BOTTOM, 90)
-        main_sizer_third.Add(self.vbar, 1)
+        main_sizer.Add(main_sizer_third, 1, wx.EXPAND, 5)
+        main_sizer_third.Add(self.vbar, 1, wx.BOTTOM, 100)
         main_sizer.Add(side_sizer, 5, wx.ALL, 5)
 
         side_sizer.Add(self.text, 1, wx.TOP, 10)
@@ -880,6 +879,8 @@ class Gui(wx.Frame):
             text = 'DEVICE \"' + device_name + '\" is oscillatory!'
         self.worker = RunThread(self, 1)
         self.worker.start()
+        self.update_vbar()
+        self.canvas.init = False
         self.canvas.render(text)
         self.update_scroll_bar()
 
@@ -1012,15 +1013,16 @@ class Gui(wx.Frame):
         length = self.vbar.GetRange()
         thumbsize = self.vbar.GetThumbSize()
         if length > thumbsize:
-            self.canvas.pan_y = -(self.canvas.signal_count-11)*55+55*pos*self.canvas.signal_count/self.full_length
+            self.canvas.pan_y = -(self.canvas.signal_count-10)*55+55*pos*self.canvas.signal_count/self.full_length
             self.canvas.init = False
             self.canvas.render(str(self.canvas.pan_y))
 
     def update_vbar(self):
         self.canvas.pan_y = 0
-        if 11 < self.canvas.signal_count:
-            vpos = 55*(self.canvas.signal_count-11)*self.full_length/(self.canvas.signal_count*55)
-            self.vbar.SetScrollbar(vpos, 11*self.full_length/self.canvas.signal_count, self.full_length, 1)
+        if 10 < self.canvas.signal_count:
+            #vpos = 55*(self.canvas.signal_count-10)*self.full_length/(self.canvas.signal_count*55)
+            vpos = self.full_length-10*self.full_length/self.canvas.signal_count
+            self.vbar.SetScrollbar(vpos, 10*self.full_length/self.canvas.signal_count, self.full_length, 1)
         else:
             self.vbar.SetScrollbar(0, self.full_length, self.full_length, self.canvas.zoom)
         
@@ -1033,12 +1035,12 @@ class Gui(wx.Frame):
             self.hbar.SetScrollbar(hpos, self.full_width, self.full_width, self.canvas.zoom)
 
         
-        if 11 < self.canvas.signal_count:
+        if 10 < self.canvas.signal_count:
             #vpos = (self.canvas.pan_y+50)*(self.canvas.signal_count-11)*self.full_length/(self.canvas.signal_count*50)
             vpos = self.vbar.GetThumbPosition()
-            self.vbar.SetScrollbar(vpos, 11*self.full_length/self.canvas.signal_count, self.full_length, 1)
+            self.vbar.SetScrollbar(vpos, 10*self.full_length/self.canvas.signal_count, self.full_length, 1)
         else:
-            self.vbar.SetScrollbar(0, self.full_length, self.full_length, self.canvas.zoom)
+            self.vbar.SetScrollbar(0, self.full_length, self.full_length, 1)
             
 
     def on_prev_button(self, event):
@@ -1110,6 +1112,8 @@ class Gui(wx.Frame):
         self.canvas.devices = self.devices
         self.canvas.parent = self
         self.canvas.init_parameters()
+        self.canvas.signal_count  = len(self.canvas.monitors.monitors_dictionary)
+        self.update_vbar()
 
 
 
