@@ -153,7 +153,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Clear everything
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
         if self.use_hero == 1:
-            self.texture_mapping()      
+            self.texture_mapping()
 
         if self.run == 1:
             # If run button clicked, render all signals
@@ -163,8 +163,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Draw specified text at position (10, 10)
         self.render_text(text, (10-self.pan_x)/self.zoom, 10 - self.pan_y)
         page_disp = 'Page: '+str(self.current_page)+'/'+str(self.page_number)
-        self.render_text(page_disp, (self.GetClientSize().width- \
-            len(page_disp)*8-self.pan_x)/self.zoom, 10 - self.pan_y)
+        self.render_text(page_disp, (self.GetClientSize().width -
+                         len(page_disp)*8-self.pan_x)/self.zoom, 10 - self.pan_y)
 
         # We have been drawing to the back buffer, flush the graphics pipeline
         # and swap the back buffer to the front
@@ -246,7 +246,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         else:
             self.Refresh()  # triggers the paint event
 
-    def on_key(self,event):
+    def on_key(self, event):
         key_code = event.GetKeyCode()
         text = ''
 
@@ -356,7 +356,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def draw_ruler(self, step, start_x, start_y):
         """Draw ruler under monitors"""
-        GL.glColor3f(1, 69.0/255, 0) # orangered
+        GL.glColor3f(1, 69.0/255, 0)  # orangered
         GL.glBegin(GL.GL_LINE_STRIP)
         cur_x = start_x
         cur_y = start_y
@@ -406,7 +406,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         pos = 0  # signal position, shifted upward for each signal
         start = 50  # start point for rasterisation
         # No of cycles to be displayed on this page
-        last_cycle = min((self.cycles-(self.current_page-1)*60),60)
+        last_cycle = min((self.cycles-(self.current_page-1)*60), 60)
         end = max(last_cycle*9*self.zoom + start, start)  # end point for rasterisation
         if last_cycle != 0:
             step = (end-start)/last_cycle
@@ -434,14 +434,14 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         infobox_value = 'empty'
 
         self.signal_count = len(self.monitors.monitors_dictionary)
-	# Iterate over each device and render
+        # Iterate over each device and render
         for device_id, output_id in self.monitors.monitors_dictionary:
             monitor_name = self.devices.get_signal_name(device_id, output_id)
             signal_list = self.monitors.monitors_dictionary[(device_id, output_id)]
 
             # Highlight current monitored device
             if strip_raise + 50*(pos - 1) < self.current_y - self.pan_y <= strip_raise + 50*pos \
-            and 0 < self.current_x < size.width - 1:
+                    and 0 < self.current_x < size.width - 1:
                 self.draw_rect_background(0, strip_raise-2+pos*50,
                                           max(2000, 2000/self.zoom), strip_raise+2+(pos-1)*50,
                                           [0.9, 1, 0.95])
@@ -491,20 +491,20 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         # Draw grey background for ruler
         self.draw_rect_background(0, 29-self.pan_y,
-                                      max(2000, 2000/self.zoom), 65-self.pan_y)
+                                  max(2000, 2000/self.zoom), 65-self.pan_y)
 
         # Draw the stipple line
         stipple_y_bottom = 64 - self.pan_y
         stipple_y_top = strip_raise+(pos-1)*50
         if 0 < self.current_x < size.width - 1 \
-        and 1 <= current_cycle_num <= 60 \
-        and stipple_y_bottom <= self.current_y - self.pan_y <= stipple_y_top:
+                and 1 <= current_cycle_num <= 60 \
+                and stipple_y_bottom <= self.current_y - self.pan_y <= stipple_y_top:
             self.draw_vertical_stipple_line(stipple_y_bottom, stipple_y_top)
             self.draw_info_box(infobox_cycle, infobox_port, infobox_value)
 
         # Draw white background for text
         self.draw_rect_background(0, 0-self.pan_y,
-                                      max(2000, 2000/self.zoom), 29-self.pan_y, 1)
+                                  max(2000, 2000/self.zoom), 29-self.pan_y, 1)
 
         # Draw the ruler
         self.draw_ruler(step/self.zoom, 50/self.zoom, 49 - self.pan_y)
@@ -527,17 +527,17 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         info1 = 'cycle: ' + str(cycle)
         info2 = 'port: ' + str(port)
         info3 = 'value: ' + str(value)
-        rect_width = max(map(len,(info1,info2,info3)))*hsep + 4
+        rect_width = max(map(len, (info1, info2, info3)))*hsep + 4
         rect_height = 3*vsep + 4
         size = self.GetClientSize()
-        if self.current_x + rect_width + 5 > size.width: # left aligned
+        if self.current_x + rect_width + 5 > size.width:  # left aligned
             x_pos = (self.current_x - self.pan_x + 3 - rect_width)/self.zoom
             y_pos = self.current_y - self.pan_y + 6
             rect_x_start = (self.current_x - self.pan_x - rect_width)/self.zoom
             rect_y_start = self.current_y - self.pan_y
             rect_x_end = (self.current_x - self.pan_x)/self.zoom
             rect_y_end = self.current_y - self.pan_y + rect_height
-        else: # right aligned
+        else:  # right aligned
             x_pos = (self.current_x - self.pan_x + 2)/self.zoom
             y_pos = self.current_y - self.pan_y + 6
             rect_x_start = (self.current_x - self.pan_x)/self.zoom
@@ -545,7 +545,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             rect_x_end = (self.current_x - self.pan_x + rect_width)/self.zoom
             rect_y_end = self.current_y - self.pan_y + rect_height
         self.draw_rect_background(rect_x_start, rect_y_start,
-                                  rect_x_end, rect_y_end, [1,0.98,0.81])
+                                  rect_x_end, rect_y_end, [1, 0.98, 0.81])
         self.draw_rect_frame(rect_x_start, rect_y_start,
                              rect_x_end, rect_y_end)
         self.render_text(info1, x_pos, y_pos + vsep*2)
@@ -578,9 +578,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glEnd()
 
         GL.glDisable(GL.GL_TEXTURE_2D)
-
-        # swap the front and back buffers so that the texture is visible
-        #self.SwapBuffers()
 
 
 class Gui(wx.Frame):
@@ -632,11 +629,14 @@ class Gui(wx.Frame):
 
         # Configure the file menu
         fileMenu = wx.Menu()
+        helpMenu = wx.Menu()
         menuBar = wx.MenuBar()
         fileMenu.Append(wx.ID_ABOUT, "&About\tCTRL+A")
         fileMenu.Append(wx.ID_OPEN, "&Open\tCTRL+N")
         fileMenu.Append(wx.ID_EXIT, "&Exit\tCTRL+Q")
+        helpMenu.Append(wx.ID_HELP, "&Help\tCTRL+H")
         menuBar.Append(fileMenu, "&File")
+        menuBar.Append(helpMenu, "&Help")
         self.SetMenuBar(menuBar)
 
         # Canvas for drawing signals
@@ -652,44 +652,41 @@ class Gui(wx.Frame):
 
         # Basic cycle control widgets
         self.text = wx.StaticText(self, wx.ID_ANY, "Cycles")
-        self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10", max = 10**10)
+        self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10", max=10**10)
         self.run_button = wx.Button(self, wx.ID_ANY, "Run")
-        self.cont_button = wx.Button(self,wx.ID_ANY,"Add")
+        self.cont_button = wx.Button(self, wx.ID_ANY, "Add")
 
         # Monitor add/delete widgets
-        # self.cb_monitor = wx.ComboBox(self,wx.ID_ANY,size=(100,30),choices=self.total_list)
         self.text2 = wx.StaticText(self, wx.ID_ANY, "Monitors")
-        self.sig_add_button = wx.Button(self,wx.ID_ANY,"Add/Delete Monitor")
-        # self.sig_del_button = wx.Button(self, wx.ID_ANY, "Delete")
+        self.sig_add_button = wx.Button(self, wx.ID_ANY, "Add/Delete Monitor")
 
         # Switch toggle widgets
         self.text3 = wx.StaticText(self, wx.ID_ANY, "Switches")
+
         # Define switch table
-        self.list_ctrl = wx.ListCtrl(self, size=(-1,100), style=wx.LC_REPORT|wx.BORDER_SUNKEN)
-        self.list_ctrl.InsertColumn(0, 'Switches', width = 90)
-        self.list_ctrl.InsertColumn(1, 'Values', width = 75)
-        self.pop_switch_list(new_instance = 1)
-        # self.cb_switch = wx.ComboBox(self,wx.ID_ANY,size=(100,30),choices=self.switches)
+        self.list_ctrl = wx.ListCtrl(self, size=(-1, 100), style=wx.LC_REPORT | wx.BORDER_SUNKEN)
+        self.list_ctrl.InsertColumn(0, 'Switches', width=90)
+        self.list_ctrl.InsertColumn(1, 'Values', width=75)
+        self.pop_switch_list(new_instance=1)
         self.set_button = wx.Button(self, wx.ID_ANY, "1")
         self.clr_button = wx.Button(self, wx.ID_ANY, "0")
 
         # Zoom in/out functions
         self.text4 = wx.StaticText(self, wx.ID_ANY, "Zoom in/out")
-        self.zoom_in_button = wx.BitmapButton(self, wx.ID_ANY, plus, size=(40,40))
-        self.zoom_out_button = wx.BitmapButton(self, wx.ID_ANY, minus, size=(40,40))
-        # self.clear_button = wx.Button(self, wx.ID_ANY, "Clear")
+        self.zoom_in_button = wx.BitmapButton(self, wx.ID_ANY, plus, size=(40, 40))
+        self.zoom_out_button = wx.BitmapButton(self, wx.ID_ANY, minus, size=(40, 40))
 
         # Display texture mapping
-        #self.hero_button = wx.Button(self, wx.ID_ANY, "HERO")
+        # self.hero_button = wx.Button(self, wx.ID_ANY, "HERO")
         self.prev_button = wx.Button(self, wx.ID_ANY, "Prev Page")
         self.next_button = wx.Button(self, wx.ID_ANY, "Next Page")
         self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
-                                   style=wx.TE_PROCESS_ENTER)
+                                    style=wx.TE_PROCESS_ENTER)
         self.goto_button = wx.Button(self, wx.ID_ANY, "Goto")
 
         # Scroll Bars
         self.full_width = 653
-        self.hbar = wx.ScrollBar(self, id=wx.ID_ANY, size=(-1,15), style=wx.SB_HORIZONTAL)
+        self.hbar = wx.ScrollBar(self, id=wx.ID_ANY, size=(-1, 15), style=wx.SB_HORIZONTAL)
         self.hbar.SetScrollbar(0, self.full_width, self.full_width, 1)
 
         # Vertical Scroll Bar
@@ -711,8 +708,7 @@ class Gui(wx.Frame):
 
         self.zoom_in_button.Bind(wx.EVT_BUTTON, self.on_zoom_in_button)
         self.zoom_out_button.Bind(wx.EVT_BUTTON, self.on_zoom_out_button)
-        # self.clear_button.Bind(wx.EVT_BUTTON, self.on_clear_button)
-        #self.hero_button.Bind(wx.EVT_BUTTON, self.on_hero_button)
+        # self.hero_button.Bind(wx.EVT_BUTTON, self.on_hero_button)
         self.hbar.Bind(wx.EVT_SCROLL, self.on_hbar)
         self.vbar.Bind(wx.EVT_SCROLL, self.on_vbar)
         self.prev_button.Bind(wx.EVT_BUTTON, self.on_prev_button)
@@ -724,7 +720,7 @@ class Gui(wx.Frame):
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
         side_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer_second = wx.BoxSizer(wx.VERTICAL)
-        main_sizer_third  = wx.BoxSizer(wx.HORIZONTAL)
+        main_sizer_third = wx.BoxSizer(wx.HORIZONTAL)
         double_butt = wx.BoxSizer(wx.HORIZONTAL)
         double_butt_2 = wx.BoxSizer(wx.HORIZONTAL)
         double_butt_3 = wx.BoxSizer(wx.HORIZONTAL)
@@ -732,7 +728,7 @@ class Gui(wx.Frame):
         double_butt_5 = wx.BoxSizer(wx.HORIZONTAL)
         double_butt_6 = wx.BoxSizer(wx.HORIZONTAL)
 
-
+        # Sizer arrangement
         main_sizer.Add(main_sizer_second, 25, wx.EXPAND | wx.RIGHT | wx.TOP | wx.LEFT, 5)
         main_sizer_second.Add(self.canvas, 25, wx.EXPAND | wx.ALL, 5)
         main_sizer_second.Add(self.hbar, 1, wx.EXPAND, 5)
@@ -761,14 +757,12 @@ class Gui(wx.Frame):
         double_butt_4.Add(self.zoom_in_button, 1, wx.ALL, 5)
         double_butt_4.Add(self.zoom_out_button, 1, wx.ALL, 5)
         side_sizer.Add(double_butt_5, 1, wx.ALL, 0)
-        double_butt_5.Add(self.prev_button, 0.8 , wx.ALL, 0)
+        double_butt_5.Add(self.prev_button, 0.8, wx.ALL, 0)
         double_butt_5.Add(self.next_button, 0.8, wx.ALL, 0)
         side_sizer.Add(double_butt_6, 1, wx.ALL, 0)
-        double_butt_6.Add(self.text_box, 0.8 , wx.ALL, 0)
+        double_butt_6.Add(self.text_box, 0.8, wx.ALL, 0)
         double_butt_6.Add(self.goto_button, 0.8, wx.ALL, 0)
         # side_sizer.Add(self.hero_button, 1 , wx.ALL, 5)
-
-        # side_sizer.Add(self.clear_button, 1, wx.ALL, 5)
 
         self.SetSizeHints(700, 600)
         self.SetSizer(main_sizer)
@@ -788,15 +782,10 @@ class Gui(wx.Frame):
             self.reinit(new_names, new_devices, new_network, new_monitors)
         else:
             wx.MessageBox("File Conatins Error, See Terminal", "Please confirm",
-                             wx.ICON_QUESTION | wx.YES_NO, self)
+                          wx.ICON_QUESTION | wx.OK, self)
 
     def on_open(self):
-        # if self.contentNotSaved:
-        #     if wx.MessageBox("Current content has not been saved! Proceed?", "Please confirm",
-        #                      wx.ICON_QUESTION | wx.YES_NO, self) == wx.NO:
-        #         return
-
-        # otherwise ask the user what new file to open
+        # ask the user what new file to open
         with wx.FileDialog(self, "Open definition file", wildcard="XYZ files (*.txt)|*.txt",
                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as fileDialog:
 
@@ -827,6 +816,12 @@ class Gui(wx.Frame):
                           "About Logsim", wx.ICON_INFORMATION | wx.OK)
         if Id == wx.ID_OPEN:
             self.on_open()
+        if Id == wx.ID_HELP:
+            f = open("help.txt")
+            message = f.read()
+            box = wx.MessageDialog(self, message,
+                          "Definition Description", wx.ICON_INFORMATION | wx.OK)
+            box.ShowModal()
 
     def on_spin(self, event):
         """Handle the event when the user changes the spin control value."""
@@ -837,11 +832,11 @@ class Gui(wx.Frame):
     def get_switch_signals(self):
         self.switches = []
         for each_id in self.switch_ids:
-            switch_pair = (self.names.get_name_string(each_id), \
-                self.devices.get_device(each_id).switch_state)
+            switch_pair = (self.names.get_name_string(each_id),
+                           self.devices.get_device(each_id).switch_state)
             self.switches.append(switch_pair)
 
-    def pop_switch_list(self, new_instance = 0):
+    def pop_switch_list(self, new_instance=0):
         # pop in switch table
         index = 0
         for switch in self.switches:
@@ -865,7 +860,7 @@ class Gui(wx.Frame):
         """Handle the event when the user clicks the run button."""
         self.canvas.run = 1
         self.canvas.cycles = self.spin.GetValue()
-        if self.canvas.cycles%60 == 0:
+        if self.canvas.cycles % 60 == 0:
             self.canvas.page_number = int(self.canvas.cycles/60)
         else:
             self.canvas.page_number = int(self.canvas.cycles/60)+1
@@ -898,11 +893,11 @@ class Gui(wx.Frame):
             text = 'Continue Button Pressed'
             added_cycles = self.spin.GetValue()
             self.canvas.cycles += added_cycles
-            if self.canvas.cycles%60 == 0:
+            if self.canvas.cycles % 60 == 0:
                 self.canvas.page_number = int(self.canvas.cycles/60)
             else:
                 self.canvas.page_number = int(self.canvas.cycles/60)+1
-            next_to_run = min((60-self.cycles_completed%60), added_cycles)
+            next_to_run = min((60-self.cycles_completed % 60), added_cycles)
             self.run_network(next_to_run)
             self.cycles_completed += next_to_run
         self.worker = RunThread(self, 1)
@@ -963,13 +958,6 @@ class Gui(wx.Frame):
         else:
             self.top.ToggleWindowStyle(wx.STAY_ON_TOP)
 
-    # Should be added together with delete cycle function
-    # def on_clear_button(self, event):
-    #     text = 'Clear the Canvas'
-    #     self.canvas.signals = []
-    #     self.canvas.cycles = self.spin.GetValue()
-    #     self.canvas.render(text)
-
     def on_zoom_in_button(self, event):
         text = 'Zoom in'
         self.canvas.zoom = self.canvas.zoom*2
@@ -992,7 +980,7 @@ class Gui(wx.Frame):
         else:
             message = "Do You Want To See Our Leader?"
             dlg = wx.MessageDialog(self, message, caption="PLEASE ANSWER!!!",
-                  style=wx.YES_NO|wx.CENTER)
+                                   style=wx.YES_NO | wx.CENTER)
             result = dlg.ShowModal()
             if result == wx.ID_YES:
                 self.canvas.use_hero = 1
@@ -1007,25 +995,25 @@ class Gui(wx.Frame):
             self.canvas.pan_x = -int((self.canvas.signal_width-self.full_width)*(pos/(length-thumbsize)))
             self.canvas.init = False
             self.canvas.render(str(self.canvas.pan_x))
-	
+
     def on_vbar(self, event):
         pos = self.vbar.GetThumbPosition()
         length = self.vbar.GetRange()
         thumbsize = self.vbar.GetThumbSize()
         if length > thumbsize:
-            self.canvas.pan_y = -(self.canvas.signal_count-10)*55+55*pos*self.canvas.signal_count/self.full_length
+            self.canvas.pan_y = -(self.canvas.signal_count-10) \
+                * 55+55*pos*self.canvas.signal_count/self.full_length
             self.canvas.init = False
             self.canvas.render(str(self.canvas.pan_y))
 
     def update_vbar(self):
         self.canvas.pan_y = 0
         if 10 < self.canvas.signal_count:
-            #vpos = 55*(self.canvas.signal_count-10)*self.full_length/(self.canvas.signal_count*55)
+            # vpos = 55*(self.canvas.signal_count-10)*self.full_length/(self.canvas.signal_count*55)
             vpos = self.full_length-10*self.full_length/self.canvas.signal_count
             self.vbar.SetScrollbar(vpos, 10*self.full_length/self.canvas.signal_count, self.full_length, 1)
         else:
             self.vbar.SetScrollbar(0, self.full_length, self.full_length, self.canvas.zoom)
-        
 
     def update_scroll_bar(self):
         hpos = self.hbar.GetThumbPosition()
@@ -1034,14 +1022,12 @@ class Gui(wx.Frame):
         else:
             self.hbar.SetScrollbar(hpos, self.full_width, self.full_width, self.canvas.zoom)
 
-        
         if 10 < self.canvas.signal_count:
-            #vpos = (self.canvas.pan_y+50)*(self.canvas.signal_count-11)*self.full_length/(self.canvas.signal_count*50)
+            # vpos = (self.canvas.pan_y+50)*(self.canvas.signal_count-11)*self.full_length/(self.canvas.signal_count*50)
             vpos = self.vbar.GetThumbPosition()
             self.vbar.SetScrollbar(vpos, 10*self.full_length/self.canvas.signal_count, self.full_length, 1)
         else:
             self.vbar.SetScrollbar(0, self.full_length, self.full_length, 1)
-            
 
     def on_prev_button(self, event):
         if self.canvas.current_page > 1:
@@ -1102,9 +1088,9 @@ class Gui(wx.Frame):
         self.get_switch_signals()
 
         self.list_ctrl.ClearAll()
-        self.list_ctrl.InsertColumn(0, 'Switches', width = 90)
-        self.list_ctrl.InsertColumn(1, 'Values', width = 75)
-        self.pop_switch_list(new_instance = 1)
+        self.list_ctrl.InsertColumn(0, 'Switches', width=90)
+        self.list_ctrl.InsertColumn(1, 'Values', width=75)
+        self.pop_switch_list(new_instance=1)
 
         self.hbar.SetScrollbar(0, self.full_width, self.full_width, 1)
         self.canvas.init = False
@@ -1112,15 +1098,14 @@ class Gui(wx.Frame):
         self.canvas.devices = self.devices
         self.canvas.parent = self
         self.canvas.init_parameters()
-        self.canvas.signal_count  = len(self.canvas.monitors.monitors_dictionary)
+        self.canvas.signal_count = len(self.canvas.monitors.monitors_dictionary)
         self.update_vbar()
-
 
 
 # Monitor Selection Frame
 class MonitorFrame(wx.Frame):
     def __init__(self, parent, title, monitored, unmonitored):
-        wx.Frame.__init__(self, None, title=title, pos=(350,150), size=(350,600))
+        wx.Frame.__init__(self, None, title=title, pos=(350, 150), size=(350, 600))
         self.parent = parent
         self.monitored = monitored
         self.unmonitored = unmonitored
@@ -1144,10 +1129,10 @@ class MonitorFrame(wx.Frame):
         m_text.SetSize(m_text.GetBestSize())
         box.Add(m_text, 1, wx.ALL, 5)
 
-        self.list_ctrl_1 = wx.ListCtrl(panel, size=(-1,100), style=wx.LC_REPORT|wx.BORDER_SUNKEN)
-        self.list_ctrl_2 = wx.ListCtrl(panel, size=(-1,100), style=wx.LC_REPORT|wx.BORDER_SUNKEN)
-        self.list_ctrl_1.InsertColumn(0, 'Monitored', width = 160)
-        self.list_ctrl_2.InsertColumn(0, 'Unmonitored', width = 160)
+        self.list_ctrl_1 = wx.ListCtrl(panel, size=(-1, 100), style=wx.LC_REPORT | wx.BORDER_SUNKEN)
+        self.list_ctrl_2 = wx.ListCtrl(panel, size=(-1, 100), style=wx.LC_REPORT | wx.BORDER_SUNKEN)
+        self.list_ctrl_1.InsertColumn(0, 'Monitored', width=160)
+        self.list_ctrl_2.InsertColumn(0, 'Unmonitored', width=160)
         index = 0
         for signal in self.monitored:
             self.list_ctrl_1.InsertItem(index, signal)
@@ -1158,8 +1143,8 @@ class MonitorFrame(wx.Frame):
             index = index+1
 
         box.Add(list_sizer, 10, wx.ALL, 0)
-        list_sizer.Add(self.list_ctrl_1, 1, wx.EXPAND|wx.ALL, 5)
-        list_sizer.Add(self.list_ctrl_2, 1, wx.EXPAND|wx.ALL, 5)
+        list_sizer.Add(self.list_ctrl_1, 1, wx.EXPAND | wx.ALL, 5)
+        list_sizer.Add(self.list_ctrl_2, 1, wx.EXPAND | wx.ALL, 5)
 
         side_sizer = wx.BoxSizer(wx.HORIZONTAL)
         box.Add(side_sizer, 1, wx.ALL, 5)
@@ -1206,18 +1191,18 @@ class MonitorFrame(wx.Frame):
         for signal in signals:
             device_id, port_id = self.parent.get_monitor_ids(signal)
             monitor_error = self.parent.monitors.make_monitor(device_id, port_id,
-                                                   self.parent.canvas.cycles)
+                                                              self.parent.canvas.cycles)
             if monitor_error == self.parent.monitors.NO_ERROR:
                 text = "Successfully made monitor."
                 self.parent.monitored_list.append(signal)
                 self.parent.unmonitored_list.remove(signal)
                 self.parent.canvas.signal_count += 1
             else:
-                text = "Error! Could not make monitor: "+ signal
-        self.parent.update_vbar() 
+                text = "Error! Could not make monitor: " + signal
+        self.parent.update_vbar()
         self.parent.canvas.init = False
         self.parent.canvas.render(text)
-        self.refresh_lists() 
+        self.refresh_lists()
 
     def on_delete(self, event):
         signals = []
@@ -1238,7 +1223,7 @@ class MonitorFrame(wx.Frame):
                 self.parent.monitored_list.remove(signal)
                 self.parent.canvas.signal_count -= 1
             else:
-                text = "Error! Could not zap monitor: "+ signal
+                text = "Error! Could not zap monitor: " + signal
         self.parent.update_vbar()
         self.parent.canvas.init = False
         self.parent.canvas.render(text)
