@@ -1,0 +1,20 @@
+(* BASIC ELEMENTS *)
+alpha = ? All uppercase and lowercase English characters ? ;
+digit_nonzero = ? All non-zero digits ? ;
+digit = '0' | digit_nonzero ;
+identifier = alpha, { alpha | digit } ;
+number = '0' | digit_nonzero, { digit } ;
+
+(* MAIN GRAMMAR *)
+definition_file = { statement } ;
+statement = '(', ( device | connect | monitor ), ')' ;
+device = 'DEVICE', identifier, { identifier },
+         ('is'|'are'), device_type ;
+device_type = device_no_qualifier |
+              device_with_qualifier, number ;
+device_with_qualifier = 'CLOCK' | 'SWITCH' |
+                        'AND' | 'NAND' | 'OR' | 'NOR' ;
+device_no_qualifier = 'DTYPE' | 'XOR' ;
+connect = 'CONNECT', device_terminal, 'to', device_terminal ;
+monitor = 'MONITOR', device_terminal, { device_terminal } ;
+device_terminal = identifier, [ '.', identifier ] ;
