@@ -50,6 +50,8 @@ class Names:
         """Return a list of unique integer error codes."""
         if not isinstance(num_error_codes, int):
             raise TypeError("Expected num_error_codes to be an integer.")
+        if num_error_codes <= 0:
+            raise ValueError("num_error_codes should be larger than 0")
         self.error_code_count += num_error_codes
         return range(self.error_code_count - num_error_codes,
                      self.error_code_count)
@@ -85,8 +87,9 @@ class Names:
 
         If the name_id is not an index in the names list, return None.
         """
-
-        if name_id < len(self.name_list):
+        if not isinstance(name_id, int):
+            raise TypeError('name_id should be an int')
+        if 0 <= name_id < len(self.name_list):
             return self.name_list[name_id]
         else:
             return None
