@@ -43,3 +43,13 @@ def test_get_name_string(new_names_with_items):
     assert new_names_with_items.get_name_string(3) == 'CLOCK'
     assert new_names_with_items.get_name_string(12) == None
     assert new_names_with_items.get_name_string(7) == 'G2'
+
+def test_raise_exception_on_unique_error_codes(new_names):
+    with pytest.raises(TypeError):
+        new_names.unique_error_codes(3.5)
+    with pytest.raises(ValueError):
+        new_names.unique_error_codes(-4)
+
+def test_raise_exception_on_get_name_string(new_names):
+    with pytest.raises(TypeError):
+        new_names.get_name_string(4.8)

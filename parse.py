@@ -9,7 +9,7 @@ Classes
 Parser - parses the definition file and builds the logic network.
 """
 
-from collections import namedtuple
+from collections import namedtuple # For self.ErrorTuple
 
 class Parser:
 
@@ -29,9 +29,58 @@ class Parser:
     monitors: instance of the monitors.Monitors() class.
     scanner: instance of the scanner.Scanner() class.
 
+    Optional Parameters
+    -------------------
+    test_mode (=False): if True, parser will operate in test mode and no
+                        error messages will be displayed in terminal.
+
     Public methods
     --------------
+    move_to_next_symbol(self): Get next symbol from scanner.
+
     parse_network(self): Parses the circuit definition file.
+
+    is_target_name(self, target_name): Check if the name string corresponding
+                                       to self.symbol_id is the same as the
+                                       target_name.
+
+    get_name_string(self): Get the name string of self.symbol_id.
+
+    get_terminal_name(self, device_id, port_id): Return the terminal name from
+                                                 (device_id, port_id).
+
+    statement(self): Parse a statement, which starts with '(' and ends with ')'.
+
+    device(self): Parse a device definition.
+
+    add_device_location(self): Add current (linum, pos) to the dict of device
+                               locations.
+
+    get_first_device_id(self, new_device_ids): Parse the first device name
+                                               by force.
+
+    get_optional_device_id(self, new_device_ids): Parse a device name
+                                                  optionally.
+
+    check_keyword_is_are(self): Check whether current symbol is keyword 'is' or
+                                'are'.
+
+    get_device_type(self): Parse device type (and qualifier).
+
+    get_device_type_string(self, device): Get string representation of the
+                                          device's type.
+
+    device_terminal(self, monitor_mode = False): Parse a device terminal and
+                                                 return (devicd_id, port_id).
+
+    connect(self): Parse a connection.
+
+    monitor(self): Parse a series of monitors.
+
+    error_display(self, *args): Display error messages on terminal.
+
+    error_additional_info(self): Add additional information to the error
+                                 display.
     """
 
     def __init__(self, names, devices, network, monitors, scanner, test_mode=False):
@@ -140,11 +189,11 @@ class Parser:
             self.INVALID_DEVICE_NAME           : "***Syntax Error: Invalid device name '{symbol_name}'",
             self.INVALID_DEVICE_TYPE           : "***Syntax Error: Invalid device type '{device_type}'",
             self.INVALID_FUNCTION_NAME         : "***Syntax Error: Invalid function '{symbol_name}', please specify 'DEVICE', 'CONNECT' or 'MONITOR'",
-            self.INVALID_PORT_NAME             : "***Semantic Error: Invalid port name for the device",
+            self.INVALID_PORT_NAME             : "***Semantic Error: Invalid port name '{port_name}' for the device '{device_name}' ({device_type_full})",
             self.INVALID_QUALIFIER             : "***Semantic Error: Invalid qualifier for the device type '{device_type}'",
             self.KEYWORD_AS_DEVICE_NAME        : "***Syntax Error: Can't use keyword '{symbol_name}' as device name",
             self.MONITOR_NOT_OUTPUT            : "***Semantic Error: Attempt to monitor an input",
-            self.MONITOR_PRESENT               : "***Semantic Error: Monitor already exists for the given signal",
+            self.MONITOR_PRESENT               : "***Semantic Error: Monitor already exists for the signal '{terminal_name}'",
             self.OUTPUT_TO_OUTPUT              : "***Semantic Error: Attempt to connect two outputs"
         }
         self.errormsg_format_dict = {} # used for str.format(**dict)
@@ -351,11 +400,6 @@ class Parser:
         self.device_locations[self.symbol_id] = \
         self.Location(self.scanner.line_number, len(self.scanner.current_line))
 
-    def add_monitor_location(self):
-        """Add current (linum, pos) to the dict of monitor locations."""
-        self.monitor_locations[self.symbol_id] = \
-        self.Location(self.scanner.line_number, len(self.scanner.current_line))
-
     def get_first_device_id(self, new_device_ids):
         """Parse the first device name by force.
         If successful, return device_id.
@@ -456,6 +500,18 @@ class Parser:
             line, linum = self.scanner.complete_current_line()
             return None, None
 
+    def get_device_type_string(self, device):
+        """Get string representation of the device's type."""
+        if device is None:
+            return None
+        device_kind = device.device_kind
+        device_type_str = self.names.get_name_string(device_kind)
+        if device_kind in self.devices.gate_types and device_kind != self.devices.XOR:
+            device_type_str += ' ' + str(len(device.inputs))
+        elif device_kind == self.devices.CLOCK:
+            device_type_str += ' ' + str(device.clock_half_period)
+        return device_type_str
+
     def device_terminal(self, monitor_mode = False):
         """Parse a device terminal and return (devicd_id, port_id).
         Return (None, None) if error occurs."""
@@ -463,6 +519,8 @@ class Parser:
             return None, None  # no error code at this point
         device_id = self.device_id = self.symbol_id
         device = self.devices.get_device(device_id)
+        self.errormsg_format_dict['device_name'] = self.get_name_string()
+        self.errormsg_format_dict['device_type_full'] = self.get_device_type_string(device)
         if device is None:
             self.error_code = self.DEVICE_UNDEFINED
             return None, None
@@ -474,6 +532,7 @@ class Parser:
                 self.last_error_pos_overwrite = True
                 return None, None
             port_id = self.port_id = self.symbol_id
+            self.errormsg_format_dict['port_name'] = self.get_name_string()
             if port_id not in device.inputs and port_id not in device.outputs:
                 self.error_code = self.INVALID_PORT_NAME
                 return None, None
@@ -483,6 +542,8 @@ class Parser:
                     self.error_code = self.MONITOR_NOT_OUTPUT
                     return None, None
                 elif (device_id, port_id) in self.monitors.monitors_dictionary:
+                    self.errormsg_format_dict['terminal_name'] = \
+                        self.get_terminal_name(device_id, port_id)
                     self.error_code = self.MONITOR_PRESENT
                     return None, None
                 else:
@@ -498,6 +559,8 @@ class Parser:
             # monitor mode
             if monitor_mode:
                 if (device_id, port_id) in self.monitors.monitors_dictionary:
+                    self.errormsg_format_dict['terminal_name'] = \
+                        self.get_terminal_name(device_id, port_id)
                     self.error_code = self.MONITOR_PRESENT
                     self.last_error_pos_overwrite = True
                     return None, None

@@ -188,6 +188,10 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         """Handle the canvas resize event."""
         # Forces reconfiguration of the viewport, modelview and projection
         # matrices on the next paint event
+        size = self.GetClientSize()
+        self.max_signal_count = int(size.height/50) - 2
+        self.parent.full_length = size.height
+        self.parent.update_vbar()
         self.init = False
 
     def on_mouse(self, event):
@@ -218,15 +222,15 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         if event.Leaving():
             text = "".join(["Mouse left canvas at: ", str(event.GetX()),
                             ", ", str(event.GetY())])
-        # if event.Dragging():
-        #     self.pan_x += event.GetX() - self.last_mouse_x
-        #     self.pan_y -= event.GetY() - self.last_mouse_y
-        #     self.last_mouse_x = event.GetX()
-        #     self.last_mouse_y = event.GetY()
-        #     self.init = False
-        #     text = "".join(["Mouse dragged to: ", str(event.GetX()),
-        #                     ", ", str(event.GetY()), ". Pan is now: ",
-        #                     str(self.pan_x), ", ", str(self.pan_y)])
+        #if event.Dragging():
+        #    self.pan_x += event.GetX() - self.last_mouse_x
+        #    self.pan_y -= event.GetY() - self.last_mouse_y
+        #    self.last_mouse_x = event.GetX()
+        #    self.last_mouse_y = event.GetY()
+        #    self.init = False
+        #    text = "".join(["Mouse dragged to: ", str(event.GetX()),
+        #                    ", ", str(event.GetY()), ". Pan is now: ",
+        #                    str(self.pan_x), ", ", str(self.pan_y)])
         if event.GetWheelRotation() < 0:
             self.zoom *= (1.0 + (
                 event.GetWheelRotation() / (20 * event.GetWheelDelta())))
@@ -250,6 +254,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         key_code = event.GetKeyCode()
         text = ''
 
+
         if (key_code in (wx.WXK_LEFT, wx.WXK_RIGHT)) and (self.signal_width > self.parent.full_width):
             full_width = self.parent.full_width
             length = self.parent.hbar.GetRange()
@@ -268,7 +273,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                     text = 'scroll to right'
             thumb_pos = -self.pan_x * (length - thumb_size) / (self.signal_width - full_width)
             self.parent.hbar.SetThumbPosition(thumb_pos)
-        if key_code in (wx.WXK_UP, wx.WXK_DOWN) and (self.signal_count > 11):
+        if key_code in (wx.WXK_UP, wx.WXK_DOWN) and (self.signal_count > self.max_signal_count):
             full_length = self.parent.full_length
             length = self.parent.vbar.GetRange()
             thumb_size = self.parent.vbar.GetThumbSize()
@@ -280,12 +285,12 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                     text = 'scroll down'
             elif key_code == wx.WXK_UP:
                 self.pan_y -= 10
-                if self.pan_y < -55*(self.signal_count-10):
-                    self.pan_y = -55*(self.signal_count-10)
+                if self.pan_y < -50*(self.signal_count-self.max_signal_count):
+                    self.pan_y = -50*(self.signal_count-self.max_signal_count)
                 else:
                     text = 'scroll up'
 
-            thumb_pos = (self.pan_y+55*(self.signal_count-10))*full_length/(self.signal_count*55)
+            thumb_pos = (self.pan_y+50*(self.signal_count-self.max_signal_count))*full_length/(self.signal_count*50)
             self.parent.vbar.SetThumbPosition(thumb_pos)
 
         if text:
@@ -434,7 +439,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         infobox_value = 'empty'
 
         self.signal_count = len(self.monitors.monitors_dictionary)
-        # Iterate over each device and render
+        self.max_signal_count = int(size.height / 50) - 2
+	    # Iterate over each device and render
         for device_id, output_id in self.monitors.monitors_dictionary:
             monitor_name = self.devices.get_signal_name(device_id, output_id)
             signal_list = self.monitors.monitors_dictionary[(device_id, output_id)]
@@ -690,8 +696,8 @@ class Gui(wx.Frame):
         self.hbar.SetScrollbar(0, self.full_width, self.full_width, 1)
 
         # Vertical Scroll Bar
-        self.full_length = 600
-        self.vbar = wx.ScrollBar(self, id=wx.ID_ANY, size=(15, 600), style=wx.SB_VERTICAL)
+        self.full_length = 1000
+        self.vbar = wx.ScrollBar(self, id=wx.ID_ANY, size=(15,1000), style=wx.SB_VERTICAL)
         self.vbar.SetScrollbar(0, self.full_length, self.full_length, 1)
 
         # Bind events to widgets
@@ -733,7 +739,7 @@ class Gui(wx.Frame):
         main_sizer_second.Add(self.canvas, 25, wx.EXPAND | wx.ALL, 5)
         main_sizer_second.Add(self.hbar, 1, wx.EXPAND, 5)
         main_sizer.Add(main_sizer_third, 1, wx.EXPAND, 5)
-        main_sizer_third.Add(self.vbar, 1, wx.BOTTOM, 100)
+        main_sizer_third.Add(self.vbar, 1, wx.BOTTOM, 80)
         main_sizer.Add(side_sizer, 5, wx.ALL, 5)
 
         side_sizer.Add(self.text, 1, wx.TOP, 10)
@@ -1000,18 +1006,19 @@ class Gui(wx.Frame):
         pos = self.vbar.GetThumbPosition()
         length = self.vbar.GetRange()
         thumbsize = self.vbar.GetThumbSize()
+        self.full_length = self.canvas.GetClientSize().height
         if length > thumbsize:
-            self.canvas.pan_y = -(self.canvas.signal_count-10) \
-                * 55+55*pos*self.canvas.signal_count/self.full_length
+            self.canvas.pan_y = -(self.canvas.signal_count-self.canvas.max_signal_count)*50+50*pos*self.canvas.signal_count/self.full_length
             self.canvas.init = False
             self.canvas.render(str(self.canvas.pan_y))
 
     def update_vbar(self):
         self.canvas.pan_y = 0
-        if 10 < self.canvas.signal_count:
+        self.full_length = self.canvas.GetClientSize().height
+        if self.canvas.max_signal_count < self.canvas.signal_count:
             # vpos = 55*(self.canvas.signal_count-10)*self.full_length/(self.canvas.signal_count*55)
-            vpos = self.full_length-10*self.full_length/self.canvas.signal_count
-            self.vbar.SetScrollbar(vpos, 10*self.full_length/self.canvas.signal_count, self.full_length, 1)
+            vpos = self.full_length-self.canvas.max_signal_count*self.full_length/self.canvas.signal_count
+            self.vbar.SetScrollbar(vpos, self.canvas.max_signal_count*self.full_length/self.canvas.signal_count, self.full_length, 1)
         else:
             self.vbar.SetScrollbar(0, self.full_length, self.full_length, self.canvas.zoom)
 
@@ -1021,11 +1028,11 @@ class Gui(wx.Frame):
             self.hbar.SetScrollbar(hpos, self.full_width, self.canvas.signal_width, self.canvas.zoom)
         else:
             self.hbar.SetScrollbar(hpos, self.full_width, self.full_width, self.canvas.zoom)
-
-        if 10 < self.canvas.signal_count:
+        if self.canvas.max_signal_count < self.canvas.signal_count:
             # vpos = (self.canvas.pan_y+50)*(self.canvas.signal_count-11)*self.full_length/(self.canvas.signal_count*50)
             vpos = self.vbar.GetThumbPosition()
-            self.vbar.SetScrollbar(vpos, 10*self.full_length/self.canvas.signal_count, self.full_length, 1)
+            self.full_length = self.canvas.GetClientSize().height
+            self.vbar.SetScrollbar(vpos, self.canvas.max_signal_count*self.full_length/self.canvas.signal_count, self.full_length, 1)
         else:
             self.vbar.SetScrollbar(0, self.full_length, self.full_length, 1)
 

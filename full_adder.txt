@@ -1,4 +1,29 @@
-(DEVICE A is NAND 1)
-(DEVICE B C D E A are NAND 2)
-(CONNECT A.I1 to B)
-(CONNECT A.I1 to B)
+(DEVICE A B Cin are SWITCH 1) // some comments
+(DEVICE G1 G2 are XOR)
+(DEVICE G3 G4 are AND 2)
+(DEVICE G5 is OR 2)
+(DEVICE G6 are XOR 4)
+(DEVICE G2 G5 are NAND 888)
+(CONNECT A to G1.I1) /* lorem ipsum blablabla
+asdflkjasdflkjasdflkj asdklfjsdf
+sdfawfeoijfwef */
+CONNECT B to G1.I2)
+(CONNECT Cin to G1.I1)
+(CONNECT G1 to G2.I1)
+( 007 )
+(CONNECT Cin to G2.I2)
+(CONEECT G1 to G3.I1)
+(CONNECT Cin to G3.I2)
+(CONNNECT G3.I1 to G5.I2)
+( !@#$%^&*()
+(CONNECT A to G4.I1)
+(CONNECT B to G4.I2)
+(CONNECT G3 to G5.I8)
+(CONNECT A to B)
+(CONNECT G4 to G5.I2)
+(MONITOR G2 G5)
+(MONITOR A B Cin G3 G5)
+(MONITOR G4.I1)
+(MONITOR G1)
+/* This is an 
+unterminated comment
