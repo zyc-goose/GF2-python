@@ -25,10 +25,24 @@ class Scanner:
 
     Public methods
     -------------
+    advance(self): Read the next character and set self.current_character
+                   to the new value, also updates current_line
+
+    skip_spaces(self): Move to the next non-whitespace character
+
+    get_name(self): Read the next name symbol, returns the name string
+
+    get_number(self): Read the next number symbol, returns the number,
+                      also handles invalid numbers starting with 0
+
+    skip_comment(self): Skip comment until the next meaningful character
+
+    complete_current_line(self): Used for error handling, return the completed
+                                 line and a position indicating where error occurs
+
     get_symbol(self): Translates the next sequence of characters and
                       returns the symbol type and ID.
     """
-
 
     def __init__(self, path, names):
         """Open specified file and initialise reserved words and IDs."""
@@ -46,6 +60,8 @@ class Scanner:
         self.PUNCTUATION,
         self.SYNTAX_ERROR,
         self.EOF] = range(6)
+
+        '''initialise preserved keywords and error messages'''
 
         self.keywords_list = [
         'DEVICE',
@@ -73,9 +89,8 @@ class Scanner:
         'Unterminated comment']
         dummy = names.lookup(self.error_list)
 
-        self.previous_lines = [] # for errormsg display
-
-        self.line_number = 0
+        self.previous_lines = []        # for errormsg display
+        self.line_number = 0            # also for errormsg display
         self.current_line = ''
         self.current_character = ''
         self.advance()
@@ -98,14 +113,14 @@ class Scanner:
             self.advance()
 
     def complete_current_line(self):
-        current_cursor_position = self.input_file.tell()
+        current_cursor_position = self.input_file.tell()  #record cursor position
         current_line = self.current_line
         error_position = len(current_line)
         current_character = self.current_character
-        while current_character not in('\n', ''):
+        while current_character not in('\n', ''):       #complete reading current_line
             current_line += current_character
             current_character = self.input_file.read(1)
-        self.input_file.seek(current_cursor_position)
+        self.input_file.seek(current_cursor_position)   #move back to scan location
         return [current_line, error_position]
 
     def get_name(self):
@@ -127,6 +142,11 @@ class Scanner:
             return int(number)
 
     def skip_comment(self):
+        '''comment symbol defined as '//' or '/*' and '*/',
+           case 3: only '/' obtained, return unrecogonized character
+           case 2: '/*' read in but no '*/', return unterminated multiline comment
+           case 1: correct comment skipped
+        '''
         self.advance()
         if self.current_character not in ('/', '*'):
             return 3
@@ -148,9 +168,8 @@ class Scanner:
     def get_symbol(self):
         """Return the symbol type and ID of the next sequence of characters.
 
-        If the current character is not recognised, both symbol type and ID
-        are assigned None. Note: this function is called again (recursively)
-        if it encounters a comment or end of line.
+        Note: this function is called again (recursively) if it encounters
+        a comment or end of line.
         """
 
         self.skip_spaces() # current character now not whitespace

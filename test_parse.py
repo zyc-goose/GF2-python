@@ -11,11 +11,13 @@ from monitors import Monitors
 import os
 from collections import namedtuple
 
-###### ERROR CODE TESTS ######
+###### ERROR CODE TESTS (INTEGRATION TESTS) ######
+
 """This section of test intends to check whether the parser is able to generate
 the correct error messages when given a poorly defined input file. The class
 ParserTestCase acts as a virtual machine to handle the input and output and
 check whether the output is as desired."""
+
 class ParserTestCase:
     """Receive an input file (as strings), run the parser and check the error code."""
 
@@ -371,9 +373,9 @@ def test_error_output_to_output(testcase):
     assert testcase.passed()
 
 
-###### FUNCTION TESTS ######
+###### FUNCTION TESTS (UNIT TESTS) ######
 ''' The following tests are intended to test each function in parser.py,
-and assert all the possible returns of the functions. It omits testing 
+and assert all the possible returns of the functions. It omits testing
 error display as this has been thoroughly tested above'''
 @pytest.fixture(scope="session")
 def new_parser():

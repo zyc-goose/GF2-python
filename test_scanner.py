@@ -16,6 +16,20 @@ def new_scanner ():
     new_scanner = Scanner('ripple_counter.txt', new_names)
     return new_scanner
 
+@pytest.fixture
+def new_scanner_names ():
+    '''returns an instance of class Scanner'''
+    new_names = Names()
+    new_scanner = Scanner('test_names.txt', new_names)
+    return new_scanner_names
+
+@pytest.fixture
+def new_scanner_numbers ():
+    '''returns an instance of class Scanner'''
+    new_names = Names()
+    new_scanner = Scanner('test_numbers.txt', new_names)
+    return new_scanner_numbers
+
 def test_get_symbol(new_names, new_scanner):
     i = 0
     desired_output = [[3, 14], [0, 0], [1, 20], [0, 11], [0, 9], [3, 15],
