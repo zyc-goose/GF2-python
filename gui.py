@@ -90,6 +90,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.signal_count = 0
         self.page_number = 1
         self.current_page = 1
+        self.max_signal_count = 10
 
         # Initialise variables for zooming
         self.zoom = 1
