@@ -14,6 +14,12 @@ from OpenGL import GL, GLUT
 from PIL import Image
 import threading
 import time
+import gettext
+import locale
+import os
+import sys
+import freetype
+import numpy
 
 from names import Names
 from devices import Devices
@@ -127,7 +133,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                         GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, image)
 
     def init_gl(self):
-        self.initTexture()
+        # self.initTexture()
         """Configure and initialise the OpenGL context."""
         size = self.GetClientSize()
         self.SetCurrent(self.context)
@@ -141,6 +147,50 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glLoadIdentity()
         GL.glTranslated(self.pan_x, self.pan_y, 0.0)
         GL.glScaled(self.zoom, 1, self.zoom)
+
+
+    # def texture_mapping_chinese(self):
+    #     """draw function """
+    #     self.SetCurrent(self.context)
+    #     GL.glEnable(GL.GL_TEXTURE_2D)
+    #     GL.glColor3f(1, 1, 1)
+
+    #     # draw a quad
+    #     GL.glBegin(GL.GL_QUADS)
+    #     GL.glTexCoord2f(0, 1)
+    #     GL.glVertex2f(0, 20)
+    #     GL.glTexCoord2f(0, 0)
+    #     GL.glVertex2f(0, 0)
+    #     GL.glTexCoord2f(1, 0)
+    #     GL.glVertex2f(20, 0)
+    #     GL.glTexCoord2f(1, 1)
+    #     GL.glVertex2f(20, 20)
+    #     GL.glEnd()
+
+    #     GL.glDisable(GL.GL_TEXTURE_2D)
+
+    # def try_render_chinese(self):
+    #     a = '干'
+    #     GL.glColor3f(0.0, 0.0, 0.0)  # text is black
+    #     GL.glRasterPos2f(300, 300)
+    #     face = freetype.Face('./unifont-10.0.07.ttf')
+    #     face.set_char_size( 48*64 )
+    #     face.load_char(a)
+    #     bitmap = face.glyph.bitmap
+    #     data, rows, width = bitmap.buffer, bitmap.rows, bitmap.width
+    #     Z = numpy.array(data,dtype=float).reshape(rows,width)
+    #     mm = bytes(data)
+    #     # GL.glBitmap(width, rows, 0, 0, 0, 0, Z)
+
+
+    #     texid = GL.glGenTextures(1)
+    #     GL.glBindTexture( GL.GL_TEXTURE_2D, texid)
+    #     GL.glTexParameterf( GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR )
+    #     GL.glTexParameterf( GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR )
+    #     GL.glTexImage2D(GL.GL_TEXTURE_2D, 2, GL.GL_LUMINANCE, 48, 64, 0,
+    #                     GL.GL_LUMINANCE, GL.GL_UNSIGNED_BYTE, Z)
+    #     self.texture_mapping_chinese()
+
 
     def render(self, text):
         """Handle all drawing operations."""
@@ -163,7 +213,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         # Draw specified text at position (10, 10)
         self.render_text(text, (10-self.pan_x)/self.zoom, 10 - self.pan_y)
-        page_disp = 'Page: '+str(self.current_page)+'/'+str(self.page_number)
+        page_disp = _('Page: ')+str(self.current_page)+'/'+str(self.page_number)
         self.render_text(page_disp, (self.GetClientSize().width -
                          len(page_disp)*8-self.pan_x)/self.zoom, 10 - self.pan_y)
 
@@ -181,7 +231,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             self.init = True
 
         size = self.GetClientSize()
-        text = "".join(["Canvas redrawn on paint event, size is ",
+        text = "".join([_("Canvas redrawn on paint event, size is "),
                         str(size.width), ", ", str(size.height)])
         self.render(text)
 
@@ -202,8 +252,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         size = self.GetClientSize()
         self.current_y = size.height-self.current_y
         text = ''
-        text = "".join(["X: ", str(self.current_x), " Y: ", str(self.current_y)])
-
         # Double Click reset to original place, single click shows the position
         if event.ButtonDClick():
             self.zoom = 1
@@ -211,17 +259,17 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             self.pan_y = 0
             self.init_gl()
             self.init = True
-            text = "Mouse double clicked"
+            text = _("Mouse double clicked")
         elif event.ButtonDown():
             self.last_mouse_x = event.GetX()
             self.last_mouse_y = event.GetY()
-            text = "".join(["Mouse button pressed at: ", str(event.GetX()),
+            text = "".join([_("Mouse button pressed at: "), str(event.GetX()),
                             ", ", str(event.GetY())])
         elif event.ButtonUp():
-            text = "".join(["Mouse button released at: ", str(event.GetX()),
+            text = "".join([_("Mouse button released at: "), str(event.GetX()),
                             ", ", str(event.GetY())])
         if event.Leaving():
-            text = "".join(["Mouse left canvas at: ", str(event.GetX()),
+            text = "".join([_("Mouse left canvas at: "), str(event.GetX()),
                             ", ", str(event.GetY())])
         #if event.Dragging():
         #    self.pan_x += event.GetX() - self.last_mouse_x
@@ -236,13 +284,13 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             self.zoom *= (1.0 + (
                 event.GetWheelRotation() / (20 * event.GetWheelDelta())))
             self.init = False
-            text = "".join(["Negative mouse wheel rotation. Zoom is now: ",
+            text = "".join([_("Negative mouse wheel rotation. Zoom is now: "),
                             str(self.zoom)])
         if event.GetWheelRotation() > 0:
             self.zoom /= (1.0 - (
                 event.GetWheelRotation() / (20 * event.GetWheelDelta())))
             self.init = False
-            text = "".join(["Positive mouse wheel rotation. Zoom is now: ",
+            text = "".join([_("Positive mouse wheel rotation. Zoom is now: "),
                             str(self.zoom)])
         if text:
             self.render(text)
@@ -264,14 +312,10 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 self.pan_x += 10
                 if self.pan_x > 0:
                     self.pan_x = 0
-                else:
-                    text = 'scroll to left'
             elif key_code == wx.WXK_RIGHT:
                 self.pan_x -= 10
                 if self.pan_x < -(self.signal_width-full_width):
                     self.pan_x = -(self.signal_width-full_width)
-                else:
-                    text = 'scroll to right'
             thumb_pos = -self.pan_x * (length - thumb_size) / (self.signal_width - full_width)
             self.parent.hbar.SetThumbPosition(thumb_pos)
         if key_code in (wx.WXK_UP, wx.WXK_DOWN) and (self.signal_count > self.max_signal_count):
@@ -282,14 +326,10 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 self.pan_y += 10
                 if self.pan_y > 0:
                     self.pan_y = 0
-                else:
-                    text = 'scroll down'
             elif key_code == wx.WXK_UP:
                 self.pan_y -= 10
                 if self.pan_y < -50*(self.signal_count-self.max_signal_count):
                     self.pan_y = -50*(self.signal_count-self.max_signal_count)
-                else:
-                    text = 'scroll up'
 
             thumb_pos = (self.pan_y+50*(self.signal_count-self.max_signal_count))*full_length/(self.signal_count*50)
             self.parent.vbar.SetThumbPosition(thumb_pos)
@@ -437,7 +477,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # infobox states
         infobox_cycle = current_cycle_num_real
         infobox_port = None
-        infobox_value = 'empty'
+        infobox_value = _('empty')
 
         self.signal_count = len(self.monitors.monitors_dictionary)
         self.max_signal_count = int(size.height / 50) - 2
@@ -531,9 +571,9 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         """Draw the MATLAB-like yellow info box which moves with mouse."""
         hsep = 6.2
         vsep = 14
-        info1 = 'cycle: ' + str(cycle)
-        info2 = 'port: ' + str(port)
-        info3 = 'value: ' + str(value)
+        info1 = _('cycle: ') + str(cycle)
+        info2 = _('port: ') + str(port)
+        info3 = _('value: ') + str(value)
         rect_width = max(map(len, (info1, info2, info3)))*hsep + 4
         rect_height = 3*vsep + 4
         size = self.GetClientSize()
@@ -614,6 +654,13 @@ class Gui(wx.Frame):
         """Initialise widgets and layout."""
         super().__init__(parent=None, title=title, size=(900, 700))
 
+        basepath = os.path.abspath(os.path.dirname(sys.argv[0]))
+        localedir = os.path.join(basepath, "locale")
+        gettext.install('gui', localedir)
+
+        mytranslation = gettext.translation('gui', localedir, ['cn'])
+        mytranslation.install()
+
         # Make objects local
         self.devices = devices
         self.network = network
@@ -638,12 +685,12 @@ class Gui(wx.Frame):
         fileMenu = wx.Menu()
         helpMenu = wx.Menu()
         menuBar = wx.MenuBar()
-        fileMenu.Append(wx.ID_ABOUT, "&About\tCTRL+A")
-        fileMenu.Append(wx.ID_OPEN, "&Open\tCTRL+N")
-        fileMenu.Append(wx.ID_EXIT, "&Exit\tCTRL+Q")
-        helpMenu.Append(wx.ID_HELP, "&Help\tCTRL+H")
-        menuBar.Append(fileMenu, "&File")
-        menuBar.Append(helpMenu, "&Help")
+        fileMenu.Append(wx.ID_ABOUT, _("&About\tCTRL+A"))
+        fileMenu.Append(wx.ID_OPEN, _("&Open\tCTRL+N"))
+        fileMenu.Append(wx.ID_EXIT, _("&Exit\tCTRL+Q"))
+        helpMenu.Append(wx.ID_HELP, _("&Help\tCTRL+H"))
+        menuBar.Append(fileMenu, _("&File"))
+        menuBar.Append(helpMenu, _("&Help"))
         self.SetMenuBar(menuBar)
 
         # Canvas for drawing signals
@@ -658,38 +705,38 @@ class Gui(wx.Frame):
         minus = wx.Bitmap(image_2)
 
         # Basic cycle control widgets
-        self.text = wx.StaticText(self, wx.ID_ANY, "Cycles")
+        self.text = wx.StaticText(self, wx.ID_ANY, _("Cycles"))
         self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10", max=10**10)
-        self.run_button = wx.Button(self, wx.ID_ANY, "Run")
-        self.cont_button = wx.Button(self, wx.ID_ANY, "Add")
+        self.run_button = wx.Button(self, wx.ID_ANY, _("Run"))
+        self.cont_button = wx.Button(self, wx.ID_ANY, _("Add"))
 
         # Monitor add/delete widgets
-        self.text2 = wx.StaticText(self, wx.ID_ANY, "Monitors")
-        self.sig_add_button = wx.Button(self, wx.ID_ANY, "Add/Delete Monitor")
+        self.text2 = wx.StaticText(self, wx.ID_ANY, _("Monitors"))
+        self.sig_add_button = wx.Button(self, wx.ID_ANY, _("Add/Delete Monitor"))
 
         # Switch toggle widgets
-        self.text3 = wx.StaticText(self, wx.ID_ANY, "Switches")
+        self.text3 = wx.StaticText(self, wx.ID_ANY, _("Switches"))
 
         # Define switch table
         self.list_ctrl = wx.ListCtrl(self, size=(-1, 100), style=wx.LC_REPORT | wx.BORDER_SUNKEN)
-        self.list_ctrl.InsertColumn(0, 'Switches', width=90)
-        self.list_ctrl.InsertColumn(1, 'Values', width=75)
+        self.list_ctrl.InsertColumn(0, _('Switches'), width=90)
+        self.list_ctrl.InsertColumn(1, _('Values'), width=75)
         self.pop_switch_list(new_instance=1)
         self.set_button = wx.Button(self, wx.ID_ANY, "1")
         self.clr_button = wx.Button(self, wx.ID_ANY, "0")
 
         # Zoom in/out functions
-        self.text4 = wx.StaticText(self, wx.ID_ANY, "Zoom in/out")
+        self.text4 = wx.StaticText(self, wx.ID_ANY, _("Zoom in/out"))
         self.zoom_in_button = wx.BitmapButton(self, wx.ID_ANY, plus, size=(40, 40))
         self.zoom_out_button = wx.BitmapButton(self, wx.ID_ANY, minus, size=(40, 40))
 
         # Display texture mapping
         # self.hero_button = wx.Button(self, wx.ID_ANY, "HERO")
-        self.prev_button = wx.Button(self, wx.ID_ANY, "Prev Page")
-        self.next_button = wx.Button(self, wx.ID_ANY, "Next Page")
+        self.prev_button = wx.Button(self, wx.ID_ANY, _("Prev Page"))
+        self.next_button = wx.Button(self, wx.ID_ANY, _("Next Page"))
         self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
                                     style=wx.TE_PROCESS_ENTER)
-        self.goto_button = wx.Button(self, wx.ID_ANY, "Goto")
+        self.goto_button = wx.Button(self, wx.ID_ANY, _("Goto"))
 
         # Scroll Bars
         self.full_width = 653
@@ -788,12 +835,12 @@ class Gui(wx.Frame):
             self.worker.stop()
             self.reinit(new_names, new_devices, new_network, new_monitors)
         else:
-            wx.MessageBox("File Conatins Error, See Terminal", "Please confirm",
+            wx.MessageBox(_("File Conatins Error, See Terminal"), _("Please confirm"),
                           wx.ICON_QUESTION | wx.OK, self)
 
     def on_open(self):
         # ask the user what new file to open
-        with wx.FileDialog(self, "Open definition file", wildcard="XYZ files (*.txt)|*.txt",
+        with wx.FileDialog(self, _("Open definition file"), wildcard="XYZ files (*.txt)|*.txt",
                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as fileDialog:
 
             if fileDialog.ShowModal() == wx.ID_CANCEL:
@@ -819,21 +866,21 @@ class Gui(wx.Frame):
         if Id == wx.ID_EXIT:
             self.Close(True)
         if Id == wx.ID_ABOUT:
-            wx.MessageBox("Logic Simulator\nTeam 4 Version\n2018",
-                          "About Logsim", wx.ICON_INFORMATION | wx.OK)
+            wx.MessageBox(_("Logic Simulator\nTeam 4 Version\n2018"),
+                          _("About Logsim"), wx.ICON_INFORMATION | wx.OK)
         if Id == wx.ID_OPEN:
             self.on_open()
         if Id == wx.ID_HELP:
             f = open("help.txt")
             message = f.read()
             box = wx.MessageDialog(self, message,
-                          "Definition Description", wx.ICON_INFORMATION | wx.OK)
+                          _("Definition Description"), wx.ICON_INFORMATION | wx.OK)
             box.ShowModal()
 
     def on_spin(self, event):
         """Handle the event when the user changes the spin control value."""
         spin_value = self.spin.GetValue()
-        text = "".join(["New spin control value: ", str(spin_value)])
+        text = "".join([_("New spin control value: "), str(spin_value)])
         self.canvas.render(text)
 
     def get_switch_signals(self):
@@ -875,10 +922,10 @@ class Gui(wx.Frame):
         self.cycles_completed = min(self.canvas.cycles, 60)
         self.monitors.reset_monitors()
         if self.run_network(self.cycles_completed):
-            text = "Run button pressed."
+            text = _("Run button pressed.")
         else:
             device_name = self.names.get_name_string(self.network.device_no_input)
-            text = 'DEVICE \"' + device_name + '\" is oscillatory!'
+            text = _('DEVICE \"') + device_name + _('\" is oscillatory!')
         self.worker = RunThread(self, 1)
         self.worker.start()
         self.update_vbar()
@@ -889,15 +936,15 @@ class Gui(wx.Frame):
     def on_text_box(self, event):
         """Handle the event when the user enters text."""
         text_box_value = self.text_box.GetValue()
-        text = "".join(["New text box value: ", text_box_value])
+        text = "".join([_("New text box value: "), text_box_value])
         self.canvas.render(text)
 
     def on_cont_button(self, event):
         text = ''
         if self.canvas.run == 0:
-            text = 'Press Run Button First!'
+            text = _('Press Run Button First!')
         else:
-            text = 'Continue Button Pressed'
+            text = _('Continue Button Pressed')
             added_cycles = self.spin.GetValue()
             self.canvas.cycles += added_cycles
             if self.canvas.cycles % 60 == 0:
@@ -924,9 +971,9 @@ class Gui(wx.Frame):
         for device in devices:
             switch_id = self.names.query(device)
             if self.devices.set_switch(switch_id, switch_state):
-                text = "Successfully set switches."
+                text = _("Successfully set switches.")
             else:
-                text = "Error! Invalid switch."
+                text = _("Error! Invalid switch.")
         self.get_switch_signals()
         self.pop_switch_list()
         self.canvas.render(text)
@@ -936,14 +983,14 @@ class Gui(wx.Frame):
         if self.cycles_completed >= self.canvas.cycles:
             self.switch_signal(1)
         else:
-            self.canvas.render("Warning! Still have uncompleted cycles!")
+            self.canvas.render(_("Warning! Still have uncompleted cycles!"))
 
     def on_clr_button(self, event):
         """Clear the specified switch"""
         if self.cycles_completed >= self.canvas.cycles:
             self.switch_signal(0)
         else:
-            self.canvas.render("Warning! Still have uncompleted cycles!")
+            self.canvas.render(_("Warning! Still have uncompleted cycles!"))
 
     def get_monitor_ids(self, signal):
         if signal is not None and '.' in signal:
@@ -959,7 +1006,7 @@ class Gui(wx.Frame):
     def on_sig_add_button(self, event):
         # Get user selected signal and split to get IDs
         if self.monitor_window == 0:
-            self.top = MonitorFrame(self, "Monitors", self.monitored_list, self.unmonitored_list)
+            self.top = MonitorFrame(self, _("Monitors"), self.monitored_list, self.unmonitored_list)
             self.top.Show()
             self.monitor_window = 1
         else:
@@ -1057,13 +1104,13 @@ class Gui(wx.Frame):
                 self.cycles_completed += next_to_run
         else:
             self.canvas.current_page = self.canvas.page_number
-        self.canvas.render('Turn to Next Page')
+        self.canvas.render(_('Turn to Next Page'))
 
     def on_goto_button(self, event):
         self.worker.stop()
         time.sleep(.100)
         page_number = self.text_box.GetValue()
-        text = "Go to page: " + page_number
+        text = _("Go to page: ") + page_number
         page_number = page_number if page_number is not '' else self.canvas.current_page
         to_run = int(page_number)*60-self.cycles_completed
         if to_run > 0:
@@ -1096,8 +1143,8 @@ class Gui(wx.Frame):
         self.get_switch_signals()
 
         self.list_ctrl.ClearAll()
-        self.list_ctrl.InsertColumn(0, 'Switches', width=90)
-        self.list_ctrl.InsertColumn(1, 'Values', width=75)
+        self.list_ctrl.InsertColumn(0, _('Switches'), width=90)
+        self.list_ctrl.InsertColumn(1, _('Values'), width=75)
         self.pop_switch_list(new_instance=1)
 
         self.hbar.SetScrollbar(0, self.full_width, self.full_width, 1)
@@ -1121,9 +1168,9 @@ class MonitorFrame(wx.Frame):
 
         menuBar = wx.MenuBar()
         menu = wx.Menu()
-        m_exit = menu.Append(wx.ID_EXIT, "E&xit\tAlt-X", "Close window and exit program.")
+        m_exit = menu.Append(wx.ID_EXIT, _("E&xit\tAlt-X"), _("Close window and exit program."))
         self.Bind(wx.EVT_MENU, self.on_close, m_exit)
-        menuBar.Append(menu, "&File")
+        menuBar.Append(menu, _("&File"))
         self.SetMenuBar(menuBar)
 
         self.statusbar = self.CreateStatusBar()
@@ -1132,15 +1179,15 @@ class MonitorFrame(wx.Frame):
         box = wx.BoxSizer(wx.VERTICAL)
         list_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        m_text = wx.StaticText(panel, -1, "Select Signal")
+        m_text = wx.StaticText(panel, -1, _("Select Signal"))
         m_text.SetFont(wx.Font(14, wx.SWISS, wx.NORMAL, wx.BOLD))
         m_text.SetSize(m_text.GetBestSize())
         box.Add(m_text, 1, wx.ALL, 5)
 
         self.list_ctrl_1 = wx.ListCtrl(panel, size=(-1, 100), style=wx.LC_REPORT | wx.BORDER_SUNKEN)
         self.list_ctrl_2 = wx.ListCtrl(panel, size=(-1, 100), style=wx.LC_REPORT | wx.BORDER_SUNKEN)
-        self.list_ctrl_1.InsertColumn(0, 'Monitored', width=160)
-        self.list_ctrl_2.InsertColumn(0, 'Unmonitored', width=160)
+        self.list_ctrl_1.InsertColumn(0, _('Monitored'), width=160)
+        self.list_ctrl_2.InsertColumn(0, _('Unmonitored'), width=160)
         index = 0
         for signal in self.monitored:
             self.list_ctrl_1.InsertItem(index, signal)
@@ -1157,9 +1204,9 @@ class MonitorFrame(wx.Frame):
         side_sizer = wx.BoxSizer(wx.HORIZONTAL)
         box.Add(side_sizer, 1, wx.ALL, 5)
 
-        add = wx.Button(panel, wx.ID_CLOSE, "ADD")
-        delete = wx.Button(panel, wx.ID_CLOSE, "DELETE")
-        close = wx.Button(panel, wx.ID_CLOSE, "CLOSE")
+        add = wx.Button(panel, wx.ID_CLOSE, _("ADD"))
+        delete = wx.Button(panel, wx.ID_CLOSE, _("DELETE"))
+        close = wx.Button(panel, wx.ID_CLOSE, _("CLOSE"))
         add.Bind(wx.EVT_BUTTON, self.on_add)
         delete.Bind(wx.EVT_BUTTON, self.on_delete)
         close.Bind(wx.EVT_BUTTON, self.on_close)
@@ -1201,12 +1248,12 @@ class MonitorFrame(wx.Frame):
             monitor_error = self.parent.monitors.make_monitor(device_id, port_id,
                                                               self.parent.canvas.cycles)
             if monitor_error == self.parent.monitors.NO_ERROR:
-                text = "Successfully made monitor."
+                text = _("Successfully made monitor.")
                 self.parent.monitored_list.append(signal)
                 self.parent.unmonitored_list.remove(signal)
                 self.parent.canvas.signal_count += 1
             else:
-                text = "Error! Could not make monitor: " + signal
+                text = _("Error! Could not make monitor: ") + signal
         self.parent.update_vbar()
         self.parent.canvas.init = False
         self.parent.canvas.render(text)
@@ -1226,12 +1273,12 @@ class MonitorFrame(wx.Frame):
         for signal in signals:
             device_id, port_id = self.parent.get_monitor_ids(signal)
             if self.parent.monitors.remove_monitor(device_id, port_id):
-                text = "Successfully zapped monitor"
+                text = _("Successfully zapped monitor")
                 self.parent.unmonitored_list.append(signal)
                 self.parent.monitored_list.remove(signal)
                 self.parent.canvas.signal_count -= 1
             else:
-                text = "Error! Could not zap monitor: " + signal
+                text = _("Error! Could not zap monitor: ") + signal
         self.parent.update_vbar()
         self.parent.canvas.init = False
         self.parent.canvas.render(text)
