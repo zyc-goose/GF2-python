@@ -228,7 +228,8 @@ class Parser:
         }
         self.device_no_qualifier = {
             'DTYPE'  : devices.D_TYPE,
-            'XOR'    : devices.XOR
+            'XOR'    : devices.XOR,
+            'NOT'    : devices.NOT
         }
 
     def move_to_next_symbol(self):

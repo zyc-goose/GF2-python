@@ -267,7 +267,7 @@ class Network:
                 return False
             input_signal_list.append(input_signal)
 
-            if device.device_kind != self.devices.XOR:
+            if device.device_kind not in (self.devices.XOR, self.devices.NOT):
                 if input_signal != x:
                     output_signal = self.invert_signal(y)
                     break
@@ -279,6 +279,9 @@ class Network:
                 output_signal = self.devices.LOW
             else:
                 output_signal = self.devices.HIGH
+
+        elif device.device_kind == self.devices.NOT:
+            output_signal = self.invert_signal(input_signal_list[0])
 
         # Update and store the new signal
         signal = self.get_output_signal(device_id, None)
@@ -398,6 +401,7 @@ class Network:
         nand_devices = self.devices.find_devices(self.devices.NAND)
         nor_devices = self.devices.find_devices(self.devices.NOR)
         xor_devices = self.devices.find_devices(self.devices.XOR)
+        not_devices = self.devices.find_devices(self.devices.NOT)
 
         # update cycle_count
         self.cycle_count += 1
@@ -463,6 +467,12 @@ class Network:
                     self.device_no_input = device_id
                     return False
                 self.is_steady_state(device_id)
+            for device_id in not_devices:  # execute NOT devices
+                if not self.execute_gate(device_id, None, None):
+                    self.device_no_input = device_id
+                    return False
+                self.is_steady_state(device_id)
+
             if self.steady_state:
                 break
         return self.steady_state
