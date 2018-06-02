@@ -65,6 +65,10 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.devices = devices
         self.parent = parent
 
+        self.monitored_list = []
+        self.monitored_list_pressed_id = None
+        self.mouse_button_is_down = False
+
         self.init_parameters()
 
         # Bind events to the canvas
@@ -215,9 +219,12 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         elif event.ButtonDown():
             self.last_mouse_x = event.GetX()
             self.last_mouse_y = event.GetY()
+            self.mouse_button_is_down = True
+            self.monitored_list_pressed_id = None
             text = "".join(["Mouse button pressed at: ", str(event.GetX()),
                             ", ", str(event.GetY())])
         elif event.ButtonUp():
+            self.mouse_button_is_down = False
             text = "".join(["Mouse button released at: ", str(event.GetX()),
                             ", ", str(event.GetY())])
         if event.Leaving():
@@ -441,17 +448,27 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         self.signal_count = len(self.monitors.monitors_dictionary)
         self.max_signal_count = int(size.height / 50) - 2
+
+        current_pressed_id = self.monitored_list_pressed_id
 	    # Iterate over each device and render
-        for device_id, output_id in self.monitors.monitors_dictionary:
+        for list_id, (device_id, output_id) in enumerate(self.monitored_list):
             monitor_name = self.devices.get_signal_name(device_id, output_id)
             signal_list = self.monitors.monitors_dictionary[(device_id, output_id)]
 
             # Highlight current monitored device
             if strip_raise + 50*(pos - 1) < self.current_y - self.pan_y <= strip_raise + 50*pos \
                     and 0 < self.current_x < size.width - 1:
-                self.draw_rect_background(0, strip_raise-2+pos*50,
-                                          max(2000, 2000/self.zoom), strip_raise+2+(pos-1)*50,
-                                          [0.9, 1, 0.95])
+                if self.mouse_button_is_down:
+                    current_pressed_id = list_id
+                    if self.monitored_list_pressed_id is None:
+                        self.monitored_list_pressed_id = list_id
+                    self.draw_rect_background(0, strip_raise-2+pos*50,
+                                              max(2000, 2000/self.zoom), strip_raise+2+(pos-1)*50,
+                                              [1, 0.75, 0.65]) # orange
+                else:
+                    self.draw_rect_background(0, strip_raise-2+pos*50,
+                                              max(2000, 2000/self.zoom), strip_raise+2+(pos-1)*50,
+                                              [0.9, 1, 0.95]) # green
                 names = self.devices.names
                 if output_id is None:
                     infobox_port = names.get_name_string(device_id)
@@ -500,14 +517,20 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.draw_rect_background(0, 29-self.pan_y,
                                   max(2000, 2000/self.zoom), 65-self.pan_y)
 
-        # Draw the stipple line
-        stipple_y_bottom = 64 - self.pan_y
-        stipple_y_top = strip_raise+(pos-1)*50
-        if 0 < self.current_x < size.width - 1 \
-                and 1 <= current_cycle_num <= 60 \
-                and stipple_y_bottom <= self.current_y - self.pan_y <= stipple_y_top:
-            self.draw_vertical_stipple_line(stipple_y_bottom, stipple_y_top)
-            self.draw_info_box(infobox_cycle, infobox_port, infobox_value)
+        if self.mouse_button_is_down:
+            if self.monitored_list_pressed_id != current_pressed_id:
+                k1, k2 = self.monitored_list_pressed_id, current_pressed_id
+                mlist = self.monitored_list
+                mlist[k1], mlist[k2] = mlist[k2], mlist[k1] # swap elements
+                self.monitored_list_pressed_id = current_pressed_id
+        else: # Draw the stipple line
+            stipple_y_bottom = 64 - self.pan_y
+            stipple_y_top = strip_raise+(pos-1)*50
+            if 0 < self.current_x < size.width - 1 \
+                    and 1 <= current_cycle_num <= 60 \
+                    and stipple_y_bottom <= self.current_y - self.pan_y <= stipple_y_top:
+                self.draw_vertical_stipple_line(stipple_y_bottom, stipple_y_top)
+                self.draw_info_box(infobox_cycle, infobox_port, infobox_value)
 
         # Draw white background for text
         self.draw_rect_background(0, 0-self.pan_y,
@@ -787,6 +810,7 @@ class Gui(wx.Frame):
                 self.top.program_close()
             self.worker.stop()
             self.reinit(new_names, new_devices, new_network, new_monitors)
+            self.canvas.monitored_list = list(self.monitors.monitors_dictionary.keys())
         else:
             wx.MessageBox("File Conatins Error, See Terminal", "Please confirm",
                           wx.ICON_QUESTION | wx.OK, self)
@@ -1205,6 +1229,7 @@ class MonitorFrame(wx.Frame):
                 text = "Successfully made monitor."
                 self.parent.monitored_list.append(signal)
                 self.parent.unmonitored_list.remove(signal)
+                self.parent.canvas.monitored_list.append((device_id, port_id))
                 self.parent.canvas.signal_count += 1
             else:
                 text = "Error! Could not make monitor: " + signal
@@ -1230,6 +1255,7 @@ class MonitorFrame(wx.Frame):
                 text = "Successfully zapped monitor"
                 self.parent.unmonitored_list.append(signal)
                 self.parent.monitored_list.remove(signal)
+                self.parent.canvas.monitored_list.remove((device_id, port_id))
                 self.parent.canvas.signal_count -= 1
             else:
                 text = "Error! Could not zap monitor: " + signal
