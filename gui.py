@@ -660,16 +660,17 @@ class Gui(wx.Frame):
     on_text_box(self, event): Event handler for when the user enters text.
     """
 
-    def __init__(self, title, names, devices, network, monitors):
+    def __init__(self, title, names, devices, network, monitors, language = 0):
         """Initialise widgets and layout."""
         super().__init__(parent=None, title=title, size=(900, 700))
 
         basepath = os.path.abspath(os.path.dirname(sys.argv[0]))
-        localedir = os.path.join(basepath, "locale")
-        gettext.install('gui', localedir)
+        self.localedir = os.path.join(basepath, "locale")
+        gettext.install('gui', self.localedir)
 
-        mytranslation = gettext.translation('gui', localedir, ['cn'])
-        mytranslation.install()
+        if language == 1:
+            mytranslation = gettext.translation('gui', localedir, ['cn'])
+            mytranslation.install()
 
         # Make objects local
         self.devices = devices
@@ -694,14 +695,15 @@ class Gui(wx.Frame):
         # Configure the file menu
         fileMenu = wx.Menu()
         helpMenu = wx.Menu()
-        menuBar = wx.MenuBar()
+        self.menuBar = wx.MenuBar()
         fileMenu.Append(wx.ID_ABOUT, _("&About\tCTRL+A"))
         fileMenu.Append(wx.ID_OPEN, _("&Open\tCTRL+N"))
+        fileMenu.Append(wx.ID_PREFERENCES, _("&Language\tCTRL+L"))
         fileMenu.Append(wx.ID_EXIT, _("&Exit\tCTRL+Q"))
         helpMenu.Append(wx.ID_HELP, _("&Help\tCTRL+H"))
-        menuBar.Append(fileMenu, _("&File"))
-        menuBar.Append(helpMenu, _("&Help"))
-        self.SetMenuBar(menuBar)
+        self.menuBar.Append(fileMenu, _("&File"))
+        self.menuBar.Append(helpMenu, _("&Help"))
+        self.SetMenuBar(self.menuBar)
 
         # Canvas for drawing signals
         self.canvas = MyGLCanvas(self, devices, monitors)
@@ -890,6 +892,46 @@ class Gui(wx.Frame):
             box = wx.MessageDialog(self, message,
                           _("Definition Description"), wx.ICON_INFORMATION | wx.OK)
             box.ShowModal()
+        if Id == wx.ID_PREFERENCES:
+            message = _('Do you want to use Chinese Version?')
+            box = wx.MessageDialog(self, message,
+                          _("Language"), wx.ICON_INFORMATION | wx.YES_NO)
+            result = box.ShowModal()
+            if result == wx.ID_YES:
+                mytranslation = gettext.translation('gui', self.localedir, ['cn'])
+                mytranslation.install()
+                self.reset_all_labels()
+            else:
+                mytranslation = gettext.translation('en', self.localedir, ['cn'])
+                mytranslation.install()
+                self.reset_all_labels()
+
+    def reset_all_labels(self):
+        self.run_button.SetLabel(_('Run'))
+        self.text.SetLabel(_("Cycles"))
+        self.text2.SetLabel(_("Monitors"))
+        self.text3.SetLabel(_("Switches"))
+        self.text4.SetLabel(_("Zoom in/out"))
+        self.cont_button.SetLabel(_("Add"))
+        self.sig_add_button.SetLabel(_("Add/Delete Monitor"))
+
+        col = self.list_ctrl.GetColumn(0)
+        col.SetText(_('Switches'))
+        self.list_ctrl.SetColumn(0, col)
+        col = self.list_ctrl.GetColumn(1)
+        col.SetText(_('Values'))
+        self.list_ctrl.SetColumn(1, col)
+
+        self.prev_button.SetLabel(_("Prev Page"))
+        self.next_button.SetLabel(_("Next Page"))
+        self.goto_button.SetLabel(_("Goto"))
+        self.menuBar.SetLabel(wx.ID_ABOUT, _("&About\tCTRL+A"))
+        self.menuBar.SetLabel(wx.ID_OPEN, _("&Open\tCTRL+N"))
+        self.menuBar.SetLabel(wx.ID_PREFERENCES, _("&Language\tCTRL+L"))
+        self.menuBar.SetLabel(wx.ID_EXIT, _("&Exit\tCTRL+Q"))
+        self.menuBar.SetLabel(wx.ID_HELP, _("&Help\tCTRL+H"))
+        self.menuBar.SetMenuLabel(0, _("&File"))
+        self.menuBar.SetMenuLabel(1, _("&Help"))
 
     def on_spin(self, event):
         """Handle the event when the user changes the spin control value."""
