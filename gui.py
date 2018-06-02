@@ -28,6 +28,8 @@ from monitors import Monitors
 from scanner import Scanner
 from parse import Parser
 
+offset = 29
+
 
 class MyGLCanvas(wxcanvas.GLCanvas):
     """Handle all drawing operations.
@@ -216,10 +218,12 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.parent.update_scroll_bar()
 
         # Draw specified text at position (10, 10)
-        self.render_text(text, (10-self.pan_x)/self.zoom, 10 - self.pan_y)
+        # self.render_text(text, (10-self.pan_x)/self.zoom, 10 - self.pan_y)
         page_disp = _('Page: ')+str(self.current_page)+'/'+str(self.page_number)
-        self.render_text(page_disp, (self.GetClientSize().width -
-                         len(page_disp)*8-self.pan_x)/self.zoom, 10 - self.pan_y)
+        #self.render_text(page_disp, (self.GetClientSize().width -
+        #                 len(page_disp)*8-self.pan_x)/self.zoom, 10 - self.pan_y)
+        self.parent.page_disp(page_disp)
+        self.parent.text_bar(text)
 
         # We have been drawing to the back buffer, flush the graphics pipeline
         # and swap the back buffer to the front
@@ -344,6 +348,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def render_text(self, text, x_pos, y_pos):
         """Handle text drawing operations."""
+        y_pos = y_pos - offset
         GL.glColor3f(0.0, 0.0, 0.0)  # text is black
         GL.glRasterPos2f(x_pos, y_pos)
         font = GLUT.GLUT_BITMAP_HELVETICA_12
@@ -359,7 +364,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Two vertices having same y coord
         x = start+cycle_count*step
         x_next = start+(cycle_count+1)*step
-        y = 75+25*level+pos*50
+        y = 75+25*level+pos*50-offset
         GL.glVertex2f(x/self.zoom, y)
         GL.glVertex2f(x_next/self.zoom, y)
 
@@ -369,6 +374,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         if type(color) == float, then use grey level.
         if type(color) == list, then use RGB.
         """
+        start_y = start_y - offset
+        end_y = end_y - offset
         if isinstance(color, (int, float)) and 0 <= color <= 1:
             red_f = green_f = blue_f = color
         elif isinstance(color, list) and len(color) == 3:
@@ -389,6 +396,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         if type(color) == float, then use grey level.
         if type(color) == list, then use RGB.
         """
+        start_y = start_y - offset
+        end_y = end_y - offset
         if isinstance(color, (int, float)) and 0 <= color <= 1:
             red_f = green_f = blue_f = color
         elif isinstance(color, list) and len(color) == 3:
@@ -406,6 +415,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def draw_ruler(self, step, start_x, start_y):
         """Draw ruler under monitors"""
+        start_y = start_y - offset
         GL.glColor3f(1, 69.0/255, 0)  # orangered
         GL.glBegin(GL.GL_LINE_STRIP)
         cur_x = start_x
@@ -431,11 +441,11 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         offset_ratio = 3.5/self.zoom
         for cycle in range(6):
             self.render_text(str(scale_num),
-                             cur_x - len(str(scale_num))*offset_ratio, cur_y)
+                             cur_x - len(str(scale_num))*offset_ratio, cur_y + offset)
             scale_num += 10
             cur_x += step * 10
         self.render_text(str(scale_num),
-                         cur_x - len(str(scale_num))*offset_ratio, cur_y)
+                         cur_x - len(str(scale_num))*offset_ratio, cur_y + offset)
 
     def get_ruler_cycle_num(self, step, start_x):
         """Get the current cycle number based on current x pos."""
@@ -578,6 +588,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def draw_vertical_stipple_line(self, stipple_y_bottom, stipple_y_top):
         """Draw the vertical dotted line for cycle number alignment."""
+        stipple_y_top = stipple_y_top - offset
+        stipple_y_bottom = stipple_y_bottom - offset
         GL.glEnable(GL.GL_LINE_STIPPLE)
         GL.glLineStipple(1, 0x3333)
         GL.glColor3f(1, 0.65, 0)
@@ -757,6 +769,9 @@ class Gui(wx.Frame):
         self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
                                     style=wx.TE_PROCESS_ENTER)
         self.goto_button = wx.Button(self, wx.ID_ANY, _("Goto"))
+        self.textbar = self.CreateStatusBar(2)
+        self.textbar.SetStatusWidths([800, 200])
+        self.textbar.SetMinHeight(200)
 
         # Scroll Bars
         self.full_width = 653
@@ -804,8 +819,8 @@ class Gui(wx.Frame):
 
         # Sizer arrangement
         main_sizer.Add(main_sizer_second, 25, wx.EXPAND | wx.RIGHT | wx.TOP | wx.LEFT, 5)
-        main_sizer_second.Add(self.canvas, 25, wx.EXPAND | wx.ALL, 5)
-        main_sizer_second.Add(self.hbar, 1, wx.EXPAND, 5)
+        main_sizer_second.Add(self.canvas, 20, wx.EXPAND | wx.RIGHT | wx.TOP | wx.LEFT, 5)
+        main_sizer_second.Add(self.hbar, 1, wx.EXPAND | wx.RIGHT | wx.BOTTOM | wx.LEFT, 5)
         main_sizer.Add(main_sizer_third, 1, wx.EXPAND, 5)
         main_sizer_third.Add(self.vbar, 1, wx.BOTTOM, 80)
         main_sizer.Add(side_sizer, 5, wx.ALL, 5)
@@ -961,6 +976,12 @@ class Gui(wx.Frame):
         text = "".join([_("New text box value: "), text_box_value])
         self.canvas.render(text)
 
+    def page_disp(self, text):
+        self.textbar.SetStatusText(text, 1)
+
+    def text_bar(self, text):
+        self.textbar.SetStatusText(text, 0)
+
     def on_cont_button(self, event):
         text = ''
         if self.canvas.run == 0:
@@ -1070,7 +1091,7 @@ class Gui(wx.Frame):
         if length > thumbsize:
             self.canvas.pan_x = -int((self.canvas.signal_width-self.full_width)*(pos/(length-thumbsize)))
             self.canvas.init = False
-            self.canvas.render(str(self.canvas.pan_x))
+            self.canvas.render('')
 
     def on_vbar(self, event):
         pos = self.vbar.GetThumbPosition()
