@@ -12,6 +12,8 @@ Graphical user interface: logsim.py <file path>
 """
 import getopt
 import sys
+import gettext
+import os
 
 import wx
 
@@ -72,6 +74,12 @@ def main(arg_list):
         # parser = Parser(names, devices, network, monitors, scanner)
         # if parser.parse_network():
             # Initialise an instance of the gui.Gui() class
+        basepath = os.path.abspath(os.path.dirname(sys.argv[0]))
+        localedir = os.path.join(basepath, "locale")
+        gettext.install('gui', localedir)
+
+        mytranslation = gettext.translation('gui', localedir, ['cn'])
+        mytranslation.install()
         app = wx.App()
         gui = Gui("Logic Simulator", names, devices, network,
                   monitors)
