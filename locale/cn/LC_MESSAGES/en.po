@@ -1,0 +1,97 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2018-06-02 23:21+0100\n"
+"PO-Revision-Date: 2018-06-02 23:21+0100\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 2.0.7\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: en\n"
+
+#: gui.py:224
+msgid "Page: "
+msgstr ""
+
+#: gui.py:272
+msgid "Mouse double clicked"
+msgstr ""
+
+#: gui.py:297
+msgid "Negative mouse wheel rotation. Zoom is now: "
+msgstr ""
+
+#: gui.py:303
+msgid "Positive mouse wheel rotation. Zoom is now: "
+msgstr ""
+
+#: gui.py:706
+msgid "&About\tCTRL+A"
+msgstr ""
+
+#: gui.py:707
+msgid "&Open\tCTRL+N"
+msgstr ""
+
+#: gui.py:708
+msgid "&Exit\tCTRL+Q"
+msgstr ""
+
+#: gui.py:709
+msgid "&Help\tCTRL+H"
+msgstr ""
+
+#: gui.py:710
+msgid "&File"
+msgstr ""
+
+#: gui.py:711
+msgid "&Help"
+msgstr ""
+
+#: gui.py:726
+msgid "Cycles"
+msgstr ""
+
+#: gui.py:728
+msgid "Run"
+msgstr ""
+
+#: gui.py:729
+msgid "Add"
+msgstr ""
+
+#: gui.py:732
+msgid "Monitors"
+msgstr ""
+
+#: gui.py:733
+msgid "Add/Delete Monitor"
+msgstr ""
+
+#: gui.py:736 gui.py:740
+msgid "Switches"
+msgstr ""
+
+#: gui.py:741
+msgid "Values"
+msgstr ""
+
+#: gui.py:747
+msgid "Zoom in/out"
+msgstr ""
+
+#: gui.py:753
+msgid "Prev Page"
+msgstr ""
+
+#: gui.py:754
+msgid "Next Page"
+msgstr ""
