@@ -464,7 +464,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         return int(cursor_pos_on_ruler / step) + 1
 
     def mouse_in_active_region(self, strip_raise, max_pos, ruler_offset):
-        return ruler_offset < self.current_y <= strip_raise + 50*max_pos + self.pan_y
+        return ruler_offset < self.current_y + offset <= strip_raise + 50*max_pos + self.pan_y
 
     def find_nearest_signal_pos(self, strip_raise, max_pos, ruler_offset):
         """Find the nearest signal position in the active region."""
@@ -472,7 +472,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         while ruler_offset - self.pan_y >= strip_raise + 50*min_pos:
             min_pos += 1
         for pos in range(min_pos, max_pos):
-            if self.current_y - self.pan_y <= strip_raise + 50*pos:
+            if self.current_y + offset - self.pan_y <= strip_raise + 50*pos:
                 return pos
         return max_pos
 
@@ -524,7 +524,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             signal_list = self.monitors.monitors_dictionary[(device_id, output_id)]
 
             # Highlight current monitored device
-            if strip_raise + 50*(pos - 1) < self.current_y - self.pan_y <= strip_raise + 50*pos \
+            if strip_raise + 50*(pos - 1) < self.current_y - self.pan_y + offset <= strip_raise + 50*pos \
                     and 0 < self.current_x < size.width - 1:
                 if self.mouse_button_is_down and self.drag_mode:
                     current_pressed_id = list_id
