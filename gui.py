@@ -29,6 +29,8 @@ from scanner import Scanner
 from parse import Parser
 
 offset = 29
+zoom_upper = 10
+zoom_lower = 0.5
 
 
 class MyGLCanvas(wxcanvas.GLCanvas):
@@ -155,50 +157,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glTranslated(self.pan_x, self.pan_y, 0.0)
         GL.glScaled(self.zoom, 1, self.zoom)
 
-
-    # def texture_mapping_chinese(self):
-    #     """draw function """
-    #     self.SetCurrent(self.context)
-    #     GL.glEnable(GL.GL_TEXTURE_2D)
-    #     GL.glColor3f(1, 1, 1)
-
-    #     # draw a quad
-    #     GL.glBegin(GL.GL_QUADS)
-    #     GL.glTexCoord2f(0, 1)
-    #     GL.glVertex2f(0, 20)
-    #     GL.glTexCoord2f(0, 0)
-    #     GL.glVertex2f(0, 0)
-    #     GL.glTexCoord2f(1, 0)
-    #     GL.glVertex2f(20, 0)
-    #     GL.glTexCoord2f(1, 1)
-    #     GL.glVertex2f(20, 20)
-    #     GL.glEnd()
-
-    #     GL.glDisable(GL.GL_TEXTURE_2D)
-
-    # def try_render_chinese(self):
-    #     a = '干'
-    #     GL.glColor3f(0.0, 0.0, 0.0)  # text is black
-    #     GL.glRasterPos2f(300, 300)
-    #     face = freetype.Face('./unifont-10.0.07.ttf')
-    #     face.set_char_size( 48*64 )
-    #     face.load_char(a)
-    #     bitmap = face.glyph.bitmap
-    #     data, rows, width = bitmap.buffer, bitmap.rows, bitmap.width
-    #     Z = numpy.array(data,dtype=float).reshape(rows,width)
-    #     mm = bytes(data)
-    #     # GL.glBitmap(width, rows, 0, 0, 0, 0, Z)
-
-
-    #     texid = GL.glGenTextures(1)
-    #     GL.glBindTexture( GL.GL_TEXTURE_2D, texid)
-    #     GL.glTexParameterf( GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR )
-    #     GL.glTexParameterf( GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR )
-    #     GL.glTexImage2D(GL.GL_TEXTURE_2D, 2, GL.GL_LUMINANCE, 48, 64, 0,
-    #                     GL.GL_LUMINANCE, GL.GL_UNSIGNED_BYTE, Z)
-    #     self.texture_mapping_chinese()
-
-
     def render(self, text):
         """Handle all drawing operations."""
         self.SetCurrent(self.context)
@@ -278,34 +236,27 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 self.drag_mode = True
             else:
                 self.drag_mode = False
-            text = "".join(["Mouse button pressed at: ", str(event.GetX()),
+            text = "".join([_("Mouse button pressed at: "), str(event.GetX()),
                             ", ", str(event.GetY())])
         elif event.ButtonUp():
             self.mouse_button_is_down = False
             self.drag_mode = False
-            text = "".join(["Mouse button released at: ", str(event.GetX()),
+            text = "".join([_("Mouse button released at: "), str(event.GetX()),
                             ", ", str(event.GetY())])
         if event.Leaving():
             text = "".join([_("Mouse left canvas at: "), str(event.GetX()),
                             ", ", str(event.GetY())])
-        #if event.Dragging():
-        #    self.pan_x += event.GetX() - self.last_mouse_x
-        #    self.pan_y -= event.GetY() - self.last_mouse_y
-        #    self.last_mouse_x = event.GetX()
-        #    self.last_mouse_y = event.GetY()
-        #    self.init = False
-        #    text = "".join(["Mouse dragged to: ", str(event.GetX()),
-        #                    ", ", str(event.GetY()), ". Pan is now: ",
-        #                    str(self.pan_x), ", ", str(self.pan_y)])
         if event.GetWheelRotation() < 0:
             self.zoom *= (1.0 + (
                 event.GetWheelRotation() / (20 * event.GetWheelDelta())))
+            self.zoom = max(self.zoom, zoom_lower)
             self.init = False
             text = "".join([_("Negative mouse wheel rotation. Zoom is now: "),
                             str(self.zoom)])
         if event.GetWheelRotation() > 0:
             self.zoom /= (1.0 - (
                 event.GetWheelRotation() / (20 * event.GetWheelDelta())))
+            self.zoom = min(self.zoom, zoom_upper)
             self.init = False
             text = "".join([_("Positive mouse wheel rotation. Zoom is now: "),
                             str(self.zoom)])
