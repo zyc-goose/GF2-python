@@ -866,6 +866,7 @@ class Gui(wx.Frame):
     def on_run_button(self, event):
         """Handle the event when the user clicks the run button."""
         self.canvas.run = 1
+        self.network.cycle_count = 0
         self.canvas.cycles = self.spin.GetValue()
         if self.canvas.cycles % 60 == 0:
             self.canvas.page_number = int(self.canvas.cycles/60)

@@ -223,7 +223,8 @@ class Parser:
             'AND'    : devices.AND,
             'NAND'   : devices.NAND,
             'OR'     : devices.OR,
-            'NOR'    : devices.NOR
+            'NOR'    : devices.NOR,
+            'RC'     : devices.RC
         }
         self.device_no_qualifier = {
             'DTYPE'  : devices.D_TYPE,

@@ -48,6 +48,8 @@ class Network:
 
     execute_switch(self, device_id): Simulates a switch press.
 
+    execute_RC(self, device_id):
+
     execute_gate(self, device_id, x=None, y=None): Simulates a logic gate and
                                               updates its output signal value.
 
@@ -74,6 +76,7 @@ class Network:
          self.DEVICE_ABSENT] = self.names.unique_error_codes(6)
         self.steady_state = True  # for checking if signals have settled
         self.device_no_input = -1
+        self.cycle_count = 0;
 
     def get_connected_output(self, device_id, input_id):
         """Return the output connected to the given input.
@@ -231,6 +234,22 @@ class Network:
             device.outputs[None] = updated_signal
             return True
 
+    def execute_RC(self,device_id):
+        device = self.devices.get_device(device_id)
+        signal = self.get_output_signal(device_id, output_id=None)
+        settling_time = device.RC_settling_time
+        if self.cycle_count <= settling_time:
+            target = self.devices.HIGH
+        else:
+            target = self.devices.LOW
+        updated_signal = self.update_signal(signal,target)
+        if updated_signal is None:  # signal update is unsuccessful
+            return False
+        else:
+            device.outputs[None] = updated_signal
+            return True
+
+
     def execute_gate(self, device_id, x=None, y=None):
         """Simulate a logic gate and update its output signal value.
 
@@ -372,12 +391,16 @@ class Network:
         """
         clock_devices = self.devices.find_devices(self.devices.CLOCK)
         switch_devices = self.devices.find_devices(self.devices.SWITCH)
+        RC_devices = self.devices.find_devices(self.devices.RC)
         d_type_devices = self.devices.find_devices(self.devices.D_TYPE)
         and_devices = self.devices.find_devices(self.devices.AND)
         or_devices = self.devices.find_devices(self.devices.OR)
         nand_devices = self.devices.find_devices(self.devices.NAND)
         nor_devices = self.devices.find_devices(self.devices.NOR)
         xor_devices = self.devices.find_devices(self.devices.XOR)
+
+        # update cycle_count
+        self.cycle_count += 1
 
         # This sets clock signals to RISING or FALLING, where necessary
         self.update_clocks()
@@ -393,6 +416,11 @@ class Network:
 
             for device_id in switch_devices:  # execute switch devices
                 if not self.execute_switch(device_id):
+                    return False
+                self.is_steady_state(device_id)
+            # Execute RC device
+            for device_id in RC_devices:
+                if not self.execute_RC(device_id):
                     return False
                 self.is_steady_state(device_id)
             # Execute D-type devices before clocks to catch the rising edge of

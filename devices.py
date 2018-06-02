@@ -41,6 +41,7 @@ class Device:
         self.clock_counter = None
         self.switch_state = None
         self.dtype_memory = None
+        self.RC_settling_time = None
 
 
 class Devices:
@@ -242,16 +243,15 @@ class Devices:
         self.cold_startup()  # clock initialised to a random point in its cycle
 
     def make_RC(self, device_id, RC_settling_time):
-        """Make a RC device with the specified settling time
+        """Make an RC device with the specified settling time
 
         RC_settling_time(n) is an integer > 0. The RC output starts with 1 when
         powered up and settles to 0 after n cycles
         """
-
         self.add_device(device_id, self.RC)
         device = self.get_device(device_id)
         device.RC_settling_time = RC_settling_time
-        self.add_output(device_id, None, self.HIGH)
+        self.add_output(device_id, None, self.HIGH)  # initialised to HIGH
 
     def make_gate(self, device_id, device_kind, no_of_inputs):
         """Make logic gates with the specified number of inputs."""
@@ -307,6 +307,15 @@ class Devices:
                 error_type = self.INVALID_QUALIFIER
             else:
                 self.make_switch(device_id, device_property)
+                error_type = self.NO_ERROR
+
+        elif device_kind == self.RC:
+            if device_property is None:
+                error__type = self.NO_QUALIFIER
+            elif (device_property <= 0) or not isinstance(device_property, int):
+                error_type = self.INVALID_QUALIFIER
+            else:
+                self.make_RC(device_id, device_property)
                 error_type = self.NO_ERROR
 
         elif device_kind == self.CLOCK:

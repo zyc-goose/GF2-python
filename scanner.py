@@ -69,7 +69,7 @@ class Scanner:
         'MONITOR',
         'CLOCK',
         'SWITCH',
-        'RC'
+        'RC',
         'AND',
         'NAND',
         'OR',
