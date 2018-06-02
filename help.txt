@@ -12,9 +12,9 @@ device = 'DEVICE', identifier, { identifier },
          ('is'|'are'), device_type ;
 device_type = device_no_qualifier |
               device_with_qualifier, number ;
-device_with_qualifier = 'CLOCK' | 'SWITCH' |
+device_with_qualifier = 'CLOCK' | 'SWITCH' | 'RC' |
                         'AND' | 'NAND' | 'OR' | 'NOR' ;
-device_no_qualifier = 'DTYPE' | 'XOR' ;
+device_no_qualifier = 'DTYPE' | 'XOR' | 'NOT' ;
 connect = 'CONNECT', device_terminal, 'to', device_terminal ;
 monitor = 'MONITOR', device_terminal, { device_terminal } ;
 device_terminal = identifier, [ '.', identifier ] ;
