@@ -5,8 +5,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2018-06-02 22:33+0100\n"
-"PO-Revision-Date: 2018-06-02 22:33+0100\n"
+"POT-Creation-Date: 2018-06-03 00:14+0100\n"
+"PO-Revision-Date: 2018-06-03 00:19+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: zh\n"
@@ -20,135 +20,139 @@ msgstr ""
 "X-Poedit-Basepath: ../../..\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: gui.py:223
+#: gui.py:181
 msgid "Page: "
 msgstr "页码: "
 
-#: gui.py:243
+#: gui.py:201
 msgid "Canvas redrawn on paint event, size is "
 msgstr "监测到画图事件,画布重画,新尺寸为 "
 
-#: gui.py:271
+#: gui.py:229
 msgid "Mouse double clicked"
 msgstr "鼠标双击"
 
-#: gui.py:281
+#: gui.py:239
 msgid "Mouse button pressed at: "
 msgstr "鼠标按下位置: "
 
-#: gui.py:286
+#: gui.py:244
 msgid "Mouse button released at: "
 msgstr "鼠标松开位置: "
 
-#: gui.py:289
+#: gui.py:247
 msgid "Mouse left canvas at: "
 msgstr "鼠标离开画布于: "
 
-#: gui.py:304
+#: gui.py:254
 msgid "Negative mouse wheel rotation. Zoom is now: "
 msgstr "鼠标滚轮负向滚动,新动物园为: "
 
-#: gui.py:310
+#: gui.py:261
 msgid "Positive mouse wheel rotation. Zoom is now: "
 msgstr "鼠标滚轮正向滚动,新动物园为: "
 
-#: gui.py:515
+#: gui.py:466
 msgid "empty"
 msgstr "空空如也"
 
-#: gui.py:633
+#: gui.py:584
 msgid "cycle: "
 msgstr "轮回: "
 
-#: gui.py:634
+#: gui.py:585
 msgid "port: "
 msgstr "港口: "
 
-#: gui.py:635
+#: gui.py:586
 msgid "value: "
 msgstr "价值:"
 
-#: gui.py:747
+#: gui.py:699 gui.py:928
 msgid "&About\tCTRL+A"
 msgstr "&关于\tCTRL+A"
 
-#: gui.py:748
+#: gui.py:700 gui.py:929
 msgid "&Open\tCTRL+N"
 msgstr "&打开\tCTRL+N"
 
-#: gui.py:749
+#: gui.py:701 gui.py:930
+msgid "&Language\tCTRL+L"
+msgstr ""
+
+#: gui.py:702 gui.py:931
 msgid "&Exit\tCTRL+Q"
 msgstr "&退出\tCTRL+Q"
 
-#: gui.py:750
+#: gui.py:703 gui.py:932
 msgid "&Help\tCTRL+H"
 msgstr "&帮助\tCTRL+H"
 
-#: gui.py:751 gui.py:1243
+#: gui.py:704 gui.py:933 gui.py:1236
 msgid "&File"
 msgstr "&文件"
 
-#: gui.py:752
+#: gui.py:705 gui.py:934
 msgid "&Help"
 msgstr "&帮助"
 
-#: gui.py:767
+#: gui.py:720 gui.py:911
 msgid "Cycles"
 msgstr "周期"
 
-#: gui.py:769 locale/trans.py:18 trans.py:29
+#: gui.py:722 gui.py:910 locale/trans.py:18 trans.py:29
 msgid "Run"
 msgstr "运行"
 
-#: gui.py:770
+#: gui.py:723 gui.py:915
 msgid "Add"
 msgstr "添加"
 
-#: gui.py:773 gui.py:1079
+#: gui.py:726 gui.py:912 gui.py:1072
 msgid "Monitors"
 msgstr "监视器"
 
-#: gui.py:774
+#: gui.py:727 gui.py:916
 msgid "Add/Delete Monitor"
 msgstr "添加/删除监视器"
 
-#: gui.py:777 gui.py:781 gui.py:1216
+#: gui.py:730 gui.py:734 gui.py:913 gui.py:919 gui.py:1209
 msgid "Switches"
 msgstr "开关"
 
-#: gui.py:782 gui.py:1217
+#: gui.py:735 gui.py:922 gui.py:1210
 msgid "Values"
 msgstr "值"
 
-#: gui.py:788
+#: gui.py:741 gui.py:914
 msgid "Zoom in/out"
 msgstr "放大/缩小"
 
-#: gui.py:794
+#: gui.py:747 gui.py:925
 msgid "Prev Page"
 msgstr "上一页"
 
-#: gui.py:795
+#: gui.py:748 gui.py:926
 msgid "Next Page"
 msgstr "下一页"
 
-#: gui.py:798
+#: gui.py:751 gui.py:927
 msgid "Goto"
 msgstr "前往"
 
-#: gui.py:901
+#: gui.py:854
 msgid "File Conatins Error, See Terminal"
 msgstr "文件包含错误,参见终端"
 
-#: gui.py:901
+#: gui.py:854
 msgid "Please confirm"
 msgstr "我偷偷把安德鲁姬和提摩西爱的名字放在这里应该没人会发现吧"
 
-#: gui.py:906
+#: gui.py:859
 msgid "Open definition file"
 msgstr "打开定义文件"
 
-#: gui.py:932
+#: gui.py:885
 msgid ""
 "Logic Simulator\n"
 "Team 4 Version\n"
@@ -158,109 +162,117 @@ msgstr ""
 "木叶第四班版本\n"
 "贰零壹捌"
 
-#: gui.py:933
+#: gui.py:886
 msgid "About Logsim"
 msgstr "关于老哥死么"
 
-#: gui.py:940
+#: gui.py:893
 msgid "Definition Description"
 msgstr "意毕恩艾父定义"
 
-#: gui.py:946
+#: gui.py:896
+msgid "Do you want to use Chinese Version?"
+msgstr "你是否要留在汉语模式？"
+
+#: gui.py:898
+msgid "Language"
+msgstr "语言"
+
+#: gui.py:939
 msgid "New spin control value: "
 msgstr "新周期控制数值"
 
-#: gui.py:989
+#: gui.py:982
 msgid "Run button pressed."
 msgstr "按下运行键"
 
-#: gui.py:992
+#: gui.py:985
 msgid "DEVICE \""
 msgstr "装置 \""
 
-#: gui.py:992
+#: gui.py:985
 msgid "\" is oscillatory!"
 msgstr "\" 振荡"
 
-#: gui.py:1003
+#: gui.py:996
 msgid "New text box value: "
 msgstr "新吉斯哇一次摸喜多次"
 
-#: gui.py:1015
+#: gui.py:1008
 msgid "Press Run Button First!"
 msgstr "请先按运行键"
 
-#: gui.py:1017
+#: gui.py:1010
 msgid "Continue Button Pressed"
 msgstr "按下继续键"
 
-#: gui.py:1044
+#: gui.py:1037
 msgid "Successfully set switches."
 msgstr "成功设置开关"
 
-#: gui.py:1046
+#: gui.py:1039
 msgid "Error! Invalid switch."
 msgstr "错误! 无效的开关"
 
-#: gui.py:1056 gui.py:1063
+#: gui.py:1049 gui.py:1056
 msgid "Warning! Still have uncompleted cycles!"
 msgstr "警告! 仍有未完成的周期"
 
-#: gui.py:1177
+#: gui.py:1170
 msgid "Turn to Next Page"
 msgstr "翻到下一页"
 
-#: gui.py:1183
+#: gui.py:1176
 msgid "Go to page: "
 msgstr "前往页码: "
 
-#: gui.py:1241
+#: gui.py:1234
 #, fuzzy
 #| msgid "&Exit\tAlt-X"
 msgid "E&xit\tAlt-X"
 msgstr "&退出\tAlt-x"
 
-#: gui.py:1241
+#: gui.py:1234
 msgid "Close window and exit program."
 msgstr "关闭窗口并退出程序"
 
-#: gui.py:1252
+#: gui.py:1245
 msgid "Select Signal"
 msgstr "选择信号"
 
-#: gui.py:1259
+#: gui.py:1252
 msgid "Monitored"
 msgstr "已监控"
 
-#: gui.py:1260
+#: gui.py:1253
 msgid "Unmonitored"
 msgstr "未监控"
 
-#: gui.py:1277
+#: gui.py:1270
 msgid "ADD"
 msgstr "添加"
 
-#: gui.py:1278
+#: gui.py:1271
 msgid "DELETE"
 msgstr "删除"
 
-#: gui.py:1279
+#: gui.py:1272
 msgid "CLOSE"
 msgstr "关闭"
 
-#: gui.py:1321
+#: gui.py:1314
 msgid "Successfully made monitor."
 msgstr "添加监视器成功"
 
-#: gui.py:1327
+#: gui.py:1320
 msgid "Error! Could not make monitor: "
 msgstr "错误! 并不能添加监视器"
 
-#: gui.py:1347
+#: gui.py:1340
 msgid "Successfully zapped monitor"
 msgstr "成功删除监视器"
 
-#: gui.py:1353
+#: gui.py:1346
 msgid "Error! Could not zap monitor: "
 msgstr "错误! 并删不了监视器"
 
