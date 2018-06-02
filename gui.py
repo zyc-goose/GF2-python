@@ -68,6 +68,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.monitored_list = []
         self.monitored_list_pressed_id = None
         self.mouse_button_is_down = False
+        self.drag_mode = False
 
         self.init_parameters()
 
@@ -221,10 +222,15 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             self.last_mouse_y = event.GetY()
             self.mouse_button_is_down = True
             self.monitored_list_pressed_id = None
+            if self.mouse_in_active_region(113, len(self.monitored_list) - 1, 65):
+                self.drag_mode = True
+            else:
+                self.drag_mode = False
             text = "".join(["Mouse button pressed at: ", str(event.GetX()),
                             ", ", str(event.GetY())])
         elif event.ButtonUp():
             self.mouse_button_is_down = False
+            self.drag_mode = False
             text = "".join(["Mouse button released at: ", str(event.GetX()),
                             ", ", str(event.GetY())])
         if event.Leaving():
@@ -261,7 +267,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
     def on_key(self, event):
         key_code = event.GetKeyCode()
         text = ''
-
 
         if (key_code in (wx.WXK_LEFT, wx.WXK_RIGHT)) and (self.signal_width > self.parent.full_width):
             full_width = self.parent.full_width
@@ -408,6 +413,19 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             return 0
         return int(cursor_pos_on_ruler / step) + 1
 
+    def mouse_in_active_region(self, strip_raise, max_pos, ruler_offset):
+        return ruler_offset < self.current_y <= strip_raise + 50*max_pos + self.pan_y
+
+    def find_nearest_signal_pos(self, strip_raise, max_pos, ruler_offset):
+        """Find the nearest signal position in the active region."""
+        min_pos = 0
+        while ruler_offset - self.pan_y >= strip_raise + 50*min_pos:
+            min_pos += 1
+        for pos in range(min_pos, max_pos):
+            if self.current_y - self.pan_y <= strip_raise + 50*pos:
+                return pos
+        return max_pos
+
     def render_signal(self):
         """Display the signal trace(s) in GUI"""
 
@@ -458,7 +476,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             # Highlight current monitored device
             if strip_raise + 50*(pos - 1) < self.current_y - self.pan_y <= strip_raise + 50*pos \
                     and 0 < self.current_x < size.width - 1:
-                if self.mouse_button_is_down:
+                if self.mouse_button_is_down and self.drag_mode:
                     current_pressed_id = list_id
                     if self.monitored_list_pressed_id is None:
                         self.monitored_list_pressed_id = list_id
@@ -474,6 +492,12 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                     infobox_port = names.get_name_string(device_id)
                 else:
                     infobox_port = names.get_name_string(device_id)+'.'+names.get_name_string(output_id)
+                monitor_highlighted = True
+            elif self.drag_mode and \
+            pos == self.find_nearest_signal_pos(113, len(self.monitored_list) - 1, 65):
+                self.draw_rect_background(0, strip_raise-2+pos*50,
+                                          max(2000, 2000/self.zoom), strip_raise+2+(pos-1)*50,
+                                          [1, 0.75, 0.65]) # orange
                 monitor_highlighted = True
             else:
                 monitor_highlighted = False
