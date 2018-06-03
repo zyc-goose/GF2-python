@@ -197,6 +197,7 @@ class Parser:
             self.OUTPUT_TO_OUTPUT              : _("***Semantic Error: Attempt to connect two outputs")
         }
         self.errormsg_format_dict = {} # used for str.format(**dict)
+        self.message = ''
 
         self.error_code = self.NO_ERROR
         self.error_count = 0
@@ -685,11 +686,20 @@ class Parser:
         print(indent + current_line)
         print(indent + ' '*(error_position-1) + '^')
         print(self.errormsg[self.error_code].format(**self.errormsg_format_dict))
-        self.error_additional_info()
+        message = _('\n[ERROR #%d]') % (self.error_count) + '\n'
+        message = message + _('In File "')+self.scanner.input_file.name+_('", line ')\
+            + str(line_number) + '\n'
+        message = message + indent + current_line + '\n'
+        message = message + indent + ' '*(error_position-1) + '^' + '\n'
+        message = message + self.errormsg[self.error_code].format(**self.errormsg_format_dict) + '\n'
+        additional_info = self.error_additional_info()
+        message = message + additional_info + '\n'
+        self.message += message
         return True
 
     def error_additional_info(self):
         """Add additional information to the error display."""
+        additional_info = ''
         indent = ' '*2
         if self.error_code in (self.DEVICE_REDEFINED, self.MONITOR_PRESENT):
             if self.error_code == self.DEVICE_REDEFINED:
@@ -697,20 +707,29 @@ class Parser:
             else:
                 location = self.monitor_locations[(self.device_id, self.port_id)]
             print('-----------------------------------------')
+            additional_info += '-----------------------------------------\n'
             print(_('Previous definition here, in line'), location.linum)
+            additional_info = additional_info + _('Previous definition here, in line') + str(location.linum) + '\n'
             if location.linum < self.scanner.line_number:
                 line = self.scanner.previous_lines[location.linum]
             else:
                 line, pos = self.scanner.complete_current_line()
             print(indent + line)
+            additional_info = additional_info + indent + line + '\n'
             print(indent + ' '*(location.pos-1) + '^')
+            additional_info = additional_info + indent + ' '*(location.pos-1) + '^' + '\n'
         elif self.error_code == self.INPUT_CONNECTED:
             location = self.connect_locations[(self.device_id, self.port_id)]
             print('-----------------------------------------')
+            additional_info += '-----------------------------------------\n'
             print(_('Previous connection here, in line'), location.linum)
+            additional_info = additional_info + _('Previous connection here, in line') + str(location.linum) + '\n'
             if location.linum < self.scanner.line_number:
                 line = self.scanner.previous_lines[location.linum]
             else:
                 line, pos = self.scanner.complete_current_line()
             print(indent + line)
+            additional_info = additional_info + indent + line + '\n'
             print(indent + ' '*(location.pos-1) + '^')
+            additional_info = additional_info + indent + ' '*(location.pos-1) + '^' + '\n'
+        return additional_info
