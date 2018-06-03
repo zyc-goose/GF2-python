@@ -851,8 +851,15 @@ class Gui(wx.Frame):
             self.reinit(new_names, new_devices, new_network, new_monitors)
             self.canvas.monitored_list = list(self.monitors.monitors_dictionary.keys())
         else:
-            wx.MessageBox(_("File Conatins Error, See Terminal"), _("Please confirm"),
-                          wx.ICON_QUESTION | wx.OK, self)
+            message = parser.message
+            count = parser.error_count
+            message = 'Parser: ' + str(count) + ' Errors Generated!!\n\n' + message
+            errormsg = ErrorDispFrame(self, message)
+            errormsg.Show()
+            # from wx.lib.dialogs import ScrolledMessageDialog
+            # dlg = ScrolledMessageDialog(self, message, _("Please confirm"))
+            # dlg.SetFont(font1)
+            # dlg.ShowModal()
 
     def on_open(self):
         # ask the user what new file to open
@@ -1236,8 +1243,6 @@ class MonitorFrame(wx.Frame):
         menuBar.Append(menu, _("&File"))
         self.SetMenuBar(menuBar)
 
-        self.statusbar = self.CreateStatusBar()
-
         panel = wx.Panel(self)
         box = wx.BoxSizer(wx.VERTICAL)
         list_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -1380,3 +1385,26 @@ class RunThread(threading.Thread):
     def stop(self):
         self._stop_event.set()
         # wx.PostEvent(self._parent, evt)
+
+class ErrorDispFrame(wx.Frame):
+    def __init__(self, parent, message):
+        wx.Frame.__init__(self, None, title = 'Error in the File!!!', pos=(350, 100), size=(500, 550))
+        self.parent = parent
+        self.message = message
+
+        font1 = wx.Font(10, wx.FONTFAMILY_TELETYPE, wx.NORMAL, wx.NORMAL, False, u'Consolas')
+
+        panel = wx.Panel(self)
+        box = wx.BoxSizer(wx.VERTICAL)
+        text = wx.TextCtrl(panel, wx.ID_ANY, message, size = (320, 250), style = wx.TE_MULTILINE | wx.HSCROLL)
+        text.SetFont(font1)
+        box.Add(text, 20, wx.EXPAND | wx.ALL, 5)
+        confirm = wx.Button(panel, wx.ID_CLOSE, _("Confirm"))
+        confirm.Bind(wx.EVT_BUTTON, self.on_confirm)
+        box.Add(confirm, 1, wx.RIGHT | wx.LEFT, 125)
+
+        panel.SetSizer(box)
+        panel.Layout()
+
+    def on_confirm(self, event):
+        self.Destroy()
