@@ -5,11 +5,11 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2018-06-02 20:30+0100\n"
-"PO-Revision-Date: 2018-06-02 20:30+0100\n"
+"POT-Creation-Date: 2018-06-03 00:14+0100\n"
+"PO-Revision-Date: 2018-06-03 00:19+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
-"Language: zh_CN\n"
+"Language: zh\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -20,352 +20,372 @@ msgstr ""
 "X-Poedit-Basepath: ../../..\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: gui.py:216
+#: gui.py:181
 msgid "Page: "
-msgstr ""
+msgstr "页码: "
 
-#: gui.py:234
+#: gui.py:201
 msgid "Canvas redrawn on paint event, size is "
-msgstr ""
+msgstr "监测到画图事件,画布重画,新尺寸为 "
 
-#: gui.py:262
+#: gui.py:229
 msgid "Mouse double clicked"
-msgstr ""
+msgstr "鼠标双击"
 
-#: gui.py:266
+#: gui.py:239
 msgid "Mouse button pressed at: "
-msgstr ""
+msgstr "鼠标按下位置: "
 
-#: gui.py:269
+#: gui.py:244
 msgid "Mouse button released at: "
-msgstr ""
+msgstr "鼠标松开位置: "
 
-#: gui.py:272
+#: gui.py:247
 msgid "Mouse left canvas at: "
-msgstr ""
+msgstr "鼠标离开画布于: "
 
-#: gui.py:287
+#: gui.py:254
 msgid "Negative mouse wheel rotation. Zoom is now: "
-msgstr ""
+msgstr "鼠标滚轮负向滚动,新动物园为: "
 
-#: gui.py:293
+#: gui.py:261
 msgid "Positive mouse wheel rotation. Zoom is now: "
-msgstr ""
+msgstr "鼠标滚轮正向滚动,新动物园为: "
 
-#: gui.py:480
+#: gui.py:466
 msgid "empty"
-msgstr ""
+msgstr "空空如也"
 
-#: gui.py:574
+#: gui.py:584
 msgid "cycle: "
-msgstr ""
+msgstr "轮回: "
 
-#: gui.py:575
+#: gui.py:585
 msgid "port: "
-msgstr ""
+msgstr "港口: "
 
-#: gui.py:576
+#: gui.py:586
 msgid "value: "
-msgstr ""
+msgstr "价值:"
 
-#: gui.py:688
+#: gui.py:699 gui.py:928
 msgid "&About\tCTRL+A"
-msgstr ""
+msgstr "&关于\tCTRL+A"
 
-#: gui.py:689
+#: gui.py:700 gui.py:929
 msgid "&Open\tCTRL+N"
+msgstr "&打开\tCTRL+N"
+
+#: gui.py:701 gui.py:930
+msgid "&Language\tCTRL+L"
 msgstr ""
 
-#: gui.py:690
+#: gui.py:702 gui.py:931
 msgid "&Exit\tCTRL+Q"
-msgstr ""
+msgstr "&退出\tCTRL+Q"
 
-#: gui.py:691
+#: gui.py:703 gui.py:932
 msgid "&Help\tCTRL+H"
-msgstr ""
+msgstr "&帮助\tCTRL+H"
 
-#: gui.py:692 gui.py:1173
+#: gui.py:704 gui.py:933 gui.py:1236
 msgid "&File"
-msgstr ""
+msgstr "&文件"
 
-#: gui.py:693
+#: gui.py:705 gui.py:934
 msgid "&Help"
-msgstr ""
+msgstr "&帮助"
 
-#: gui.py:708
+#: gui.py:720 gui.py:911
 msgid "Cycles"
-msgstr ""
+msgstr "周期"
 
-#: gui.py:710 locale/trans.py:18 trans.py:29
+#: gui.py:722 gui.py:910 locale/trans.py:18 trans.py:29
 msgid "Run"
-msgstr "跑"
+msgstr "运行"
 
-#: gui.py:711
+#: gui.py:723 gui.py:915
 msgid "Add"
-msgstr ""
+msgstr "添加"
 
-#: gui.py:714 gui.py:1009
+#: gui.py:726 gui.py:912 gui.py:1072
 msgid "Monitors"
-msgstr ""
+msgstr "监视器"
 
-#: gui.py:715
+#: gui.py:727 gui.py:916
 msgid "Add/Delete Monitor"
-msgstr ""
+msgstr "添加/删除监视器"
 
-#: gui.py:718 gui.py:722 gui.py:1146
+#: gui.py:730 gui.py:734 gui.py:913 gui.py:919 gui.py:1209
 msgid "Switches"
-msgstr ""
+msgstr "开关"
 
-#: gui.py:723 gui.py:1147
+#: gui.py:735 gui.py:922 gui.py:1210
 msgid "Values"
-msgstr ""
+msgstr "值"
 
-#: gui.py:729
+#: gui.py:741 gui.py:914
 msgid "Zoom in/out"
-msgstr ""
+msgstr "放大/缩小"
 
-#: gui.py:735
+#: gui.py:747 gui.py:925
 msgid "Prev Page"
-msgstr ""
+msgstr "上一页"
 
-#: gui.py:736
+#: gui.py:748 gui.py:926
 msgid "Next Page"
-msgstr ""
+msgstr "下一页"
 
-#: gui.py:739
+#: gui.py:751 gui.py:927
 msgid "Goto"
-msgstr ""
+msgstr "前往"
 
-#: gui.py:838
+#: gui.py:854
 msgid "File Conatins Error, See Terminal"
-msgstr ""
+msgstr "文件包含错误,参见终端"
 
-#: gui.py:838
+#: gui.py:854
 msgid "Please confirm"
-msgstr ""
+msgstr "我偷偷把安德鲁姬和提摩西爱的名字放在这里应该没人会发现吧"
 
-#: gui.py:843
+#: gui.py:859
 msgid "Open definition file"
-msgstr ""
+msgstr "打开定义文件"
 
-#: gui.py:869
+#: gui.py:885
 msgid ""
 "Logic Simulator\n"
 "Team 4 Version\n"
 "2018"
 msgstr ""
+"逻辑电路模拟器\n"
+"木叶第四班版本\n"
+"贰零壹捌"
 
-#: gui.py:870
+#: gui.py:886
 msgid "About Logsim"
-msgstr ""
+msgstr "关于老哥死么"
 
-#: gui.py:877
+#: gui.py:893
 msgid "Definition Description"
-msgstr ""
+msgstr "意毕恩艾父定义"
 
-#: gui.py:883
-msgid "New spin control value: "
-msgstr ""
+#: gui.py:896
+msgid "Do you want to use Chinese Version?"
+msgstr "你是否要留在汉语模式？"
 
-#: gui.py:925
-msgid "Run button pressed."
-msgstr ""
-
-#: gui.py:928
-msgid "DEVICE \""
-msgstr ""
-
-#: gui.py:928
-msgid "\" is oscillatory!"
-msgstr ""
+#: gui.py:898
+msgid "Language"
+msgstr "语言"
 
 #: gui.py:939
+msgid "New spin control value: "
+msgstr "新周期控制数值"
+
+#: gui.py:982
+msgid "Run button pressed."
+msgstr "按下运行键"
+
+#: gui.py:985
+msgid "DEVICE \""
+msgstr "装置 \""
+
+#: gui.py:985
+msgid "\" is oscillatory!"
+msgstr "\" 振荡"
+
+#: gui.py:996
 msgid "New text box value: "
-msgstr ""
+msgstr "新吉斯哇一次摸喜多次"
 
-#: gui.py:945
+#: gui.py:1008
 msgid "Press Run Button First!"
-msgstr ""
+msgstr "请先按运行键"
 
-#: gui.py:947
+#: gui.py:1010
 msgid "Continue Button Pressed"
-msgstr ""
+msgstr "按下继续键"
 
-#: gui.py:974
+#: gui.py:1037
 msgid "Successfully set switches."
-msgstr ""
+msgstr "成功设置开关"
 
-#: gui.py:976
+#: gui.py:1039
 msgid "Error! Invalid switch."
-msgstr ""
+msgstr "错误! 无效的开关"
 
-#: gui.py:986 gui.py:993
+#: gui.py:1049 gui.py:1056
 msgid "Warning! Still have uncompleted cycles!"
-msgstr ""
+msgstr "警告! 仍有未完成的周期"
 
-#: gui.py:1107
+#: gui.py:1170
 msgid "Turn to Next Page"
-msgstr ""
+msgstr "翻到下一页"
 
-#: gui.py:1113
+#: gui.py:1176
 msgid "Go to page: "
-msgstr ""
+msgstr "前往页码: "
 
-#: gui.py:1171
+#: gui.py:1234
+#, fuzzy
+#| msgid "&Exit\tAlt-X"
 msgid "E&xit\tAlt-X"
-msgstr ""
+msgstr "&退出\tAlt-x"
 
-#: gui.py:1171
+#: gui.py:1234
 msgid "Close window and exit program."
-msgstr ""
+msgstr "关闭窗口并退出程序"
 
-#: gui.py:1182
+#: gui.py:1245
 msgid "Select Signal"
-msgstr ""
+msgstr "选择信号"
 
-#: gui.py:1189
+#: gui.py:1252
 msgid "Monitored"
-msgstr ""
+msgstr "已监控"
 
-#: gui.py:1190
+#: gui.py:1253
 msgid "Unmonitored"
-msgstr ""
+msgstr "未监控"
 
-#: gui.py:1207
+#: gui.py:1270
 msgid "ADD"
-msgstr ""
+msgstr "添加"
 
-#: gui.py:1208
+#: gui.py:1271
 msgid "DELETE"
-msgstr ""
+msgstr "删除"
 
-#: gui.py:1209
+#: gui.py:1272
 msgid "CLOSE"
-msgstr ""
+msgstr "关闭"
 
-#: gui.py:1251
+#: gui.py:1314
 msgid "Successfully made monitor."
-msgstr ""
+msgstr "添加监视器成功"
 
-#: gui.py:1256
+#: gui.py:1320
 msgid "Error! Could not make monitor: "
-msgstr ""
+msgstr "错误! 并不能添加监视器"
 
-#: gui.py:1276
+#: gui.py:1340
 msgid "Successfully zapped monitor"
-msgstr ""
+msgstr "成功删除监视器"
 
-#: gui.py:1281
+#: gui.py:1346
 msgid "Error! Could not zap monitor: "
-msgstr ""
+msgstr "错误! 并删不了监视器"
 
 #: parse.py:167
 msgid "***Syntax Error: Invalid character"
-msgstr ""
+msgstr "*** 语法错误: 非法字符"
 
 #: parse.py:168
 msgid "***Syntax Error: Unterminated /* comment"
-msgstr ""
+msgstr "***语法错误: 未终止的/*评论"
 
 #: parse.py:169
 msgid "***Syntax Error: Number has too many leading zeros"
-msgstr ""
+msgstr "***语法错误: 数字以零开始"
 
 #: parse.py:170
 #, python-brace-format
 msgid "***Semantic Error: Device '{symbol_name}' is already defined"
-msgstr ""
+msgstr "***语义错误: 装置'{symbol_name}'已被定义"
 
 #: parse.py:171
 msgid "***Syntax Error: Expected device type after 'is'/'are'"
-msgstr ""
+msgstr "***语法错误: 期盼着设备类型在'is'/'are'之后"
 
 #: parse.py:172
 #, python-brace-format
 msgid "***Semantic Error: Device '{symbol_name}' is not defined"
-msgstr ""
+msgstr "***语义错误: 装置'{symbol_name}'未被定义"
 
 #: parse.py:173
 msgid "***Syntax Error: Device list is empty"
-msgstr ""
+msgstr "***语法错误: 装置列表为空"
 
 #: parse.py:174
 msgid "***Semantic Error: File is empty"
-msgstr ""
+msgstr "***语义错误: 文件为空"
 
 #: parse.py:175
 msgid "***Syntax Error: Monitor list is empty"
-msgstr ""
+msgstr "***语法错误: 监视器列表为空"
 
 #: parse.py:176
 msgid "***Syntax Error: Statement is empty"
-msgstr ""
+msgstr "***语法错误: 空语句"
 
 #: parse.py:177
 msgid ""
 "***Syntax Error: Expected a device terminal name (device_name + port_name)"
 msgstr ""
+"***语法错误: 盼望着,盼望着,东风来了,春天脚步近了,你也不要忘记写端口名字哦么"
+"么哒 (devoce_name + port_name)"
 
 #: parse.py:178
 msgid "***Syntax Error: Expected keyword 'is'/'are'"
-msgstr ""
+msgstr "***语法错误: 应为关键词'is'/'are'"
 
 #: parse.py:179
 msgid "***Syntax Error: Expected keyword 'to'"
-msgstr ""
+msgstr "***语法错误: 应为关键词'to'"
 
 #: parse.py:180
 msgid "***Syntax Error: Expected left parenthesis '('"
-msgstr ""
+msgstr "***语法错误: 应为左括号'('"
 
 #: parse.py:181
 #, python-brace-format
 msgid ""
 "***Syntax Error: Expected no qualifier for the device type '{device_type}'"
 msgstr ""
+"***语法错误: 这个类型的装置是不应该有参数的,你猜是哪个类型'{device_type}'"
 
 #: parse.py:182
 msgid "***Syntax Error: Expected a valid port name after '.'"
-msgstr ""
+msgstr "***语法错误: '.'后面应该是一个有效的端口名"
 
 #: parse.py:183
 msgid "***Semantic Error: DTYPE device should have a port name"
-msgstr ""
+msgstr "***语义错误: D触发器应有端口名称"
 
 #: parse.py:184
 #, python-brace-format
 msgid ""
 "***Syntax Error: Expected a qualifier for the device type '{device_type}'"
-msgstr ""
+msgstr "***语法错误: '{device_type}'这个类型的设备是要有参数的小傻子"
 
 #: parse.py:185
 msgid "***Syntax Error: Expected right parenthesis ')'"
-msgstr ""
+msgstr "***语法错误: 下面应该是右括号'('出场了"
 
 #: parse.py:186
 #, python-brace-format
 msgid ""
 "***Semantic Error: Input '{input_name}' is already connected to output "
 "'{output_name}'"
-msgstr ""
+msgstr "***语义错误: 输入'{input_name}'已经与其他输出相恋'{output_name}'"
 
 #: parse.py:187
 msgid "***Semantic Error: Attempt to connect two inputs"
-msgstr ""
+msgstr "***语义错误: 试图连接两个输入"
 
 #: parse.py:188
 msgid "***Semantic Error: Some input ports are not connected to any outputs"
-msgstr ""
+msgstr "***语义错误: 存在输入端口未于输出连接"
 
 #: parse.py:189
 #, python-brace-format
 msgid "***Syntax Error: Invalid device name '{symbol_name}'"
-msgstr ""
+msgstr "***语法错误: 非法装置名称'{symbol_name}'"
 
 #: parse.py:190
 #, python-brace-format
 msgid "***Syntax Error: Invalid device type '{device_type}'"
-msgstr ""
+msgstr "***语法错误: 非法装置类型'{device_type}'"
 
 #: parse.py:191
 #, python-brace-format
@@ -373,6 +393,8 @@ msgid ""
 "***Syntax Error: Invalid function '{symbol_name}', please specify 'DEVICE', "
 "'CONNECT' or 'MONITOR'"
 msgstr ""
+"***语法错误: 无效函数 '{symbol_name}'，只能是低外死，康奈科特和监视器这三"
+"个，不能用其他的"
 
 #: parse.py:192
 #, python-brace-format
@@ -380,33 +402,35 @@ msgid ""
 "***Semantic Error: Invalid port name '{port_name}' for the device "
 "'{device_name}' ({device_type_full})"
 msgstr ""
+"***语法错误: 无效的端口名'{port_name}',装置"
+"为'{device_name}' ({device_type_full})"
 
 #: parse.py:193
 #, python-brace-format
 msgid ""
 "***Semantic Error: Invalid qualifier for the device type '{device_type}'"
-msgstr ""
+msgstr "***语义错误: 无效参数为了设备类型'{device_type}'"
 
 #: parse.py:194
 #, python-brace-format
 msgid "***Syntax Error: Can't use keyword '{symbol_name}' as device name"
-msgstr ""
+msgstr "***语法错误: 不能拿关键字'{symbol_name}'当设备名"
 
 #: parse.py:195
 msgid "***Semantic Error: Attempt to monitor an input"
-msgstr ""
+msgstr "***语义错误: 傻逼别看输入"
 
 #: parse.py:196
 #, python-brace-format
 msgid ""
 "***Semantic Error: Monitor already exists for the signal '{terminal_name}'"
-msgstr ""
+msgstr "***语义错误: 傻逼你已经看了这个信号了'{terminal_name}'"
 
 #: parse.py:197
 msgid "***Semantic Error: Attempt to connect two outputs"
-msgstr ""
+msgstr "***语义错误: 试图连接两个输出"
 
-#: parse.py:680
+#: parse.py:682
 #, python-format
 msgid ""
 "\n"
@@ -415,21 +439,25 @@ msgstr ""
 "\n"
 "[傻逼#%d]"
 
-#: parse.py:681
+#: parse.py:683
 msgid "In File \""
-msgstr ""
+msgstr "在文件 \\"
 
-#: parse.py:681
+#: parse.py:683
 msgid "\", line "
-msgstr ""
+msgstr "\", 行号"
 
-#: parse.py:698
+#: parse.py:700
 msgid "Previous definition here, in line"
 msgstr ""
+"大腿说你已经定义过了呀,你再这么蠢大腿要生气了,大腿可是最可爱的小天使呢,你看"
+"就在这行"
 
-#: parse.py:708
+#: parse.py:710
 msgid "Previous connection here, in line"
 msgstr ""
+"大腿说你已经连过了呀,你再这么蠢大腿要生气了,大腿可是最可爱的小天使呢,你看就"
+"在这行"
 
 #: pygettext.py:23
 #, python-format

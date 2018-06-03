@@ -28,6 +28,10 @@ from monitors import Monitors
 from scanner import Scanner
 from parse import Parser
 
+offset = 29
+zoom_upper = 10
+zoom_lower = 0.5
+
 
 class MyGLCanvas(wxcanvas.GLCanvas):
     """Handle all drawing operations.
@@ -155,50 +159,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glTranslated(self.pan_x, self.pan_y, 0.0)
         GL.glScaled(self.zoom, 1, self.zoom)
 
-
-    # def texture_mapping_chinese(self):
-    #     """draw function """
-    #     self.SetCurrent(self.context)
-    #     GL.glEnable(GL.GL_TEXTURE_2D)
-    #     GL.glColor3f(1, 1, 1)
-
-    #     # draw a quad
-    #     GL.glBegin(GL.GL_QUADS)
-    #     GL.glTexCoord2f(0, 1)
-    #     GL.glVertex2f(0, 20)
-    #     GL.glTexCoord2f(0, 0)
-    #     GL.glVertex2f(0, 0)
-    #     GL.glTexCoord2f(1, 0)
-    #     GL.glVertex2f(20, 0)
-    #     GL.glTexCoord2f(1, 1)
-    #     GL.glVertex2f(20, 20)
-    #     GL.glEnd()
-
-    #     GL.glDisable(GL.GL_TEXTURE_2D)
-
-    # def try_render_chinese(self):
-    #     a = '干'
-    #     GL.glColor3f(0.0, 0.0, 0.0)  # text is black
-    #     GL.glRasterPos2f(300, 300)
-    #     face = freetype.Face('./unifont-10.0.07.ttf')
-    #     face.set_char_size( 48*64 )
-    #     face.load_char(a)
-    #     bitmap = face.glyph.bitmap
-    #     data, rows, width = bitmap.buffer, bitmap.rows, bitmap.width
-    #     Z = numpy.array(data,dtype=float).reshape(rows,width)
-    #     mm = bytes(data)
-    #     # GL.glBitmap(width, rows, 0, 0, 0, 0, Z)
-
-
-    #     texid = GL.glGenTextures(1)
-    #     GL.glBindTexture( GL.GL_TEXTURE_2D, texid)
-    #     GL.glTexParameterf( GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR )
-    #     GL.glTexParameterf( GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR )
-    #     GL.glTexImage2D(GL.GL_TEXTURE_2D, 2, GL.GL_LUMINANCE, 48, 64, 0,
-    #                     GL.GL_LUMINANCE, GL.GL_UNSIGNED_BYTE, Z)
-    #     self.texture_mapping_chinese()
-
-
     def render(self, text):
         """Handle all drawing operations."""
         self.SetCurrent(self.context)
@@ -219,10 +179,12 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.parent.update_scroll_bar()
 
         # Draw specified text at position (10, 10)
-        self.render_text(text, (10-self.pan_x)/self.zoom, 10 - self.pan_y)
+        # self.render_text(text, (10-self.pan_x)/self.zoom, 10 - self.pan_y)
         page_disp = _('Page: ')+str(self.current_page)+'/'+str(self.page_number)
-        self.render_text(page_disp, (self.GetClientSize().width -
-                         len(page_disp)*8-self.pan_x)/self.zoom, 10 - self.pan_y)
+        #self.render_text(page_disp, (self.GetClientSize().width -
+        #                 len(page_disp)*8-self.pan_x)/self.zoom, 10 - self.pan_y)
+        self.parent.page_disp(page_disp)
+        self.parent.text_bar(text)
 
         # We have been drawing to the back buffer, flush the graphics pipeline
         # and swap the back buffer to the front
@@ -276,34 +238,27 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 self.drag_mode = True
             else:
                 self.drag_mode = False
-            text = "".join(["Mouse button pressed at: ", str(event.GetX()),
+            text = "".join([_("Mouse button pressed at: "), str(event.GetX()),
                             ", ", str(event.GetY())])
         elif event.ButtonUp():
             self.mouse_button_is_down = False
             self.drag_mode = False
-            text = "".join(["Mouse button released at: ", str(event.GetX()),
+            text = "".join([_("Mouse button released at: "), str(event.GetX()),
                             ", ", str(event.GetY())])
         if event.Leaving():
             text = "".join([_("Mouse left canvas at: "), str(event.GetX()),
                             ", ", str(event.GetY())])
-        #if event.Dragging():
-        #    self.pan_x += event.GetX() - self.last_mouse_x
-        #    self.pan_y -= event.GetY() - self.last_mouse_y
-        #    self.last_mouse_x = event.GetX()
-        #    self.last_mouse_y = event.GetY()
-        #    self.init = False
-        #    text = "".join(["Mouse dragged to: ", str(event.GetX()),
-        #                    ", ", str(event.GetY()), ". Pan is now: ",
-        #                    str(self.pan_x), ", ", str(self.pan_y)])
         if event.GetWheelRotation() < 0:
             self.zoom *= (1.0 + (
                 event.GetWheelRotation() / (20 * event.GetWheelDelta())))
+            self.zoom = max(self.zoom, zoom_lower)
             self.init = False
             text = "".join([_("Negative mouse wheel rotation. Zoom is now: "),
                             str(self.zoom)])
         if event.GetWheelRotation() > 0:
             self.zoom /= (1.0 - (
                 event.GetWheelRotation() / (20 * event.GetWheelDelta())))
+            self.zoom = min(self.zoom, zoom_upper)
             self.init = False
             text = "".join([_("Positive mouse wheel rotation. Zoom is now: "),
                             str(self.zoom)])
@@ -354,6 +309,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def render_text(self, text, x_pos, y_pos):
         """Handle text drawing operations."""
+        y_pos = y_pos - offset
         GL.glColor3f(0.0, 0.0, 0.0)  # text is black
         GL.glRasterPos2f(x_pos, y_pos)
         font = GLUT.GLUT_BITMAP_HELVETICA_12
@@ -369,7 +325,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Two vertices having same y coord
         x = start+cycle_count*step
         x_next = start+(cycle_count+1)*step
-        y = 75+25*level+pos*50
+        y = 75+25*level+pos*50-offset
         GL.glVertex2f(x/self.zoom, y)
         GL.glVertex2f(x_next/self.zoom, y)
 
@@ -379,6 +335,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         if type(color) == float, then use grey level.
         if type(color) == list, then use RGB.
         """
+        start_y = start_y - offset
+        end_y = end_y - offset
         if isinstance(color, (int, float)) and 0 <= color <= 1:
             red_f = green_f = blue_f = color
         elif isinstance(color, list) and len(color) == 3:
@@ -399,6 +357,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         if type(color) == float, then use grey level.
         if type(color) == list, then use RGB.
         """
+        start_y = start_y - offset
+        end_y = end_y - offset
         if isinstance(color, (int, float)) and 0 <= color <= 1:
             red_f = green_f = blue_f = color
         elif isinstance(color, list) and len(color) == 3:
@@ -416,6 +376,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def draw_ruler(self, step, start_x, start_y):
         """Draw ruler under monitors"""
+        start_y = start_y - offset
         GL.glColor3f(1, 69.0/255, 0)  # orangered
         GL.glBegin(GL.GL_LINE_STRIP)
         cur_x = start_x
@@ -441,11 +402,11 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         offset_ratio = 3.5/self.zoom
         for cycle in range(6):
             self.render_text(str(scale_num),
-                             cur_x - len(str(scale_num))*offset_ratio, cur_y)
+                             cur_x - len(str(scale_num))*offset_ratio, cur_y + offset)
             scale_num += 10
             cur_x += step * 10
         self.render_text(str(scale_num),
-                         cur_x - len(str(scale_num))*offset_ratio, cur_y)
+                         cur_x - len(str(scale_num))*offset_ratio, cur_y + offset)
 
     def get_ruler_cycle_num(self, step, start_x):
         """Get the current cycle number based on current x pos."""
@@ -456,7 +417,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         return int(cursor_pos_on_ruler / step) + 1
 
     def mouse_in_active_region(self, strip_raise, max_pos, ruler_offset):
-        return ruler_offset < self.current_y <= strip_raise + 50*max_pos + self.pan_y
+        return ruler_offset < self.current_y + offset <= strip_raise + 50*max_pos + self.pan_y
 
     def find_nearest_signal_pos(self, strip_raise, max_pos, ruler_offset):
         """Find the nearest signal position in the active region."""
@@ -464,7 +425,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         while ruler_offset - self.pan_y >= strip_raise + 50*min_pos:
             min_pos += 1
         for pos in range(min_pos, max_pos):
-            if self.current_y - self.pan_y <= strip_raise + 50*pos:
+            if self.current_y + offset - self.pan_y <= strip_raise + 50*pos:
                 return pos
         return max_pos
 
@@ -516,7 +477,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             signal_list = self.monitors.monitors_dictionary[(device_id, output_id)]
 
             # Highlight current monitored device
-            if strip_raise + 50*(pos - 1) < self.current_y - self.pan_y <= strip_raise + 50*pos \
+            if strip_raise + 50*(pos - 1) < self.current_y - self.pan_y + offset <= strip_raise + 50*pos \
                     and 0 < self.current_x < size.width - 1:
                 if self.mouse_button_is_down and self.drag_mode:
                     current_pressed_id = list_id
@@ -607,6 +568,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def draw_vertical_stipple_line(self, stipple_y_bottom, stipple_y_top):
         """Draw the vertical dotted line for cycle number alignment."""
+        stipple_y_top = stipple_y_top - offset
+        stipple_y_bottom = stipple_y_bottom - offset
         GL.glEnable(GL.GL_LINE_STIPPLE)
         GL.glLineStipple(1, 0x3333)
         GL.glColor3f(1, 0.65, 0)
@@ -699,16 +662,17 @@ class Gui(wx.Frame):
     on_text_box(self, event): Event handler for when the user enters text.
     """
 
-    def __init__(self, title, names, devices, network, monitors):
+    def __init__(self, title, names, devices, network, monitors, language = 0):
         """Initialise widgets and layout."""
         super().__init__(parent=None, title=title, size=(900, 700))
 
         basepath = os.path.abspath(os.path.dirname(sys.argv[0]))
-        localedir = os.path.join(basepath, "locale")
-        gettext.install('gui', localedir)
+        self.localedir = os.path.join(basepath, "locale")
+        gettext.install('gui', self.localedir)
 
-        mytranslation = gettext.translation('gui', localedir, ['cn'])
-        mytranslation.install()
+        if language == 1:
+            mytranslation = gettext.translation('gui', localedir, ['cn'])
+            mytranslation.install()
 
         # Make objects local
         self.devices = devices
@@ -733,14 +697,15 @@ class Gui(wx.Frame):
         # Configure the file menu
         fileMenu = wx.Menu()
         helpMenu = wx.Menu()
-        menuBar = wx.MenuBar()
+        self.menuBar = wx.MenuBar()
         fileMenu.Append(wx.ID_ABOUT, _("&About\tCTRL+A"))
         fileMenu.Append(wx.ID_OPEN, _("&Open\tCTRL+N"))
+        fileMenu.Append(wx.ID_PREFERENCES, _("&Language\tCTRL+L"))
         fileMenu.Append(wx.ID_EXIT, _("&Exit\tCTRL+Q"))
         helpMenu.Append(wx.ID_HELP, _("&Help\tCTRL+H"))
-        menuBar.Append(fileMenu, _("&File"))
-        menuBar.Append(helpMenu, _("&Help"))
-        self.SetMenuBar(menuBar)
+        self.menuBar.Append(fileMenu, _("&File"))
+        self.menuBar.Append(helpMenu, _("&Help"))
+        self.SetMenuBar(self.menuBar)
 
         # Canvas for drawing signals
         self.canvas = MyGLCanvas(self, devices, monitors)
@@ -786,6 +751,9 @@ class Gui(wx.Frame):
         self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
                                     style=wx.TE_PROCESS_ENTER)
         self.goto_button = wx.Button(self, wx.ID_ANY, _("Goto"))
+        self.textbar = self.CreateStatusBar(2)
+        self.textbar.SetStatusWidths([800, 200])
+        self.textbar.SetMinHeight(200)
 
         # Scroll Bars
         self.full_width = 653
@@ -833,8 +801,8 @@ class Gui(wx.Frame):
 
         # Sizer arrangement
         main_sizer.Add(main_sizer_second, 25, wx.EXPAND | wx.RIGHT | wx.TOP | wx.LEFT, 5)
-        main_sizer_second.Add(self.canvas, 25, wx.EXPAND | wx.ALL, 5)
-        main_sizer_second.Add(self.hbar, 1, wx.EXPAND, 5)
+        main_sizer_second.Add(self.canvas, 20, wx.EXPAND | wx.RIGHT | wx.TOP | wx.LEFT, 5)
+        main_sizer_second.Add(self.hbar, 1, wx.EXPAND | wx.RIGHT | wx.BOTTOM | wx.LEFT, 5)
         main_sizer.Add(main_sizer_third, 1, wx.EXPAND, 5)
         main_sizer_third.Add(self.vbar, 1, wx.BOTTOM, 80)
         main_sizer.Add(side_sizer, 5, wx.ALL, 5)
@@ -926,6 +894,46 @@ class Gui(wx.Frame):
             box = wx.MessageDialog(self, message,
                           _("Definition Description"), wx.ICON_INFORMATION | wx.OK)
             box.ShowModal()
+        if Id == wx.ID_PREFERENCES:
+            message = _('Do you want to use Chinese Version?')
+            box = wx.MessageDialog(self, message,
+                          _("Language"), wx.ICON_INFORMATION | wx.YES_NO)
+            result = box.ShowModal()
+            if result == wx.ID_YES:
+                mytranslation = gettext.translation('gui', self.localedir, ['cn'])
+                mytranslation.install()
+                self.reset_all_labels()
+            else:
+                mytranslation = gettext.translation('en', self.localedir, ['cn'])
+                mytranslation.install()
+                self.reset_all_labels()
+
+    def reset_all_labels(self):
+        self.run_button.SetLabel(_('Run'))
+        self.text.SetLabel(_("Cycles"))
+        self.text2.SetLabel(_("Monitors"))
+        self.text3.SetLabel(_("Switches"))
+        self.text4.SetLabel(_("Zoom in/out"))
+        self.cont_button.SetLabel(_("Add"))
+        self.sig_add_button.SetLabel(_("Add/Delete Monitor"))
+
+        col = self.list_ctrl.GetColumn(0)
+        col.SetText(_('Switches'))
+        self.list_ctrl.SetColumn(0, col)
+        col = self.list_ctrl.GetColumn(1)
+        col.SetText(_('Values'))
+        self.list_ctrl.SetColumn(1, col)
+
+        self.prev_button.SetLabel(_("Prev Page"))
+        self.next_button.SetLabel(_("Next Page"))
+        self.goto_button.SetLabel(_("Goto"))
+        self.menuBar.SetLabel(wx.ID_ABOUT, _("&About\tCTRL+A"))
+        self.menuBar.SetLabel(wx.ID_OPEN, _("&Open\tCTRL+N"))
+        self.menuBar.SetLabel(wx.ID_PREFERENCES, _("&Language\tCTRL+L"))
+        self.menuBar.SetLabel(wx.ID_EXIT, _("&Exit\tCTRL+Q"))
+        self.menuBar.SetLabel(wx.ID_HELP, _("&Help\tCTRL+H"))
+        self.menuBar.SetMenuLabel(0, _("&File"))
+        self.menuBar.SetMenuLabel(1, _("&Help"))
 
     def on_spin(self, event):
         """Handle the event when the user changes the spin control value."""
@@ -989,6 +997,12 @@ class Gui(wx.Frame):
         text_box_value = self.text_box.GetValue()
         text = "".join([_("New text box value: "), text_box_value])
         self.canvas.render(text)
+
+    def page_disp(self, text):
+        self.textbar.SetStatusText(text, 1)
+
+    def text_bar(self, text):
+        self.textbar.SetStatusText(text, 0)
 
     def on_cont_button(self, event):
         text = ''
@@ -1099,7 +1113,7 @@ class Gui(wx.Frame):
         if length > thumbsize:
             self.canvas.pan_x = -int((self.canvas.signal_width-self.full_width)*(pos/(length-thumbsize)))
             self.canvas.init = False
-            self.canvas.render(str(self.canvas.pan_x))
+            self.canvas.render('')
 
     def on_vbar(self, event):
         pos = self.vbar.GetThumbPosition()
