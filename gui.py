@@ -71,12 +71,9 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.devices = devices
         self.parent = parent
 
-        self.monitored_list = []
-        self.monitored_list_pressed_id = None
-        self.mouse_button_is_down = False
-        self.drag_mode = False
-
         self.init_parameters()
+
+        self.tooltip = wx.ToolTip('FUCK')
 
         # Bind events to the canvas
         self.Bind(wx.EVT_PAINT, self.on_paint)
@@ -102,6 +99,11 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.page_number = 1
         self.current_page = 1
         self.max_signal_count = 10
+        # parameters for signal dragging support
+        self.monitored_list = []
+        self.monitored_list_pressed_id = None
+        self.mouse_button_is_down = False
+        self.drag_mode = False
 
         # Initialise variables for zooming
         self.zoom = 1
