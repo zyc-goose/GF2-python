@@ -76,7 +76,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         self.init_parameters()
 
-        self.tooltip = wx.ToolTip('FUCK')
+        wx.ToolTip.SetDelay(0)
 
         # Bind events to the canvas
         self.Bind(wx.EVT_PAINT, self.on_paint)
@@ -215,6 +215,9 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def on_mouse(self, event):
         """Handle mouse events."""
+        wx.ToolTip.Enable(True)
+        wx.ToolTip.SetDelay(0)
+        self.SetToolTip('zaoyufeng sbsbsb')
         self.current_x = event.GetX()
         self.current_y = event.GetY()
         size = self.GetClientSize()
