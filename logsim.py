@@ -12,6 +12,8 @@ Graphical user interface: logsim.py <file path>
 """
 import getopt
 import sys
+import gettext
+import os
 
 import wx
 
@@ -62,16 +64,6 @@ def main(arg_list):
 
     if not options:  # no option given, use the graphical user interface
 
-        # if len(arguments) != 1:  # wrong number of arguments
-        #     print("Error: one file path required\n")
-        #     print(usage_message)
-        #     sys.exit()
-
-        # [path] = arguments
-        # scanner = Scanner(path, names)
-        # parser = Parser(names, devices, network, monitors, scanner)
-        # if parser.parse_network():
-            # Initialise an instance of the gui.Gui() class
         app = wx.App()
         gui = Gui("Logic Simulator", names, devices, network,
                   monitors)
@@ -80,4 +72,10 @@ def main(arg_list):
 
 
 if __name__ == "__main__":
+    basepath = os.path.abspath(os.path.dirname(sys.argv[0]))
+    localedir = os.path.join(basepath, "locale")
+    gettext.install('gui', localedir)
+    mytranslation = gettext.translation('en', localedir, fallback=True)
+    mytranslation.install()
+
     main(sys.argv[1:])

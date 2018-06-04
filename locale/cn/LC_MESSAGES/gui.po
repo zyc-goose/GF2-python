@@ -1,0 +1,677 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2018-06-03 00:14+0100\n"
+"PO-Revision-Date: 2018-06-03 00:19+0100\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 2.0.7\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-Basepath: ../../..\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: gui.py:181
+msgid "Page: "
+msgstr "页码: "
+
+#: gui.py:201
+msgid "Canvas redrawn on paint event, size is "
+msgstr "监测到画图事件,画布重画,新尺寸为 "
+
+#: gui.py:229
+msgid "Mouse double clicked"
+msgstr "鼠标双击"
+
+#: gui.py:239
+msgid "Mouse button pressed at: "
+msgstr "鼠标按下位置: "
+
+#: gui.py:244
+msgid "Mouse button released at: "
+msgstr "鼠标松开位置: "
+
+#: gui.py:247
+msgid "Mouse left canvas at: "
+msgstr "鼠标离开画布于: "
+
+#: gui.py:254
+msgid "Negative mouse wheel rotation. Zoom is now: "
+msgstr "鼠标滚轮负向滚动,新动物园为: "
+
+#: gui.py:261
+msgid "Positive mouse wheel rotation. Zoom is now: "
+msgstr "鼠标滚轮正向滚动,新动物园为: "
+
+#: gui.py:466
+msgid "empty"
+msgstr "空空如也"
+
+#: gui.py:584
+msgid "cycle: "
+msgstr "轮回: "
+
+#: gui.py:585
+msgid "port: "
+msgstr "港口: "
+
+#: gui.py:586
+msgid "value: "
+msgstr "价值:"
+
+#: gui.py:699 gui.py:928
+msgid "&About\tCTRL+A"
+msgstr "&关于\tCTRL+A"
+
+#: gui.py:700 gui.py:929
+msgid "&Open\tCTRL+N"
+msgstr "&打开\tCTRL+N"
+
+#: gui.py:701 gui.py:930
+msgid "&Language\tCTRL+L"
+msgstr ""
+
+#: gui.py:702 gui.py:931
+msgid "&Exit\tCTRL+Q"
+msgstr "&退出\tCTRL+Q"
+
+#: gui.py:703 gui.py:932
+msgid "&Help\tCTRL+H"
+msgstr "&帮助\tCTRL+H"
+
+#: gui.py:704 gui.py:933 gui.py:1236
+msgid "&File"
+msgstr "&文件"
+
+#: gui.py:705 gui.py:934
+msgid "&Help"
+msgstr "&帮助"
+
+#: gui.py:720 gui.py:911
+msgid "Cycles"
+msgstr "周期"
+
+#: gui.py:722 gui.py:910 locale/trans.py:18 trans.py:29
+msgid "Run"
+msgstr "运行"
+
+#: gui.py:723 gui.py:915
+msgid "Add"
+msgstr "添加"
+
+#: gui.py:726 gui.py:912 gui.py:1072
+msgid "Monitors"
+msgstr "监视器"
+
+#: gui.py:727 gui.py:916
+msgid "Add/Delete Monitor"
+msgstr "添加/删除监视器"
+
+#: gui.py:730 gui.py:734 gui.py:913 gui.py:919 gui.py:1209
+msgid "Switches"
+msgstr "开关"
+
+#: gui.py:735 gui.py:922 gui.py:1210
+msgid "Values"
+msgstr "值"
+
+#: gui.py:741 gui.py:914
+msgid "Zoom in/out"
+msgstr "放大/缩小"
+
+#: gui.py:747 gui.py:925
+msgid "Prev Page"
+msgstr "上一页"
+
+#: gui.py:748 gui.py:926
+msgid "Next Page"
+msgstr "下一页"
+
+#: gui.py:751 gui.py:927
+msgid "Goto"
+msgstr "前往"
+
+#: gui.py:854
+msgid "File Conatins Error, See Terminal"
+msgstr "文件包含错误,参见终端"
+
+#: gui.py:854
+msgid "Please confirm"
+msgstr "我偷偷把安德鲁姬和提摩西爱的名字放在这里应该没人会发现吧"
+
+#: gui.py:859
+msgid "Open definition file"
+msgstr "打开定义文件"
+
+#: gui.py:885
+msgid ""
+"Logic Simulator\n"
+"Team 4 Version\n"
+"2018"
+msgstr ""
+"逻辑电路模拟器\n"
+"木叶第四班版本\n"
+"贰零壹捌"
+
+#: gui.py:886
+msgid "About Logsim"
+msgstr "关于老哥死么"
+
+#: gui.py:893
+msgid "Definition Description"
+msgstr "意毕恩艾父定义"
+
+#: gui.py:896
+msgid "Do you want to use Chinese Version?"
+msgstr "你是否要留在汉语模式？"
+
+#: gui.py:898
+msgid "Language"
+msgstr "语言"
+
+#: gui.py:939
+msgid "New spin control value: "
+msgstr "新周期控制数值"
+
+#: gui.py:982
+msgid "Run button pressed."
+msgstr "按下运行键"
+
+#: gui.py:985
+msgid "DEVICE \""
+msgstr "装置 \""
+
+#: gui.py:985
+msgid "\" is oscillatory!"
+msgstr "\" 振荡"
+
+#: gui.py:996
+msgid "New text box value: "
+msgstr "新吉斯哇一次摸喜多次"
+
+#: gui.py:1008
+msgid "Press Run Button First!"
+msgstr "请先按运行键"
+
+#: gui.py:1010
+msgid "Continue Button Pressed"
+msgstr "按下继续键"
+
+#: gui.py:1037
+msgid "Successfully set switches."
+msgstr "成功设置开关"
+
+#: gui.py:1039
+msgid "Error! Invalid switch."
+msgstr "错误! 无效的开关"
+
+#: gui.py:1049 gui.py:1056
+msgid "Warning! Still have uncompleted cycles!"
+msgstr "警告! 仍有未完成的周期"
+
+#: gui.py:1170
+msgid "Turn to Next Page"
+msgstr "翻到下一页"
+
+#: gui.py:1176
+msgid "Go to page: "
+msgstr "前往页码: "
+
+#: gui.py:1234
+#, fuzzy
+#| msgid "&Exit\tAlt-X"
+msgid "E&xit\tAlt-X"
+msgstr "&退出\tAlt-x"
+
+#: gui.py:1234
+msgid "Close window and exit program."
+msgstr "关闭窗口并退出程序"
+
+#: gui.py:1245
+msgid "Select Signal"
+msgstr "选择信号"
+
+#: gui.py:1252
+msgid "Monitored"
+msgstr "已监控"
+
+#: gui.py:1253
+msgid "Unmonitored"
+msgstr "未监控"
+
+#: gui.py:1270
+msgid "ADD"
+msgstr "添加"
+
+#: gui.py:1271
+msgid "DELETE"
+msgstr "删除"
+
+#: gui.py:1272
+msgid "CLOSE"
+msgstr "关闭"
+
+#: gui.py:1314
+msgid "Successfully made monitor."
+msgstr "添加监视器成功"
+
+#: gui.py:1320
+msgid "Error! Could not make monitor: "
+msgstr "错误! 并不能添加监视器"
+
+#: gui.py:1340
+msgid "Successfully zapped monitor"
+msgstr "成功删除监视器"
+
+#: gui.py:1346
+msgid "Error! Could not zap monitor: "
+msgstr "错误! 并删不了监视器"
+
+#: parse.py:167
+msgid "***Syntax Error: Invalid character"
+msgstr "*** 语法错误: 非法字符"
+
+#: parse.py:168
+msgid "***Syntax Error: Unterminated /* comment"
+msgstr "***语法错误: 未终止的/*评论"
+
+#: parse.py:169
+msgid "***Syntax Error: Number has too many leading zeros"
+msgstr "***语法错误: 数字以零开始"
+
+#: parse.py:170
+#, python-brace-format
+msgid "***Semantic Error: Device '{symbol_name}' is already defined"
+msgstr "***语义错误: 装置'{symbol_name}'已被定义"
+
+#: parse.py:171
+msgid "***Syntax Error: Expected device type after 'is'/'are'"
+msgstr "***语法错误: 期盼着设备类型在'is'/'are'之后"
+
+#: parse.py:172
+#, python-brace-format
+msgid "***Semantic Error: Device '{symbol_name}' is not defined"
+msgstr "***语义错误: 装置'{symbol_name}'未被定义"
+
+#: parse.py:173
+msgid "***Syntax Error: Device list is empty"
+msgstr "***语法错误: 装置列表为空"
+
+#: parse.py:174
+msgid "***Semantic Error: File is empty"
+msgstr "***语义错误: 文件为空"
+
+#: parse.py:175
+msgid "***Syntax Error: Monitor list is empty"
+msgstr "***语法错误: 监视器列表为空"
+
+#: parse.py:176
+msgid "***Syntax Error: Statement is empty"
+msgstr "***语法错误: 空语句"
+
+#: parse.py:177
+msgid ""
+"***Syntax Error: Expected a device terminal name (device_name + port_name)"
+msgstr ""
+"***语法错误: 盼望着,盼望着,东风来了,春天脚步近了,你也不要忘记写端口名字哦么"
+"么哒 (devoce_name + port_name)"
+
+#: parse.py:178
+msgid "***Syntax Error: Expected keyword 'is'/'are'"
+msgstr "***语法错误: 应为关键词'is'/'are'"
+
+#: parse.py:179
+msgid "***Syntax Error: Expected keyword 'to'"
+msgstr "***语法错误: 应为关键词'to'"
+
+#: parse.py:180
+msgid "***Syntax Error: Expected left parenthesis '('"
+msgstr "***语法错误: 应为左括号'('"
+
+#: parse.py:181
+#, python-brace-format
+msgid ""
+"***Syntax Error: Expected no qualifier for the device type '{device_type}'"
+msgstr ""
+"***语法错误: 这个类型的装置是不应该有参数的,你猜是哪个类型'{device_type}'"
+
+#: parse.py:182
+msgid "***Syntax Error: Expected a valid port name after '.'"
+msgstr "***语法错误: '.'后面应该是一个有效的端口名"
+
+#: parse.py:183
+msgid "***Semantic Error: DTYPE device should have a port name"
+msgstr "***语义错误: D触发器应有端口名称"
+
+#: parse.py:184
+#, python-brace-format
+msgid ""
+"***Syntax Error: Expected a qualifier for the device type '{device_type}'"
+msgstr "***语法错误: '{device_type}'这个类型的设备是要有参数的小傻子"
+
+#: parse.py:185
+msgid "***Syntax Error: Expected right parenthesis ')'"
+msgstr "***语法错误: 下面应该是右括号'('出场了"
+
+#: parse.py:186
+#, python-brace-format
+msgid ""
+"***Semantic Error: Input '{input_name}' is already connected to output "
+"'{output_name}'"
+msgstr "***语义错误: 输入'{input_name}'已经与其他输出相恋'{output_name}'"
+
+#: parse.py:187
+msgid "***Semantic Error: Attempt to connect two inputs"
+msgstr "***语义错误: 试图连接两个输入"
+
+#: parse.py:188
+msgid "***Semantic Error: Some input ports are not connected to any outputs"
+msgstr "***语义错误: 存在输入端口未于输出连接"
+
+#: parse.py:189
+#, python-brace-format
+msgid "***Syntax Error: Invalid device name '{symbol_name}'"
+msgstr "***语法错误: 非法装置名称'{symbol_name}'"
+
+#: parse.py:190
+#, python-brace-format
+msgid "***Syntax Error: Invalid device type '{device_type}'"
+msgstr "***语法错误: 非法装置类型'{device_type}'"
+
+#: parse.py:191
+#, python-brace-format
+msgid ""
+"***Syntax Error: Invalid function '{symbol_name}', please specify 'DEVICE', "
+"'CONNECT' or 'MONITOR'"
+msgstr ""
+"***语法错误: 无效函数 '{symbol_name}'，只能是低外死，康奈科特和监视器这三"
+"个，不能用其他的"
+
+#: parse.py:192
+#, python-brace-format
+msgid ""
+"***Semantic Error: Invalid port name '{port_name}' for the device "
+"'{device_name}' ({device_type_full})"
+msgstr ""
+"***语法错误: 无效的端口名'{port_name}',装置"
+"为'{device_name}' ({device_type_full})"
+
+#: parse.py:193
+#, python-brace-format
+msgid ""
+"***Semantic Error: Invalid qualifier for the device type '{device_type}'"
+msgstr "***语义错误: 无效参数为了设备类型'{device_type}'"
+
+#: parse.py:194
+#, python-brace-format
+msgid "***Syntax Error: Can't use keyword '{symbol_name}' as device name"
+msgstr "***语法错误: 不能拿关键字'{symbol_name}'当设备名"
+
+#: parse.py:195
+msgid "***Semantic Error: Attempt to monitor an input"
+msgstr "***语义错误: 傻逼别看输入"
+
+#: parse.py:196
+#, python-brace-format
+msgid ""
+"***Semantic Error: Monitor already exists for the signal '{terminal_name}'"
+msgstr "***语义错误: 傻逼你已经看了这个信号了'{terminal_name}'"
+
+#: parse.py:197
+msgid "***Semantic Error: Attempt to connect two outputs"
+msgstr "***语义错误: 试图连接两个输出"
+
+#: parse.py:682
+#, python-format
+msgid ""
+"\n"
+"[ERROR #%d]"
+msgstr ""
+"\n"
+"[傻逼#%d]"
+
+#: parse.py:683
+msgid "In File \""
+msgstr "在文件 \\"
+
+#: parse.py:683
+msgid "\", line "
+msgstr "\", 行号"
+
+#: parse.py:700
+msgid "Previous definition here, in line"
+msgstr ""
+"大腿说你已经定义过了呀,你再这么蠢大腿要生气了,大腿可是最可爱的小天使呢,你看"
+"就在这行"
+
+#: parse.py:710
+msgid "Previous connection here, in line"
+msgstr ""
+"大腿说你已经连过了呀,你再这么蠢大腿要生气了,大腿可是最可爱的小天使呢,你看就"
+"在这行"
+
+#: pygettext.py:23
+#, python-format
+msgid ""
+"pygettext -- Python equivalent of xgettext(1)\n"
+"\n"
+"Many systems (Solaris, Linux, Gnu) provide extensive tools that ease the\n"
+"internationalization of C programs. Most of these tools are independent of\n"
+"the programming language and can be used from within Python programs.\n"
+"Martin von Loewis' work[1] helps considerably in this regard.\n"
+"\n"
+"There's one problem though; xgettext is the program that scans source code\n"
+"looking for message strings, but it groks only C (or C++). Python\n"
+"introduces a few wrinkles, such as dual quoting characters, triple quoted\n"
+"strings, and raw strings. xgettext understands none of this.\n"
+"\n"
+"Enter pygettext, which uses Python's standard tokenize module to scan\n"
+"Python source code, generating .pot files identical to what GNU "
+"xgettext[2]\n"
+"generates for C and C++ code. From there, the standard GNU tools can be\n"
+"used.\n"
+"\n"
+"A word about marking Python strings as candidates for translation. GNU\n"
+"xgettext recognizes the following keywords: gettext, dgettext, dcgettext,\n"
+"and gettext_noop. But those can be a lot of text to include all over your\n"
+"code. C and C++ have a trick: they use the C preprocessor. Most\n"
+"internationalized C source includes a #define for gettext() to _() so that\n"
+"what has to be written in the source is much less. Thus these are both\n"
+"translatable strings:\n"
+"\n"
+"    gettext(\"Translatable String\")\n"
+"    _(\"Translatable String\")\n"
+"\n"
+"Python of course has no preprocessor so this doesn't work so well.  Thus,\n"
+"pygettext searches only for _() by default, but see the -k/--keyword flag\n"
+"below for how to augment this.\n"
+"\n"
+" [1] http://www.python.org/workshops/1997-10/proceedings/loewis.html\n"
+" [2] http://www.gnu.org/software/gettext/gettext.html\n"
+"\n"
+"NOTE: pygettext attempts to be option and feature compatible with GNU\n"
+"xgettext where ever possible. However some options are still missing or "
+"are\n"
+"not fully implemented. Also, xgettext's use of command line switches with\n"
+"option arguments is broken, and in these cases, pygettext just defines\n"
+"additional switches.\n"
+"\n"
+"Usage: pygettext [options] inputfile ...\n"
+"\n"
+"Options:\n"
+"\n"
+"    -a\n"
+"    --extract-all\n"
+"        Extract all strings.\n"
+"\n"
+"    -d name\n"
+"    --default-domain=name\n"
+"        Rename the default output file from messages.pot to name.pot.\n"
+"\n"
+"    -E\n"
+"    --escape\n"
+"        Replace non-ASCII characters with octal escape sequences.\n"
+"\n"
+"    -D\n"
+"    --docstrings\n"
+"        Extract module, class, method, and function docstrings.  These do\n"
+"        not need to be wrapped in _() markers, and in fact cannot be for\n"
+"        Python to consider them docstrings. (See also the -X option).\n"
+"\n"
+"    -h\n"
+"    --help\n"
+"        Print this help message and exit.\n"
+"\n"
+"    -k word\n"
+"    --keyword=word\n"
+"        Keywords to look for in addition to the default set, which are:\n"
+"        %(DEFAULTKEYWORDS)s\n"
+"\n"
+"        You can have multiple -k flags on the command line.\n"
+"\n"
+"    -K\n"
+"    --no-default-keywords\n"
+"        Disable the default set of keywords (see above).  Any keywords\n"
+"        explicitly added with the -k/--keyword option are still "
+"recognized.\n"
+"\n"
+"    --no-location\n"
+"        Do not write filename/lineno location comments.\n"
+"\n"
+"    -n\n"
+"    --add-location\n"
+"        Write filename/lineno location comments indicating where each\n"
+"        extracted string is found in the source.  These lines appear "
+"before\n"
+"        each msgid.  The style of comments is controlled by the -S/--style\n"
+"        option.  This is the default.\n"
+"\n"
+"    -o filename\n"
+"    --output=filename\n"
+"        Rename the default output file from messages.pot to filename.  If\n"
+"        filename is `-' then the output is sent to standard out.\n"
+"\n"
+"    -p dir\n"
+"    --output-dir=dir\n"
+"        Output files will be placed in directory dir.\n"
+"\n"
+"    -S stylename\n"
+"    --style stylename\n"
+"        Specify which style to use for location comments.  Two styles are\n"
+"        supported:\n"
+"\n"
+"        Solaris  # File: filename, line: line-number\n"
+"        GNU      #: filename:line\n"
+"\n"
+"        The style name is case insensitive.  GNU style is the default.\n"
+"\n"
+"    -v\n"
+"    --verbose\n"
+"        Print the names of the files being processed.\n"
+"\n"
+"    -V\n"
+"    --version\n"
+"        Print the version of pygettext and exit.\n"
+"\n"
+"    -w columns\n"
+"    --width=columns\n"
+"        Set width of output to columns.\n"
+"\n"
+"    -x filename\n"
+"    --exclude-file=filename\n"
+"        Specify a file that contains a list of strings that are not be\n"
+"        extracted from the input files.  Each string to be excluded must\n"
+"        appear on a line by itself in the file.\n"
+"\n"
+"    -X filename\n"
+"    --no-docstrings=filename\n"
+"        Specify a file that contains a list of files (one per line) that\n"
+"        should not have their docstrings extracted.  This is only useful "
+"in\n"
+"        conjunction with the -D option above.\n"
+"\n"
+"If `inputfile' is -, standard input is read.\n"
+msgstr ""
+
+#: pygettext.py:179
+#, python-format
+msgid ""
+"# SOME DESCRIPTIVE TITLE.\n"
+"# Copyright (C) YEAR ORGANIZATION\n"
+"# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.\n"
+"#\n"
+"msgid \"\"\n"
+"msgstr \"\"\n"
+"\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
+"\"POT-Creation-Date: %(time)s\\n\"\n"
+"\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
+"\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
+"\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
+"\"MIME-Version: 1.0\\n\"\n"
+"\"Content-Type: text/plain; charset=CHARSET\\n\"\n"
+"\"Content-Transfer-Encoding: ENCODING\\n\"\n"
+"\"Generated-By: pygettext.py %(version)s\\n\"\n"
+"\n"
+msgstr ""
+
+#: pygettext.py:427
+#, python-format
+msgid "*** %(file)s:%(lineno)s: Seen unexpected token \"%(token)s\""
+msgstr ""
+
+#: pygettext.py:478
+#, python-format
+msgid "# File: %(filename)s, line: %(lineno)d"
+msgstr ""
+
+#: pygettext.py:485
+#, python-format
+msgid " %(filename)s:%(lineno)d"
+msgstr ""
+
+#: pygettext.py:562
+#, python-format
+msgid "Invalid value for --style: %s"
+msgstr ""
+
+#: pygettext.py:570
+#, python-format
+msgid "pygettext.py (xgettext for Python) %s"
+msgstr ""
+
+#: pygettext.py:576
+#, python-format
+msgid "--width argument must be an integer: %s"
+msgstr ""
+
+#: pygettext.py:604
+#, python-format
+msgid "Can't read --exclude-file: %s"
+msgstr ""
+
+#: pygettext.py:623
+msgid "Reading standard input"
+msgstr ""
+
+#: pygettext.py:628
+#, python-format
+msgid "Working on %s"
+msgstr ""
+
+#: pygettext.py:664
+#, python-format
+msgid "*** Seen unexpected token \"%(token)s\""
+msgstr ""
+
+#: pygettext.py:665
+msgid "morethanonestring"
+msgstr ""

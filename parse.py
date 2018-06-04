@@ -164,39 +164,40 @@ class Parser:
 
         self.errormsg = {
             self.NO_ERROR                      : "NO_ERROR",
-            self.BAD_CHARACTER                 : "***Syntax Error: Invalid character",
-            self.BAD_COMMENT                   : "***Syntax Error: Unterminated /* comment",
-            self.BAD_NUMBER                    : "***Syntax Error: Number has too many leading zeros",
-            self.DEVICE_REDEFINED              : "***Semantic Error: Device '{symbol_name}' is already defined",
-            self.DEVICE_TYPE_ABSENT            : "***Syntax Error: Expected device type after 'is'/'are'",
-            self.DEVICE_UNDEFINED              : "***Semantic Error: Device '{symbol_name}' is not defined",
-            self.EMPTY_DEVICE_LIST             : "***Syntax Error: Device list is empty",
-            self.EMPTY_FILE                    : "***Semantic Error: File is empty",
-            self.EMPTY_MONITOR_LIST            : "***Syntax Error: Monitor list is empty",
-            self.EMPTY_STATEMENT               : "***Syntax Error: Statement is empty",
-            self.EXPECT_DEVICE_TERMINAL_NAME   : "***Syntax Error: Expected a device terminal name (device_name + port_name)",
-            self.EXPECT_KEYWORD_IS_ARE         : "***Syntax Error: Expected keyword 'is'/'are'",
-            self.EXPECT_KEYWORD_TO             : "***Syntax Error: Expected keyword 'to'",
-            self.EXPECT_LEFT_PAREN             : "***Syntax Error: Expected left parenthesis '('",
-            self.EXPECT_NO_QUALIFIER           : "***Syntax Error: Expected no qualifier for the device type '{device_type}'",
-            self.EXPECT_PORT_NAME              : "***Syntax Error: Expected a valid port name after '.'",
-            self.EXPECT_PORT_NAME_DTYPE        : "***Semantic Error: DTYPE device should have a port name",
-            self.EXPECT_QUALIFIER              : "***Syntax Error: Expected a qualifier for the device type '{device_type}'",
-            self.EXPECT_RIGHT_PAREN            : "***Syntax Error: Expected right parenthesis ')'",
-            self.INPUT_CONNECTED               : "***Semantic Error: Input '{input_name}' is already connected to output '{output_name}'",
-            self.INPUT_TO_INPUT                : "***Semantic Error: Attempt to connect two inputs",
-            self.INPUT_UNCONNECTED             : "***Semantic Error: Some input ports are not connected to any outputs",
-            self.INVALID_DEVICE_NAME           : "***Syntax Error: Invalid device name '{symbol_name}'",
-            self.INVALID_DEVICE_TYPE           : "***Syntax Error: Invalid device type '{device_type}'",
-            self.INVALID_FUNCTION_NAME         : "***Syntax Error: Invalid function '{symbol_name}', please specify 'DEVICE', 'CONNECT' or 'MONITOR'",
-            self.INVALID_PORT_NAME             : "***Semantic Error: Invalid port name '{port_name}' for the device '{device_name}' ({device_type_full})",
-            self.INVALID_QUALIFIER             : "***Semantic Error: Invalid qualifier for the device type '{device_type}'",
-            self.KEYWORD_AS_DEVICE_NAME        : "***Syntax Error: Can't use keyword '{symbol_name}' as device name",
-            self.MONITOR_NOT_OUTPUT            : "***Semantic Error: Attempt to monitor an input",
-            self.MONITOR_PRESENT               : "***Semantic Error: Monitor already exists for the signal '{terminal_name}'",
-            self.OUTPUT_TO_OUTPUT              : "***Semantic Error: Attempt to connect two outputs"
+            self.BAD_CHARACTER                 : _("***Syntax Error: Invalid character"),
+            self.BAD_COMMENT                   : _("***Syntax Error: Unterminated /* comment"),
+            self.BAD_NUMBER                    : _("***Syntax Error: Number has too many leading zeros"),
+            self.DEVICE_REDEFINED              : _("***Semantic Error: Device '{symbol_name}' is already defined"),
+            self.DEVICE_TYPE_ABSENT            : _("***Syntax Error: Expected device type after 'is'/'are'"),
+            self.DEVICE_UNDEFINED              : _("***Semantic Error: Device '{symbol_name}' is not defined"),
+            self.EMPTY_DEVICE_LIST             : _("***Syntax Error: Device list is empty"),
+            self.EMPTY_FILE                    : _("***Semantic Error: File is empty"),
+            self.EMPTY_MONITOR_LIST            : _("***Syntax Error: Monitor list is empty"),
+            self.EMPTY_STATEMENT               : _("***Syntax Error: Statement is empty"),
+            self.EXPECT_DEVICE_TERMINAL_NAME   : _("***Syntax Error: Expected a device terminal name (device_name + port_name)"),
+            self.EXPECT_KEYWORD_IS_ARE         : _("***Syntax Error: Expected keyword 'is'/'are'"),
+            self.EXPECT_KEYWORD_TO             : _("***Syntax Error: Expected keyword 'to'"),
+            self.EXPECT_LEFT_PAREN             : _("***Syntax Error: Expected left parenthesis '('"),
+            self.EXPECT_NO_QUALIFIER           : _("***Syntax Error: Expected no qualifier for the device type '{device_type}'"),
+            self.EXPECT_PORT_NAME              : _("***Syntax Error: Expected a valid port name after '.'"),
+            self.EXPECT_PORT_NAME_DTYPE        : _("***Semantic Error: DTYPE device should have a port name"),
+            self.EXPECT_QUALIFIER              : _("***Syntax Error: Expected a qualifier for the device type '{device_type}'"),
+            self.EXPECT_RIGHT_PAREN            : _("***Syntax Error: Expected right parenthesis ')'"),
+            self.INPUT_CONNECTED               : _("***Semantic Error: Input '{input_name}' is already connected to output '{output_name}'"),
+            self.INPUT_TO_INPUT                : _("***Semantic Error: Attempt to connect two inputs"),
+            self.INPUT_UNCONNECTED             : _("***Semantic Error: Some input ports are not connected to any outputs"),
+            self.INVALID_DEVICE_NAME           : _("***Syntax Error: Invalid device name '{symbol_name}'"),
+            self.INVALID_DEVICE_TYPE           : _("***Syntax Error: Invalid device type '{device_type}'"),
+            self.INVALID_FUNCTION_NAME         : _("***Syntax Error: Invalid function '{symbol_name}', please specify 'DEVICE', 'CONNECT' or 'MONITOR'"),
+            self.INVALID_PORT_NAME             : _("***Semantic Error: Invalid port name '{port_name}' for the device '{device_name}' ({device_type_full})"),
+            self.INVALID_QUALIFIER             : _("***Semantic Error: Invalid qualifier for the device type '{device_type}'"),
+            self.KEYWORD_AS_DEVICE_NAME        : _("***Syntax Error: Can't use keyword '{symbol_name}' as device name"),
+            self.MONITOR_NOT_OUTPUT            : _("***Semantic Error: Attempt to monitor an input"),
+            self.MONITOR_PRESENT               : _("***Semantic Error: Monitor already exists for the signal '{terminal_name}'"),
+            self.OUTPUT_TO_OUTPUT              : _("***Semantic Error: Attempt to connect two outputs")
         }
         self.errormsg_format_dict = {} # used for str.format(**dict)
+        self.message = ''
 
         self.error_code = self.NO_ERROR
         self.error_count = 0
@@ -223,11 +224,13 @@ class Parser:
             'AND'    : devices.AND,
             'NAND'   : devices.NAND,
             'OR'     : devices.OR,
-            'NOR'    : devices.NOR
+            'NOR'    : devices.NOR,
+            'RC'     : devices.RC
         }
         self.device_no_qualifier = {
             'DTYPE'  : devices.D_TYPE,
-            'XOR'    : devices.XOR
+            'XOR'    : devices.XOR,
+            'NOT'    : devices.NOT
         }
 
     def move_to_next_symbol(self):
@@ -677,17 +680,26 @@ class Parser:
             return True
         ###TEST END###
         indent = ' '*2
-        print('\n[ERROR #%d]' % (self.error_count))
-        print('In File "'+self.scanner.input_file.name+'", line '\
+        print(_('\n[ERROR #%d]') % (self.error_count))
+        print(_('In File "')+self.scanner.input_file.name+_('", line ')\
             + str(line_number))
         print(indent + current_line)
         print(indent + ' '*(error_position-1) + '^')
         print(self.errormsg[self.error_code].format(**self.errormsg_format_dict))
-        self.error_additional_info()
+        message = _('\n[ERROR #%d]') % (self.error_count) + '\n'
+        message = message + _('In File "')+self.scanner.input_file.name+_('", line ')\
+            + str(line_number) + '\n'
+        message = message + indent + current_line + '\n'
+        message = message + indent + ' '*(error_position-1) + '^' + '\n'
+        message = message + self.errormsg[self.error_code].format(**self.errormsg_format_dict) + '\n'
+        additional_info = self.error_additional_info()
+        message = message + additional_info + '\n'
+        self.message += message
         return True
 
     def error_additional_info(self):
         """Add additional information to the error display."""
+        additional_info = ''
         indent = ' '*2
         if self.error_code in (self.DEVICE_REDEFINED, self.MONITOR_PRESENT):
             if self.error_code == self.DEVICE_REDEFINED:
@@ -695,20 +707,29 @@ class Parser:
             else:
                 location = self.monitor_locations[(self.device_id, self.port_id)]
             print('-----------------------------------------')
-            print('Previous definition here, in line', location.linum)
+            additional_info += '-----------------------------------------\n'
+            print(_('Previous definition here, in line'), location.linum)
+            additional_info = additional_info + _('Previous definition here, in line') + str(location.linum) + '\n'
             if location.linum < self.scanner.line_number:
                 line = self.scanner.previous_lines[location.linum]
             else:
                 line, pos = self.scanner.complete_current_line()
             print(indent + line)
+            additional_info = additional_info + indent + line + '\n'
             print(indent + ' '*(location.pos-1) + '^')
+            additional_info = additional_info + indent + ' '*(location.pos-1) + '^' + '\n'
         elif self.error_code == self.INPUT_CONNECTED:
             location = self.connect_locations[(self.device_id, self.port_id)]
             print('-----------------------------------------')
-            print('Previous connection here, in line', location.linum)
+            additional_info += '-----------------------------------------\n'
+            print(_('Previous connection here, in line'), location.linum)
+            additional_info = additional_info + _('Previous connection here, in line') + str(location.linum) + '\n'
             if location.linum < self.scanner.line_number:
                 line = self.scanner.previous_lines[location.linum]
             else:
                 line, pos = self.scanner.complete_current_line()
             print(indent + line)
+            additional_info = additional_info + indent + line + '\n'
             print(indent + ' '*(location.pos-1) + '^')
+            additional_info = additional_info + indent + ' '*(location.pos-1) + '^' + '\n'
+        return additional_info
