@@ -316,7 +316,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
     def on_key(self, event):
         """Read and process keyboard input"""
         key_code = event.GetKeyCode()
-        text = 'Keyboard Input'
+        text = _('Keyboard Input')
 
         if (key_code in (wx.WXK_LEFT, wx.WXK_RIGHT)) \
                 and (self.signal_width > self.parent.full_width):
@@ -862,7 +862,7 @@ class Gui(wx.Frame):
         self.menuBar = wx.MenuBar()
         fileMenu.Append(wx.ID_ABOUT, _("&About"))
         fileMenu.Append(wx.ID_OPEN, _("&Open"))
-        fileMenu.Append(wx.ID_PREFERENCES, _("&Language\tCtrl+L"))
+        fileMenu.Append(wx.ID_PREFERENCES, _("&Language"))
         fileMenu.Append(wx.ID_EXIT, _("&Exit"))
         helpMenu.Append(wx.ID_HELP, _("&Help"))
         self.menuBar.Append(fileMenu, _("&File"))
@@ -1089,15 +1089,14 @@ class Gui(wx.Frame):
                 mytranslation.install()
                 self.reset_all_labels()
             else:
-                mytranslation = gettext.translation('gui',
-                                                    self.localedir,
-                                                    fallback=True)
+                mytranslation = gettext.NullTranslations()
                 self.language = 0
                 mytranslation.install()
                 self.reset_all_labels()
 
     def reset_all_labels(self):
         """Reset all labels when changing language"""
+        self.SetTitle(_("Logic Simulator"))
         self.run_button.SetLabel(_('Run'))
         self.text.SetLabel(_("Cycles"))
         self.text2.SetLabel(_("Monitors"))
@@ -1116,11 +1115,11 @@ class Gui(wx.Frame):
         self.prev_button.SetLabel(_("Prev Page"))
         self.next_button.SetLabel(_("Next Page"))
         self.goto_button.SetLabel(_("Goto"))
-        self.menuBar.SetLabel(wx.ID_ABOUT, _("&About\tCTRL+A"))
-        self.menuBar.SetLabel(wx.ID_OPEN, _("&Open\tCTRL+N"))
-        self.menuBar.SetLabel(wx.ID_PREFERENCES, _("&Language\tCTRL+L"))
-        self.menuBar.SetLabel(wx.ID_EXIT, _("&Exit\tCTRL+Q"))
-        self.menuBar.SetLabel(wx.ID_HELP, _("&Help\tCTRL+H"))
+        self.menuBar.SetLabel(wx.ID_ABOUT, _("&About"))
+        self.menuBar.SetLabel(wx.ID_OPEN, _("&Open"))
+        self.menuBar.SetLabel(wx.ID_PREFERENCES, _("&Language"))
+        self.menuBar.SetLabel(wx.ID_EXIT, _("&Exit"))
+        self.menuBar.SetLabel(wx.ID_HELP, _("&Help"))
         self.menuBar.SetMenuLabel(0, _("&File"))
         self.menuBar.SetMenuLabel(1, _("&Help"))
 
