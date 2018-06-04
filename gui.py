@@ -18,7 +18,6 @@ import gettext
 import locale
 import os
 import sys
-import freetype
 import numpy
 
 from names import Names
