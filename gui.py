@@ -670,10 +670,6 @@ class Gui(wx.Frame):
         self.localedir = os.path.join(basepath, "locale")
         gettext.install('gui', self.localedir)
 
-        if language == 1:
-            mytranslation = gettext.translation('gui', localedir, ['cn'])
-            mytranslation.install()
-
         # Make objects local
         self.devices = devices
         self.network = network
@@ -907,11 +903,11 @@ class Gui(wx.Frame):
                           _("Language"), wx.ICON_INFORMATION | wx.YES_NO)
             result = box.ShowModal()
             if result == wx.ID_YES:
-                mytranslation = gettext.translation('gui', self.localedir, ['cn'])
+                mytranslation = gettext.translation('gui', self.localedir, ['zh_CN'])
                 mytranslation.install()
                 self.reset_all_labels()
             else:
-                mytranslation = gettext.translation('en', self.localedir, ['cn'])
+                mytranslation = gettext.translation('en', self.localedir, fallback=True)
                 mytranslation.install()
                 self.reset_all_labels()
 
