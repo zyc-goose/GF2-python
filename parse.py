@@ -732,4 +732,14 @@ class Parser:
             additional_info = additional_info + indent + line + '\n'
             print(indent + ' '*(location.pos-1) + '^')
             additional_info = additional_info + indent + ' '*(location.pos-1) + '^' + '\n'
+        elif self.error_code == self.DEVICE_UNDEFINED:
+            print('-----------------------------------------')
+            additional_info += '-----------------------------------------\n'
+            
+        
+        
+        
+        
+        
+        
         return additional_info
