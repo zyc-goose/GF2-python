@@ -64,20 +64,9 @@ def main(arg_list):
 
     if not options:  # no option given, use the graphical user interface
 
-        language_flag = 0
-        if len(arguments) == 1:  # wrong number of arguments
-            [language] = arguments
-            if language in ['Chinese', 'CN', 'CHINESE', 'chinese']:
-                language_flag = 1
-
-        # [path] = arguments
-        # scanner = Scanner(path, names)
-        # parser = Parser(names, devices, network, monitors, scanner)
-        # if parser.parse_network():
-            # Initialise an instance of the gui.Gui() class
         app = wx.App()
         gui = Gui("Logic Simulator", names, devices, network,
-                  monitors, language_flag)
+                  monitors)
         gui.Show(True)
         app.MainLoop()
 
@@ -86,4 +75,7 @@ if __name__ == "__main__":
     basepath = os.path.abspath(os.path.dirname(sys.argv[0]))
     localedir = os.path.join(basepath, "locale")
     gettext.install('gui', localedir)
+    mytranslation = gettext.translation('en', localedir, fallback=True)
+    mytranslation.install()
+
     main(sys.argv[1:])

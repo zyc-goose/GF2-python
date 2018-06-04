@@ -749,7 +749,7 @@ class Gui(wx.Frame):
         self.goto_button = wx.Button(self, wx.ID_ANY, _("Goto"))
         self.textbar = self.CreateStatusBar(2)
         self.textbar.SetStatusWidths([800, 200])
-        self.textbar.SetMinHeight(200)
+        self.textbar.SetMinHeight(20)
 
         # Scroll Bars
         self.full_width = 653
