@@ -41,6 +41,7 @@ class Device:
         self.clock_counter = None
         self.switch_state = None
         self.dtype_memory = None
+        self.RC_settling_time = None
 
 
 class Devices:
@@ -104,8 +105,8 @@ class Devices:
 
         self.devices_list = []
 
-        gate_strings = ["AND", "OR", "NAND", "NOR", "XOR"]
-        device_strings = ["CLOCK", "SWITCH", "DTYPE"]
+        gate_strings = ["AND", "OR", "NAND", "NOR", "XOR", "NOT"]
+        device_strings = ["CLOCK", "SWITCH", "DTYPE", "RC"]
         dtype_inputs = ["CLK", "SET", "CLEAR", "DATA"]
         dtype_outputs = ["Q", "QBAR"]
 
@@ -116,9 +117,9 @@ class Devices:
         self.signal_types = [self.LOW, self.HIGH, self.RISING,
                              self.FALLING, self.BLANK] = range(5)
         self.gate_types = [self.AND, self.OR, self.NAND, self.NOR,
-                           self.XOR] = self.names.lookup(gate_strings)
-        self.device_types = [self.CLOCK, self.SWITCH,
-                             self.D_TYPE] = self.names.lookup(device_strings)
+                           self.XOR, self.NOT] = self.names.lookup(gate_strings)
+        self.device_types = [self.CLOCK, self.SWITCH, self.D_TYPE,
+                             self.RC] = self.names.lookup(device_strings)
         self.dtype_input_ids = [self.CLK_ID, self.SET_ID, self.CLEAR_ID,
                                 self.DATA_ID] = self.names.lookup(dtype_inputs)
         self.dtype_output_ids = [
@@ -241,6 +242,17 @@ class Devices:
         device.clock_half_period = clock_half_period
         self.cold_startup()  # clock initialised to a random point in its cycle
 
+    def make_RC(self, device_id, RC_settling_time):
+        """Make an RC device with the specified settling time
+
+        RC_settling_time(n) is an integer > 0. The RC output starts with 1 when
+        powered up and settles to 0 after n cycles
+        """
+        self.add_device(device_id, self.RC)
+        device = self.get_device(device_id)
+        device.RC_settling_time = RC_settling_time
+        self.add_output(device_id, None, self.HIGH)  # initialised to HIGH
+
     def make_gate(self, device_id, device_kind, no_of_inputs):
         """Make logic gates with the specified number of inputs."""
         self.add_device(device_id, device_kind)
@@ -297,6 +309,15 @@ class Devices:
                 self.make_switch(device_id, device_property)
                 error_type = self.NO_ERROR
 
+        elif device_kind == self.RC:
+            if device_property is None:
+                error__type = self.NO_QUALIFIER
+            elif (device_property <= 0) or not isinstance(device_property, int):
+                error_type = self.INVALID_QUALIFIER
+            else:
+                self.make_RC(device_id, device_property)
+                error_type = self.NO_ERROR
+
         elif device_kind == self.CLOCK:
             # Device property is the clock half period > 0
             if device_property is None:
@@ -314,6 +335,12 @@ class Devices:
                     error_type = self.QUALIFIER_PRESENT
                 else:
                     self.make_gate(device_id, device_kind, 2)
+                    error_type = self.NO_ERROR
+            elif device_kind == self.NOT:
+                if device_property is not None:
+                    error_type = self.QUALIFIER_PRESENT
+                else:
+                    self.make_gate(device_id, device_kind, 1)
                     error_type = self.NO_ERROR
             else:  # other gates
                 if device_property is None:
