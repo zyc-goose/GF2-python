@@ -76,8 +76,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         self.init_parameters()
 
-        wx.ToolTip.SetDelay(0)
-
         # Bind events to the canvas
         self.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SIZE, self.on_size)
@@ -120,11 +118,11 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.SetCurrent(self.context)
 
         # Get image from current folder
-        im = Image.open('./graphics/hero.jpg')
+        im = Image.open('./graphics/infobox_cn.png')
         try:
-            ix, iy, image = im.size[0], im.size[1], im.tobytes("raw", "RGBX", 0, -1)
-        except SystemError:
             ix, iy, image = im.size[0], im.size[1], im.tobytes("raw", "RGBA", 0, -1)
+        except SystemError:
+            ix, iy, image = im.size[0], im.size[1], im.tobytes("raw", "RGBX", 0, -1)
 
         # generate a texture id, make it current
         self.texture = GL.glGenTextures(1)
@@ -143,7 +141,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                         GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, image)
 
     def init_gl(self):
-        # self.initTexture()
+        self.initTexture()
         """Configure and initialise the OpenGL context."""
         size = self.GetClientSize()
         self.SetCurrent(self.context)
@@ -215,9 +213,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def on_mouse(self, event):
         """Handle mouse events."""
-        wx.ToolTip.Enable(True)
-        wx.ToolTip.SetDelay(0)
-        self.SetToolTip('zaoyufeng sbsbsb')
         self.current_x = event.GetX()
         self.current_y = event.GetY()
         size = self.GetClientSize()
@@ -273,7 +268,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def on_key(self, event):
         key_code = event.GetKeyCode()
-        text = ''
+        text = 't'
 
         if (key_code in (wx.WXK_LEFT, wx.WXK_RIGHT)) and (self.signal_width > self.parent.full_width):
             full_width = self.parent.full_width
@@ -557,7 +552,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             stipple_y_top = strip_raise+(pos-1)*50
             if 0 < self.current_x < size.width - 1 \
                     and 1 <= current_cycle_num <= 60 \
-                    and stipple_y_bottom <= self.current_y - self.pan_y <= stipple_y_top:
+                    and stipple_y_bottom <= self.current_y - self.pan_y + offset <= stipple_y_top:
                 self.draw_vertical_stipple_line(stipple_y_bottom, stipple_y_top)
                 self.draw_info_box(infobox_cycle, infobox_port, infobox_value)
 
@@ -583,28 +578,33 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def draw_info_box(self, cycle, port, value):
         """Draw the MATLAB-like yellow info box which moves with mouse."""
+        self.draw_info_box_lang_cn(cycle, port, value)
+
+    def draw_info_box_lang_en(self, cycle, port, value):
+        """Draw the MATLAB-like yellow info box which moves with mouse.
+           For English mode."""
         hsep = 6.2
         vsep = 14
-        info1 = _('cycle: ') + str(cycle)
-        info2 = _('port: ') + str(port)
-        info3 = _('value: ') + str(value)
+        info1 = 'cycle: ' + str(cycle)
+        info2 = 'port: ' + str(port)
+        info3 = 'value: ' + str(value)
         rect_width = max(map(len, (info1, info2, info3)))*hsep + 4
         rect_height = 3*vsep + 4
         size = self.GetClientSize()
         if self.current_x + rect_width + 5 > size.width:  # left aligned
             x_pos = (self.current_x - self.pan_x + 3 - rect_width)/self.zoom
-            y_pos = self.current_y - self.pan_y + 6
+            y_pos = self.current_y - self.pan_y + 6 + offset
             rect_x_start = (self.current_x - self.pan_x - rect_width)/self.zoom
-            rect_y_start = self.current_y - self.pan_y
+            rect_y_start = self.current_y - self.pan_y + offset
             rect_x_end = (self.current_x - self.pan_x)/self.zoom
-            rect_y_end = self.current_y - self.pan_y + rect_height
+            rect_y_end = self.current_y - self.pan_y + rect_height + offset
         else:  # right aligned
             x_pos = (self.current_x - self.pan_x + 2)/self.zoom
-            y_pos = self.current_y - self.pan_y + 6
+            y_pos = self.current_y - self.pan_y + 6 + offset
             rect_x_start = (self.current_x - self.pan_x)/self.zoom
-            rect_y_start = self.current_y - self.pan_y
+            rect_y_start = self.current_y - self.pan_y + offset
             rect_x_end = (self.current_x - self.pan_x + rect_width)/self.zoom
-            rect_y_end = self.current_y - self.pan_y + rect_height
+            rect_y_end = self.current_y - self.pan_y + rect_height + offset
         self.draw_rect_background(rect_x_start, rect_y_start,
                                   rect_x_end, rect_y_end, [1, 0.98, 0.81])
         self.draw_rect_frame(rect_x_start, rect_y_start,
@@ -613,7 +613,29 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.render_text(info2, x_pos, y_pos + vsep)
         self.render_text(info3, x_pos, y_pos)
 
-    def texture_mapping(self):
+    def draw_info_box_lang_cn(self, cycle, port, value):
+        """Draw the MATLAB-like yellow info box which moves with mouse.
+           For Chinese mode (use texture mapping)."""
+        hsep = 6.2
+        vsep = 16.2
+        info1 = str(cycle)
+        info2 = str(port)
+        info3 = str(value)
+        box_height = 54
+        box_width = 76/46 * box_height
+        size = self.GetClientSize()
+        if self.current_x + box_width + 5 > size.width:
+            x_offset = box_width
+        else:
+            x_offset = 0
+        self.texture_mapping(x_offset)
+        x_pos = (self.current_x - self.pan_x + 40 - x_offset)/self.zoom
+        y_pos = self.current_y - self.pan_y + 7 + offset
+        self.render_text(info1, x_pos, y_pos + vsep*2)
+        self.render_text(info2, x_pos, y_pos + vsep)
+        self.render_text(info3, x_pos, y_pos)
+
+    def texture_mapping(self, x_offset):
         """draw function """
         self.SetCurrent(self.context)
         if not self.init:
@@ -625,17 +647,24 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glColor3f(1, 1, 1)
 
+        x_orig = (self.current_x - self.pan_x - x_offset) / self.zoom
+        y_orig = self.current_y - self.pan_y
+        #box_width = 116
+        #box_height = 70
+        box_height = 54
+        box_width = 76/46 * box_height
+
         # draw a quad
         size = self.GetClientSize()
         GL.glBegin(GL.GL_QUADS)
         GL.glTexCoord2f(0, 1)
-        GL.glVertex2f(0, size.height)
+        GL.glVertex2f(x_orig, y_orig + box_height)
         GL.glTexCoord2f(0, 0)
-        GL.glVertex2f(0, 0)
+        GL.glVertex2f(x_orig, y_orig)
         GL.glTexCoord2f(1, 0)
-        GL.glVertex2f(size.width, 0)
+        GL.glVertex2f(x_orig + box_width/self.zoom, y_orig)
         GL.glTexCoord2f(1, 1)
-        GL.glVertex2f(size.width, size.height)
+        GL.glVertex2f(x_orig + box_width/self.zoom, y_orig + box_height)
         GL.glEnd()
 
         GL.glDisable(GL.GL_TEXTURE_2D)
