@@ -5,8 +5,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2018-06-04 19:12+0100\n"
-"PO-Revision-Date: 2018-06-04 19:13+0100\n"
+"POT-Creation-Date: 2018-06-04 22:54+0100\n"
+"PO-Revision-Date: 2018-06-04 22:54+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: zh\n"
@@ -20,115 +20,119 @@ msgstr ""
 "X-Poedit-Basepath: ../../..\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: gui.py:220
+#: gui.py:227
 msgid "Page: "
 msgstr "页码: "
 
-#: gui.py:238
+#: gui.py:246
 msgid "Canvas redrawn on paint event, size is "
 msgstr "监测到画图事件,画布重画,新尺寸为 "
 
-#: gui.py:266
+#: gui.py:274
 msgid "Mouse double clicked"
 msgstr "鼠标双击"
 
-#: gui.py:276
+#: gui.py:285
 msgid "Mouse button pressed at: "
 msgstr "鼠标按下位置: "
 
-#: gui.py:281
+#: gui.py:290
 msgid "Mouse button released at: "
 msgstr "鼠标松开位置: "
 
-#: gui.py:284
+#: gui.py:293
 msgid "Mouse left canvas at: "
 msgstr "鼠标离开画布于: "
 
-#: gui.py:291
+#: gui.py:300
 msgid "Negative mouse wheel rotation. Zoom is now: "
 msgstr "鼠标滚轮负向滚动,新缩放为: "
 
-#: gui.py:298
+#: gui.py:307
 msgid "Positive mouse wheel rotation. Zoom is now: "
 msgstr "鼠标滚轮正向滚动,新缩放为: "
 
-#: gui.py:503
+#: gui.py:319
+msgid "Keyboard Input"
+msgstr "键盘输入"
+
+#: gui.py:522
 msgid "empty"
 msgstr "空空如也"
 
-#: gui.py:822
+#: gui.py:863 gui.py:1117
 msgid "&About"
 msgstr "&关于"
 
-#: gui.py:823
+#: gui.py:864 gui.py:1118
 msgid "&Open"
 msgstr "&打开"
 
-#: gui.py:824
-msgid "&Language\tCtrl+L"
+#: gui.py:865 gui.py:1119
+msgid "&Language"
 msgstr "&语言"
 
-#: gui.py:825
+#: gui.py:866 gui.py:1120
 msgid "&Exit"
 msgstr "&退出"
 
-#: gui.py:826 gui.py:828 gui.py:1065
+#: gui.py:867 gui.py:869 gui.py:1121 gui.py:1123
 msgid "&Help"
 msgstr "&帮助"
 
-#: gui.py:827 gui.py:1064 gui.py:1400
+#: gui.py:868 gui.py:1122 gui.py:1482
 msgid "&File"
 msgstr "&文件"
 
-#: gui.py:843 gui.py:1042
+#: gui.py:884 gui.py:1100
 msgid "Cycles"
 msgstr "周期"
 
-#: gui.py:845 gui.py:1041 locale/trans.py:18 trans.py:29
+#: gui.py:886 gui.py:1099 locale/trans.py:18 trans.py:29
 msgid "Run"
 msgstr "运行"
 
-#: gui.py:846 gui.py:1046
+#: gui.py:887 gui.py:1104
 msgid "Add"
 msgstr "添加"
 
-#: gui.py:849 gui.py:1043 gui.py:1213
+#: gui.py:890 gui.py:1101 gui.py:1273
 msgid "Monitors"
 msgstr "监视器"
 
-#: gui.py:850 gui.py:1047
+#: gui.py:892 gui.py:1105
 msgid "Add/Delete Monitor"
 msgstr "添加/删除监视器"
 
-#: gui.py:853 gui.py:857 gui.py:1044 gui.py:1050 gui.py:1350
+#: gui.py:895 gui.py:900 gui.py:1102 gui.py:1108 gui.py:1429
 msgid "Switches"
 msgstr "开关"
 
-#: gui.py:858 gui.py:1053 gui.py:1351
+#: gui.py:901 gui.py:1111 gui.py:1430
 msgid "Values"
 msgstr "值"
 
-#: gui.py:864 gui.py:1045
+#: gui.py:907 gui.py:1103
 msgid "Zoom in/out"
 msgstr "放大/缩小"
 
-#: gui.py:870 gui.py:1056
+#: gui.py:915 gui.py:1114
 msgid "Prev Page"
 msgstr "上一页"
 
-#: gui.py:871 gui.py:1057
+#: gui.py:916 gui.py:1115
 msgid "Next Page"
 msgstr "下一页"
 
-#: gui.py:874 gui.py:1058
+#: gui.py:919 gui.py:1116
 msgid "Goto"
 msgstr "前往"
 
-#: gui.py:978
+#: gui.py:1030
 msgid "Parser: "
 msgstr "语法分析器："
 
-#: gui.py:978
+#: gui.py:1031
 msgid ""
 " Errors Generated!!\n"
 "\n"
@@ -136,11 +140,11 @@ msgstr ""
 " 有错误产生！！\n"
 "\n"
 
-#: gui.py:984
+#: gui.py:1037
 msgid "Open definition file"
 msgstr "打开定义文件"
 
-#: gui.py:1013
+#: gui.py:1068
 msgid ""
 "Logic Simulator\n"
 "Team 4 Version\n"
@@ -150,149 +154,129 @@ msgstr ""
 "木叶第四班版本\n"
 "贰零壹捌"
 
-#: gui.py:1014
+#: gui.py:1069
 msgid "About Logsim"
 msgstr "关于逻辑电路模拟器"
 
-#: gui.py:1021
+#: gui.py:1076
 msgid "Definition Description"
 msgstr "语法定义文件"
 
-#: gui.py:1024
+#: gui.py:1080
 msgid "Do you want to use Chinese Version?"
 msgstr "你是否要留在汉语模式？"
 
-#: gui.py:1026
+#: gui.py:1082
 msgid "Language"
 msgstr "语言"
 
-#: gui.py:1059
-msgid "&About\tCTRL+A"
-msgstr "&关于\tCTRL+A"
-
-#: gui.py:1060
-msgid "&Open\tCTRL+N"
-msgstr "&打开\tCTRL+N"
-
-#: gui.py:1061
-msgid "&Language\tCTRL+L"
-msgstr "&语言"
-
-#: gui.py:1062
-msgid "&Exit\tCTRL+Q"
-msgstr "&退出\tCTRL+Q"
-
-#: gui.py:1063
-msgid "&Help\tCTRL+H"
-msgstr "&帮助\tCTRL+H"
-
-#: gui.py:1070
+#: gui.py:1128
 msgid "New spin control value: "
 msgstr "新周期值"
 
-#: gui.py:1114
+#: gui.py:1172
 msgid "Run button pressed."
 msgstr "按下运行键"
 
-#: gui.py:1117
+#: gui.py:1176
 msgid "DEVICE \""
 msgstr "装置 \""
 
-#: gui.py:1117
+#: gui.py:1176
 msgid "\" is oscillatory!"
 msgstr "\" 电路震荡"
 
-#: gui.py:1130
+#: gui.py:1189
 msgid "New text box value: "
 msgstr "新输入框值"
 
-#: gui.py:1145
+#: gui.py:1204
 msgid "Press Run Button First!"
 msgstr "请先按运行键"
 
-#: gui.py:1147
+#: gui.py:1206
 msgid "Continue Button Pressed"
 msgstr "按下继续键"
 
-#: gui.py:1177
+#: gui.py:1237
 msgid "Successfully set switches."
 msgstr "成功设置开关"
 
-#: gui.py:1179
+#: gui.py:1239
 msgid "Error! Invalid switch."
 msgstr "错误! 无效的开关"
 
-#: gui.py:1189 gui.py:1196
+#: gui.py:1249 gui.py:1256
 msgid "Warning! Still have uncompleted cycles!"
 msgstr "警告! 仍有未完成的周期"
 
-#: gui.py:1295
+#: gui.py:1371
 msgid "Turn to Previous Page"
 msgstr "翻到上一页"
 
-#: gui.py:1309
+#: gui.py:1386
 msgid "Turn to Next Page"
 msgstr "翻到下一页"
 
-#: gui.py:1316
+#: gui.py:1393
 msgid "Go to page: "
 msgstr "前往页码: "
 
-#: gui.py:1398
+#: gui.py:1479
 #, fuzzy
 #| msgid "&Exit\tAlt-X"
 msgid "E&xit\tAlt-X"
 msgstr "&退出\tAlt-x"
 
-#: gui.py:1398
+#: gui.py:1480
 msgid "Close window and exit program."
 msgstr "关闭窗口并退出程序"
 
-#: gui.py:1409
+#: gui.py:1491
 msgid "Select Signal"
 msgstr "选择信号"
 
-#: gui.py:1417
+#: gui.py:1501
 msgid "Monitored"
 msgstr "已监控"
 
-#: gui.py:1418
+#: gui.py:1502
 msgid "Unmonitored"
 msgstr "未监控"
 
-#: gui.py:1437
+#: gui.py:1521
 msgid "ADD"
 msgstr "添加"
 
-#: gui.py:1438
+#: gui.py:1522
 msgid "DELETE"
 msgstr "删除"
 
-#: gui.py:1439
+#: gui.py:1523
 msgid "CLOSE"
 msgstr "关闭"
 
-#: gui.py:1488
+#: gui.py:1573
 msgid "Successfully made monitor."
 msgstr "添加监视器成功"
 
-#: gui.py:1494
+#: gui.py:1579
 msgid "Error! Could not make monitor: "
 msgstr "错误! 不能添加监视器"
 
-#: gui.py:1515
+#: gui.py:1601
 msgid "Successfully zapped monitor"
 msgstr "成功删除监视器"
 
-#: gui.py:1521
+#: gui.py:1607
 msgid "Error! Could not zap monitor: "
 msgstr "错误! 无法删除监视器"
 
-#: gui.py:1586
+#: gui.py:1674
 msgid "Error in the File!!!"
 msgstr "文件中有错误！！！"
 
-#: gui.py:1598
+#: gui.py:1689
 msgid "Confirm"
 msgstr "确认"
 
@@ -701,6 +685,24 @@ msgstr ""
 #: pygettext.py:665
 msgid "morethanonestring"
 msgstr ""
+
+#~ msgid "&Language\tCtrl+L"
+#~ msgstr "&语言"
+
+#~ msgid "&About\tCTRL+A"
+#~ msgstr "&关于\tCTRL+A"
+
+#~ msgid "&Open\tCTRL+N"
+#~ msgstr "&打开\tCTRL+N"
+
+#~ msgid "&Language\tCTRL+L"
+#~ msgstr "&语言"
+
+#~ msgid "&Exit\tCTRL+Q"
+#~ msgstr "&退出\tCTRL+Q"
+
+#~ msgid "&Help\tCTRL+H"
+#~ msgstr "&帮助\tCTRL+H"
 
 #~ msgid "cycle: "
 #~ msgstr "轮回: "
