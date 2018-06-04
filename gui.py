@@ -861,7 +861,7 @@ class Gui(wx.Frame):
         self.clr_button = wx.Button(self, wx.ID_ANY, "0")
 
         # Zoom in/out functions
-        self.text4 = wx.StaticText(self, wx.ID_ANY, "Zoom in/out")
+        self.text4 = wx.StaticText(self, wx.ID_ANY, _("Zoom in/out"))
         self.zoom_in_button = wx.BitmapButton(self, wx.ID_ANY, plus, size=(50,50))
         self.zoom_out_button = wx.BitmapButton(self, wx.ID_ANY, minus, size=(50,50))
 
@@ -975,7 +975,7 @@ class Gui(wx.Frame):
         else:
             message = parser.message
             count = parser.error_count
-            message = 'Parser: ' + str(count) + ' Errors Generated!!\n\n' + message
+            message = _('Parser: ') + str(count) + _(' Errors Generated!!\n\n') + message
             errormsg = ErrorDispFrame(self, message)
             errormsg.Show()
 
@@ -1292,7 +1292,7 @@ class Gui(wx.Frame):
             self.canvas.init = False
         else:
             self.canvas.current_page = 1
-        self.canvas.render('Turn to Previous Page')
+        self.canvas.render(_('Turn to Previous Page'))
 
     def on_next_button(self, event):
         """Handles the event when NextPage button Pressed"""
