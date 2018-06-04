@@ -214,3 +214,20 @@ class Scanner:
         #print(self.current_character)
         #print(self.current_line)
         return [symbol_type, symbol_id]
+        
+    def get_recommend_final(self, target_string):
+        """Return the final valid recommendation names for the given target 
+           string (most likely a device name)."""
+        recommend_raw = self.names.get_recommend_raw(target_string)
+        recommend_filtered = [x for x in recommend_raw 
+                                if (x not in self.keyword_list) and
+                                   (x not in self.error_list)]
+        max_prefix_length = \
+            max(self.names.common_prefix_length(x, target_string)
+                for x in recommend_filtered)
+        recommend_final = \
+            [x for x in recommend_filtered
+               if self.names.common_prefix_length(x, target_string) ==
+                  max_prefix_length]
+        return sorted(recommend_final)
+
