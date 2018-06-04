@@ -65,7 +65,7 @@ def main(arg_list):
     if not options:  # no option given, use the graphical user interface
 
         app = wx.App()
-        gui = Gui("Logic Simulator", names, devices, network,
+        gui = Gui(_("Logic Simulator"), names, devices, network,
                   monitors)
         gui.Show(True)
         app.MainLoop()
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     basepath = os.path.abspath(os.path.dirname(sys.argv[0]))
     localedir = os.path.join(basepath, "locale")
     gettext.install('gui', localedir)
-    mytranslation = gettext.translation('en', localedir, fallback=True)
+    mytranslation = gettext.translation('gui', localedir, fallback=True)
     mytranslation.install()
 
     main(sys.argv[1:])
