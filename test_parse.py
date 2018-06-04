@@ -373,10 +373,11 @@ def test_error_output_to_output(testcase):
     assert testcase.passed()
 
 
-###### FUNCTION TESTS (UNIT TESTS) ######
 ''' The following tests are intended to test each function in parser.py,
 and assert all the possible returns of the functions. It omits testing
 error display as this has been thoroughly tested above'''
+
+
 @pytest.fixture(scope="session")
 def new_parser():
     # Build a fixture and all the following tests uses it
@@ -389,35 +390,45 @@ def new_parser():
     new_parser = Parser(names, devices, network, monitors, scanner)
     return new_parser
 
+
 @pytest.fixture
 def move_to_next_symbol(new_parser):
     new_parser.move_to_next_symbol()
     return new_parser
 
+
 # Series of tests for the individual assertion functions
 def test_is_left_paren(move_to_next_symbol):
     assert move_to_next_symbol.is_left_paren()
 
+
 def test_is_right_paren(move_to_next_symbol):
     assert move_to_next_symbol.is_right_paren()
+
 
 def test_is_dot(move_to_next_symbol):
     assert move_to_next_symbol.is_dot()
 
+
 def test_is_keyword(move_to_next_symbol):
     assert move_to_next_symbol.is_keyword()
+
 
 def test_is_name(move_to_next_symbol):
     assert move_to_next_symbol.is_name()
 
+
 def test_is_number(move_to_next_symbol):
     assert move_to_next_symbol.is_number()
+
 
 def test_is_target_name(move_to_next_symbol):
     assert move_to_next_symbol.is_target_name('target')
 
+
 def test_get_name_string(move_to_next_symbol):
     assert move_to_next_symbol.get_name_string() == 'wtf'
+
 
 def test_statement_error(move_to_next_symbol):
     # Missing left parenthesis
@@ -447,9 +458,11 @@ def test_statement_error(move_to_next_symbol):
     assert error_code_3 == move_to_next_symbol.INVALID_FUNCTION_NAME
     assert error_code_4 == move_to_next_symbol.EXPECT_RIGHT_PAREN
 
+
 def test_statement(new_parser):
     # function statement all pass
     assert new_parser.statement()
+
 
 def test_device_error(new_parser):
     # keyword not DEVICE
@@ -484,9 +497,11 @@ def test_device_error(new_parser):
     assert error_code_2 == new_parser.INVALID_QUALIFIER
     new_parser.error_code = new_parser.NO_ERROR
 
+
 def test_device(move_to_next_symbol):
     # Function device all pass
     assert move_to_next_symbol.device()
+
 
 def test_get_first_device_id_error(new_parser):
     # No device is given
@@ -514,9 +529,11 @@ def test_get_first_device_id_error(new_parser):
     assert new_parser.error_code == new_parser.DEVICE_REDEFINED
     new_parser.move_to_next_symbol()
 
+
 def test_get_first_device_id(new_parser):
     # get_first_device_id all pass
     assert new_parser.get_first_device_id(set()) is not None
+
 
 def test_get_optional_device_id_error(new_parser):
     # Repeated definition of devices, made use of previously defined device
@@ -524,9 +541,11 @@ def test_get_optional_device_id_error(new_parser):
     assert new_parser.error_code == new_parser.DEVICE_REDEFINED
     new_parser.move_to_next_symbol()
 
+
 def test_get_optional_device_id(new_parser):
     # get_optional_device_id all pass
     assert new_parser.get_optional_device_id(set()) is 37
+
 
 def test_check_keyword_is_are_error(new_parser):
     # missing keyword is/are
@@ -554,10 +573,12 @@ def test_check_keyword_is_are_error(new_parser):
     assert new_parser.error_code == new_parser.KEYWORD_AS_DEVICE_NAME
     new_parser.move_to_next_symbol()
 
+
 def test_check_keyword_is_are(new_parser):
     # check_keyword_is_are all pass
     assert new_parser.check_keyword_is_are()
     new_parser.move_to_next_symbol()
+
 
 def test_get_device_type_error(new_parser):
     # Got right parenthesis
@@ -584,12 +605,14 @@ def test_get_device_type_error(new_parser):
     assert new_parser.error_code == new_parser.INVALID_DEVICE_TYPE
     new_parser.move_to_next_symbol()
 
+
 def test_get_device_type(new_parser):
     # Device with qualidier test pass
     assert new_parser.get_device_type() == (new_parser.devices.CLOCK, 10)
     # Device without qualidier test pass
     assert new_parser.get_device_type() == (new_parser.devices.XOR, None)
     new_parser.move_to_next_symbol()
+
 
 def test_device_terminal_error(new_parser):
     # Not a valid name
@@ -635,15 +658,18 @@ def test_device_terminal_error(new_parser):
     assert new_parser.error_code == new_parser.MONITOR_PRESENT
     new_parser.error_code = new_parser.NO_ERROR
 
+
 def test_device_terminal(new_parser):
     # device_terminal all pass
     new_parser.move_to_next_symbol()
     new_parser.statement()
     assert new_parser.device_terminal() == (42, 31)
 
+
 def test_connect(new_parser):
     # connect all pass
     assert new_parser.connect()
+
 
 def test_connect_error(new_parser):
     # Incorrect keyword
@@ -681,6 +707,7 @@ def test_connect_error(new_parser):
     assert not new_parser.connect()
     assert new_parser.error_code == new_parser.OUTPUT_TO_OUTPUT
 
+
 def test_monitor_error(new_parser):
     # Keyword not MONITOR
     new_parser.error_code = new_parser.NO_ERROR
@@ -701,6 +728,7 @@ def test_monitor_error(new_parser):
     # Check other device branch
     new_parser.error_code = new_parser.NO_ERROR
     assert not new_parser.monitor()
+
 
 def test_monitor(new_parser):
     # Function monitor all pass
