@@ -1420,7 +1420,7 @@ class ErrorDispFrame(wx.Frame):
         self.parent = parent
         self.message = message
 
-        font1 = wx.Font(10, wx.FONTFAMILY_TELETYPE, wx.NORMAL, wx.NORMAL, False, u'Consolas')
+        font1 = wx.Font(10, wx.FONTFAMILY_TELETYPE, wx.NORMAL, wx.NORMAL, False, u'Courier')
 
         panel = wx.Panel(self)
         box = wx.BoxSizer(wx.VERTICAL)
