@@ -684,13 +684,13 @@ class Parser:
         print(_('In File "')+self.scanner.input_file.name+_('", line ')\
             + str(line_number))
         print(indent + current_line)
-        print(indent + ' '*(error_position-1) + '^')
+        print(indent + _(' ')*(error_position-1) + '^')
         print(self.errormsg[self.error_code].format(**self.errormsg_format_dict))
         message = _('\n[ERROR #%d]') % (self.error_count) + '\n'
         message = message + _('In File "')+self.scanner.input_file.name+_('", line ')\
             + str(line_number) + '\n'
         message = message + indent + current_line + '\n'
-        message = message + indent + ' '*(error_position-1) + '^' + '\n'
+        message = message + indent + _(' ')*(error_position-1) + '^' + '\n'
         message = message + self.errormsg[self.error_code].format(**self.errormsg_format_dict) + '\n'
         additional_info = self.error_additional_info()
         message = message + additional_info + '\n'
