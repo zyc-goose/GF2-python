@@ -48,14 +48,56 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     render(self, text): Handles all drawing operations.
 
+    init_parameters(self): Init parameters for panning
+
+    initTexture(self): Initialise texture mapping
+
     on_paint(self, event): Handles the paint event.
 
     on_size(self, event): Handles the canvas resize event.
 
     on_mouse(self, event): Handles mouse events.
 
+    on_key(self, event): Read and process keyboard input
+
     render_text(self, text, x_pos, y_pos): Handles text drawing
                                            operations.
+
+    draw_horizontal_signal(self, start, cycle_count, step, level, pos):
+        Draw signal High or Low
+
+    draw_rect_background(self, start_x, start_y, end_x, end_y, color=0.94): 
+        Draw rectangular background.
+
+    draw_rect_frame(self, start_x, start_y, end_x, end_y, color=0):
+        Draw rectangular frame.
+
+    draw_ruler(self, step, start_x, start_y): Draw ruler
+
+    get_ruler_cycle_num(self, step, start_x): Detect corresponding cycle
+
+    mouse_in_active_region(self, strip_raise, max_pos, ruler_offset):
+        detect if mouse is on one of the signals
+
+    find_nearest_signal_pos(self, strip_raise, max_pos, ruler_offset):
+        Find the closest signal and get its position
+
+    render_signal(self): Display the signal trace(s) in GUI, also calls
+                         all relavent rendering functions
+
+    draw_vertical_stipple_line(self, stipple_y_bottom, stipple_y_top):
+        draw dashed cursor line
+
+    draw_info_box(self, cycle, port, value): Draw the MATLAB-like 
+                                             yellow info box which moves with mouse.
+
+    draw_info_box_lang_en(self cycle, port, value): Draw box with English
+                                                    language setting
+    
+    draw_info_box_lang_cn(cycle, port, value): Draw box with Chinese
+                                                language setting
+
+    texture_mapping(self, x_offset): Texture mapping for info box
     """
 
     def __init__(self, parent, devices, monitors):
@@ -81,11 +123,12 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.Bind(wx.EVT_KEY_DOWN, self.on_key)
 
     def init_parameters(self):
-        # Initialise variables for panning
+        """Initialise variables for panning"""
         self.pan_x = 0
         self.pan_y = 0
         self.last_mouse_x = 0  # previous mouse x position
         self.last_mouse_y = 0  # previous mouse y position
+
         # Newly defined variables
         self.current_x = 0  # Current mouse x position
         self.current_y = 0  # Current mouse y position
@@ -139,8 +182,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                         GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, image)
 
     def init_gl(self):
-        self.initTexture()
         """Configure and initialise the OpenGL context."""
+        self.initTexture()
         size = self.GetClientSize()
         self.SetCurrent(self.context)
         GL.glDrawBuffer(GL.GL_BACK)
@@ -173,11 +216,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             self.render_signal()
         self.parent.update_scroll_bar()
 
-        # Draw specified text at position (10, 10)
-        # self.render_text(text, (10-self.pan_x)/self.zoom, 10 - self.pan_y)
+        # Display page info in status bar
         page_disp = _('Page: ')+str(self.current_page)+'/'+str(self.page_number)
-        #self.render_text(page_disp, (self.GetClientSize().width -
-        #                 len(page_disp)*8-self.pan_x)/self.zoom, 10 - self.pan_y)
         self.parent.page_disp(page_disp)
         self.parent.text_bar(text)
 
@@ -265,8 +305,9 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             self.Refresh()  # triggers the paint event
 
     def on_key(self, event):
+        """Read and process keyboard input"""
         key_code = event.GetKeyCode()
-        text = 't'
+        text = 'Keyboard Input'
 
         if (key_code in (wx.WXK_LEFT, wx.WXK_RIGHT)) and (self.signal_width > self.parent.full_width):
             full_width = self.parent.full_width
@@ -317,7 +358,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 GLUT.glutBitmapCharacter(font, ord(character))
 
     def draw_horizontal_signal(self, start, cycle_count, step, level, pos):
-        # Two vertices having same y coord
+        """Two vertices having same y coord"""
         x = start+cycle_count*step
         x_next = start+(cycle_count+1)*step
         y = 75+25*level+pos*50-offset
@@ -412,6 +453,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         return int(cursor_pos_on_ruler / step) + 1
 
     def mouse_in_active_region(self, strip_raise, max_pos, ruler_offset):
+        """ Detect if mouse is on one of the signal """
         return ruler_offset < self.current_y + offset <= strip_raise + 50*max_pos + self.pan_y
 
     def find_nearest_signal_pos(self, strip_raise, max_pos, ruler_offset):
@@ -443,8 +485,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             step = 0
 
         self.signal_width = end+10
-        # Use below when texture is mapped
-        # self.signal_width = max(end+10, self.GetClientSize().width*self.zoom)
 
         size = self.GetClientSize()
         # cycle num between 1 and 60
@@ -530,8 +570,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                     continue
                 if signal == self.devices.BLANK:
                     cycle_count += 1
-                # if cycle_count > self.cycles:
-                #    break
             pos = pos+1
             GL.glEnd()
 
@@ -650,8 +688,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         x_orig = (self.current_x - self.pan_x - x_offset) / self.zoom
         y_orig = self.current_y - self.pan_y
-        #box_width = 116
-        #box_height = 70
         box_height = 54
         box_width = 76/46 * box_height
 
@@ -683,15 +719,66 @@ class Gui(wx.Frame):
 
     Public methods
     --------------
+    open_new(self, path): Open new definition file
+
+    on_open(self): Event handler for open
+
+    on_close(self, event): Event handler for close, including stop worker
+
+    reset_all_labels(self): re-initialise labels when changed language
+
     on_menu(self, event): Event handler for the file menu.
 
     on_spin(self, event): Event handler for when the user changes the spin
                            control value.
 
+    get_switch_signals(self): Get switch signals from switch IDs
+
+    pop_switch_list(self, new_instance=0): Pop switch names in switch table
+
+    run_network(self, cycles): Run the network for the specified number of 
+                               simulation cycles.
+
     on_run_button(self, event): Event handler for when the user clicks the run
                                 button.
 
     on_text_box(self, event): Event handler for when the user enters text.
+
+    page_disp(self, text): Page display on the status bar
+
+    text_bar(self, text): Display text on the status bar
+
+    on_cont_button(self, event): Handle the event when continue button pressed
+
+    switch_signal(self, switch_state): Update switch id and name list
+
+    on_set_button(self, event): Handle the event when set button pressed
+
+    on_clr_button(self, event): Handle the event when clear button pressed
+
+    get_monitor_ids(self, signal): Get id according to the name
+
+    on_sig_add_button(self, event): Handle the event when Add/Delete signal button pressed
+
+    on_zoom_in_button(self, event): Handle the event when zoom in button pressed
+
+    on_zoom_out_button(self, event): Handle the event when zoom out button pressed
+
+    on_hbar(self, event): Handle the event when horizontal scroll bar is moved
+
+    on_vbar(self, event): Handle the event when vertical scroll bar is moved
+
+    update_vbar(self): Update vertical bar settings
+
+    update_scroll_bar(self): Update horizontal scroll bar settings
+
+    on_prev_button(self, event): Handle the event when PrevPage button Pressed
+
+    on_next_button(self, event): Handle the event when NextPage button Pressed
+
+    on_goto_button(self, event): Handle the event when Goto button pressed
+
+    reinit(self, names, devices, network, monitors): Re-initialisation when new file is opened
     """
 
     def __init__(self, title, names, devices, network, monitors):
@@ -720,7 +807,7 @@ class Gui(wx.Frame):
 
         # Cycles completed and worker for multithread
         self.cycles_completed = 0
-        self.worker = RunThread(self, 1)
+        self.worker = RunThread(self)
 
         # Get switch list
         self.switch_ids = self.devices.find_devices(self.devices.SWITCH)
@@ -867,13 +954,12 @@ class Gui(wx.Frame):
         side_sizer.Add(double_butt_6, 1, wx.ALL, 0)
         double_butt_6.Add(self.text_box, 0.8, wx.ALL, 0)
         double_butt_6.Add(self.goto_button, 0.8, wx.ALL, 0)
-        # side_sizer.Add(self.hero_button, 1 , wx.ALL, 5)
 
         self.SetSizeHints(700, 600)
         self.SetSizer(main_sizer)
 
     def open_new(self, path):
-        # Initialise instances of the four inner simulator classes
+        """Initialise instances of the four inner simulator classes"""
         new_names = Names()
         new_devices = Devices(new_names)
         new_network = Network(new_names, new_devices)
@@ -892,13 +978,9 @@ class Gui(wx.Frame):
             message = 'Parser: ' + str(count) + ' Errors Generated!!\n\n' + message
             errormsg = ErrorDispFrame(self, message)
             errormsg.Show()
-            # from wx.lib.dialogs import ScrolledMessageDialog
-            # dlg = ScrolledMessageDialog(self, message, _("Please confirm"))
-            # dlg.SetFont(font1)
-            # dlg.ShowModal()
 
     def on_open(self):
-        # ask the user what new file to open
+        """ask the user what new file to open"""
         with wx.FileDialog(self, _("Open definition file"), wildcard="XYZ files (*.txt)|*.txt",
                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as fileDialog:
 
@@ -914,8 +996,11 @@ class Gui(wx.Frame):
         fileDialog.Destroy()
 
     def on_close(self, event):
+        """Stop everything running in background"""
         if self.monitor_window == 1:
             self.top.program_close()
+
+        # Stop workers
         self.worker.stop()
         event.Skip()
 
@@ -952,6 +1037,7 @@ class Gui(wx.Frame):
                 self.reset_all_labels()
 
     def reset_all_labels(self):
+        """Reset all labels when changing language"""
         self.run_button.SetLabel(_('Run'))
         self.text.SetLabel(_("Cycles"))
         self.text2.SetLabel(_("Monitors"))
@@ -985,6 +1071,7 @@ class Gui(wx.Frame):
         self.canvas.render(text)
 
     def get_switch_signals(self):
+        """Get switch signals from switch IDs"""
         self.switches = []
         for each_id in self.switch_ids:
             switch_pair = (self.names.get_name_string(each_id),
@@ -992,7 +1079,7 @@ class Gui(wx.Frame):
             self.switches.append(switch_pair)
 
     def pop_switch_list(self, new_instance=0):
-        # pop in switch table
+        """Pop switch names in switch table"""
         index = 0
         for switch in self.switches:
             if new_instance == 1:
@@ -1028,8 +1115,10 @@ class Gui(wx.Frame):
         else:
             device_name = self.names.get_name_string(self.network.device_no_input)
             text = _('DEVICE \"') + device_name + _('\" is oscillatory!')
-        self.worker = RunThread(self, 1)
+        # Set another threading to run unfinished cycles in the background
+        self.worker = RunThread(self)
         self.worker.start()
+        # Update scroll bars
         self.update_vbar()
         self.canvas.init = False
         self.canvas.render(text)
@@ -1042,12 +1131,15 @@ class Gui(wx.Frame):
         self.canvas.render(text)
 
     def page_disp(self, text):
+        """Page display on the status bar"""
         self.textbar.SetStatusText(text, 1)
 
     def text_bar(self, text):
+        """Display text on the status bar"""
         self.textbar.SetStatusText(text, 0)
 
     def on_cont_button(self, event):
+        """Handles the event when continue button pressed"""
         text = ''
         if self.canvas.run == 0:
             text = _('Press Run Button First!')
@@ -1062,12 +1154,15 @@ class Gui(wx.Frame):
             next_to_run = min((60-self.cycles_completed % 60), added_cycles)
             self.run_network(next_to_run)
             self.cycles_completed += next_to_run
-        self.worker = RunThread(self, 1)
+        # Reset the worker with more cycles to run
+        self.worker = RunThread(self)
         self.worker.start()
+        # Update scroll bar
         self.canvas.render(text)
         self.update_scroll_bar()
 
     def switch_signal(self, switch_state):
+        """Updates switch id and name list"""
         devices = []
         text = ''
         index = -1
@@ -1087,20 +1182,21 @@ class Gui(wx.Frame):
         self.canvas.render(text)
 
     def on_set_button(self, event):
-        """Set the specified switch"""
+        """Handles the event when set button pressed"""
         if self.cycles_completed >= self.canvas.cycles:
             self.switch_signal(1)
         else:
             self.canvas.render(_("Warning! Still have uncompleted cycles!"))
 
     def on_clr_button(self, event):
-        """Clear the specified switch"""
+        """Handles the event when clear button pressed"""
         if self.cycles_completed >= self.canvas.cycles:
             self.switch_signal(0)
         else:
             self.canvas.render(_("Warning! Still have uncompleted cycles!"))
 
     def get_monitor_ids(self, signal):
+        """Gets id according to the name"""
         if signal is not None and '.' in signal:
             device, port = signal.split('.')
             device_id = self.names.query(device)
@@ -1112,44 +1208,37 @@ class Gui(wx.Frame):
         return device_id, port_id
 
     def on_sig_add_button(self, event):
-        # Get user selected signal and split to get IDs
+        """Handles the event when Add/Delete signal button pressed"""
         if self.monitor_window == 0:
             self.top = MonitorFrame(self, _("Monitors"), self.monitored_list, self.unmonitored_list)
             self.top.Show()
             self.monitor_window = 1
         else:
+            # Top the window if same button is pressed without closing the previous frame
             self.top.ToggleWindowStyle(wx.STAY_ON_TOP)
 
     def on_zoom_in_button(self, event):
+        """Handles the event when zoom_in button pressed"""
         text = 'Zoom in'
         self.canvas.zoom = self.canvas.zoom*2
+        if self.canvas.zoom >= zoom_upper:
+            self.canvas.zoom = zoom_upper
         self.canvas.init = False
         self.canvas.render(text)
         self.update_scroll_bar()
 
     def on_zoom_out_button(self, event):
+        """Handles the event when zoom out button pressed"""
         text = 'Zoom out'
         self.canvas.zoom = self.canvas.zoom*0.5
+        if self.canvas.zoom <= zoom_lower:
+            self.canvas.zoom = zoom_lower
         self.canvas.init = False
         self.canvas.render(text)
         self.update_scroll_bar()
 
-    def on_hero_button(self, event):
-        text = 'OUR HERO!!!'
-        if self.canvas.use_hero == 1:
-            self.canvas.use_hero = 0
-            self.canvas.render(text)
-        else:
-            message = "Do You Want To See Our Leader?"
-            dlg = wx.MessageDialog(self, message, caption="PLEASE ANSWER!!!",
-                                   style=wx.YES_NO | wx.CENTER)
-            result = dlg.ShowModal()
-            if result == wx.ID_YES:
-                self.canvas.use_hero = 1
-                self.canvas.render(text)
-            dlg.Destroy()
-
     def on_hbar(self, event):
+        """Handles the event when horizontal scroll bar is moved"""
         pos = self.hbar.GetThumbPosition()
         length = self.hbar.GetRange()
         thumbsize = self.hbar.GetThumbSize()
@@ -1159,6 +1248,7 @@ class Gui(wx.Frame):
             self.canvas.render('')
 
     def on_vbar(self, event):
+        """Handles the event when vertical scroll bar is moved"""
         pos = self.vbar.GetThumbPosition()
         length = self.vbar.GetRange()
         thumbsize = self.vbar.GetThumbSize()
@@ -1169,6 +1259,7 @@ class Gui(wx.Frame):
             self.canvas.render(str(self.canvas.pan_y))
 
     def update_vbar(self):
+        """Updates vertical bar settings"""
         self.canvas.pan_y = 0
         self.full_length = self.canvas.GetClientSize().height
         if self.canvas.max_signal_count < self.canvas.signal_count:
@@ -1179,6 +1270,7 @@ class Gui(wx.Frame):
             self.vbar.SetScrollbar(0, self.full_length, self.full_length, self.canvas.zoom)
 
     def update_scroll_bar(self):
+        """Updates horizontal scroll bar settings"""
         hpos = self.hbar.GetThumbPosition()
         if self.full_width < self.canvas.signal_width:
             self.hbar.SetScrollbar(hpos, self.full_width, self.canvas.signal_width, self.canvas.zoom)
@@ -1193,6 +1285,7 @@ class Gui(wx.Frame):
             self.vbar.SetScrollbar(0, self.full_length, self.full_length, 1)
 
     def on_prev_button(self, event):
+        """Handles the event when PrevPage button Pressed"""
         if self.canvas.current_page > 1:
             self.canvas.current_page -= 1
             self.canvas.pan_x = 0
@@ -1202,6 +1295,7 @@ class Gui(wx.Frame):
         self.canvas.render('Turn to Previous Page')
 
     def on_next_button(self, event):
+        """Handles the event when NextPage button Pressed"""
         if self.canvas.current_page < self.canvas.page_number:
             next_to_run = min(self.canvas.cycles-self.canvas.current_page*60, 60)
             self.canvas.current_page += 1
@@ -1215,6 +1309,7 @@ class Gui(wx.Frame):
         self.canvas.render(_('Turn to Next Page'))
 
     def on_goto_button(self, event):
+        """Handles the event when Goto button pressed"""
         self.worker.stop()
         time.sleep(.100)
         page_number = self.text_box.GetValue()
@@ -1227,10 +1322,11 @@ class Gui(wx.Frame):
         self.canvas.current_page = int(page_number)
         self.canvas.render(text)
 
-        self.worker = RunThread(self, 1)
+        self.worker = RunThread(self)
         self.worker.start()
 
     def reinit(self, names, devices, network, monitors):
+        """Re-initialisation when new file is opened"""
         # Make objects local
         self.devices = devices
         self.network = network
@@ -1244,7 +1340,7 @@ class Gui(wx.Frame):
 
         # Cycles completed and worker for multithread
         self.cycles_completed = 0
-        self.worker = RunThread(self, 1)
+        self.worker = RunThread(self)
 
         self.switch_ids = self.devices.find_devices(self.devices.SWITCH)
         self.switches = []
@@ -1265,15 +1361,38 @@ class Gui(wx.Frame):
         self.update_vbar()
 
 
-# Monitor Selection Frame
 class MonitorFrame(wx.Frame):
+    """Configure the Monitor Window and the widgets.
+
+    This class provides a promprt Frame for Monitor lists and
+    enables the user to change the monitors.
+
+    Parameters
+    ----------
+    title: the title of the application
+
+    Public methods
+    --------------
+    refresh_lists(self): Update list display after add/delete button pressed
+
+    on_close(self, event): Handle the event when close button pressed
+
+    on_close(self, event): Handle the event when close button pressed
+
+    on_add(self, event): Handle the event when add button pressed
+
+    on_delete(self, event): Handle the event when delete button pressed
+    """
     def __init__(self, parent, title, monitored, unmonitored):
+        """Initialise Widgets and layouts"""
         wx.Frame.__init__(self, None, title=title, pos=(350, 150), size=(350, 600))
+        # make class objects local
         self.parent = parent
         self.monitored = monitored
         self.unmonitored = unmonitored
         self.Bind(wx.EVT_CLOSE, self.on_close)
 
+        # Menu bar settings
         menuBar = wx.MenuBar()
         menu = wx.Menu()
         m_exit = menu.Append(wx.ID_EXIT, _("E&xit\tAlt-X"), _("Close window and exit program."))
@@ -1282,14 +1401,17 @@ class MonitorFrame(wx.Frame):
         self.SetMenuBar(menuBar)
 
         panel = wx.Panel(self)
+        # Instantiate Sizers
         box = wx.BoxSizer(wx.VERTICAL)
         list_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
+        # Set and add text
         m_text = wx.StaticText(panel, -1, _("Select Signal"))
         m_text.SetFont(wx.Font(14, wx.SWISS, wx.NORMAL, wx.BOLD))
         m_text.SetSize(m_text.GetBestSize())
         box.Add(m_text, 1, wx.ALL, 5)
 
+        # Instantiate and set list control object
         self.list_ctrl_1 = wx.ListCtrl(panel, size=(-1, 100), style=wx.LC_REPORT | wx.BORDER_SUNKEN)
         self.list_ctrl_2 = wx.ListCtrl(panel, size=(-1, 100), style=wx.LC_REPORT | wx.BORDER_SUNKEN)
         self.list_ctrl_1.InsertColumn(0, _('Monitored'), width=160)
@@ -1303,6 +1425,7 @@ class MonitorFrame(wx.Frame):
             self.list_ctrl_2.InsertItem(index, signal)
             index = index+1
 
+        # Add list control to the panel
         box.Add(list_sizer, 10, wx.ALL, 0)
         list_sizer.Add(self.list_ctrl_1, 1, wx.EXPAND | wx.ALL, 5)
         list_sizer.Add(self.list_ctrl_2, 1, wx.EXPAND | wx.ALL, 5)
@@ -1310,12 +1433,16 @@ class MonitorFrame(wx.Frame):
         side_sizer = wx.BoxSizer(wx.HORIZONTAL)
         box.Add(side_sizer, 1, wx.ALL, 5)
 
+        # Instantiate functional buttons
         add = wx.Button(panel, wx.ID_CLOSE, _("ADD"))
         delete = wx.Button(panel, wx.ID_CLOSE, _("DELETE"))
         close = wx.Button(panel, wx.ID_CLOSE, _("CLOSE"))
+        
+        # Bind buttons to the functions
         add.Bind(wx.EVT_BUTTON, self.on_add)
         delete.Bind(wx.EVT_BUTTON, self.on_delete)
         close.Bind(wx.EVT_BUTTON, self.on_close)
+        # Add buttons to the panel
         side_sizer.Add(add, 1, wx.ALL, 5)
         side_sizer.Add(delete, 1, wx.ALL, 5)
         side_sizer.Add(close, 1, wx.ALL, 5)
@@ -1324,6 +1451,7 @@ class MonitorFrame(wx.Frame):
         panel.Layout()
 
     def refresh_lists(self):
+        """Updates list display after add/delete button pressed"""
         self.list_ctrl_1.DeleteAllItems()
         self.list_ctrl_2.DeleteAllItems()
         for index, signal in enumerate(self.monitored):
@@ -1332,13 +1460,16 @@ class MonitorFrame(wx.Frame):
             self.list_ctrl_2.InsertItem(index, signal)
 
     def on_close(self, event):
+        """Handles the event when close button pressed"""
         self.parent.monitor_window = 0
         self.Destroy()
 
     def program_close(self):
+        """Handles other close event"""
         self.Destroy()
 
     def on_add(self, event):
+        """Handles the event when add button pressed"""
         signals = []
         text = ''
         index = -1
@@ -1367,6 +1498,7 @@ class MonitorFrame(wx.Frame):
         self.refresh_lists()
 
     def on_delete(self, event):
+        """Handles the event when delete button pressed"""
         signals = []
         text = ''
         index = -1
@@ -1393,12 +1525,26 @@ class MonitorFrame(wx.Frame):
         self.refresh_lists()
 
 
-# Multithreading
 class RunThread(threading.Thread):
-    def __init__(self, parent, value):
+    """Configure the Monitor Window and the widgets.
+
+    This class provides a promprt Frame for Monitor lists and
+    enables the user to change the monitors.
+
+    Parameters
+    ----------
+
+    Public methods
+    --------------
+    run(self): Set the worker to run
+
+    stop(self): Stop the worker, raise stop flag
+    """
+    def __init__(self, parent):
         """
+        Workers running at the background without blocking the program
+        or waiting for so long to finish
         @param parent: The gui object that should recieve the value
-        @param value: value to 'calculate' to
         """
         threading.Thread.__init__(self)
         self._stop_event = threading.Event()
@@ -1422,14 +1568,27 @@ class RunThread(threading.Thread):
 
     def stop(self):
         self._stop_event.set()
-        # wx.PostEvent(self._parent, evt)
 
 class ErrorDispFrame(wx.Frame):
+    """Configure the Monitor Window and the widgets.
+
+    This class provides a promprt Frame for Monitor lists and
+    enables the user to change the monitors.
+
+    Parameters
+    ----------
+
+    Public methods
+    --------------
+    on_confirm(self, event): Handle the event when confirm button is pressed
+    """
     def __init__(self, parent, message):
-        wx.Frame.__init__(self, None, title = 'Error in the File!!!', pos=(350, 100), size=(500, 550))
+        """initilise widgets and layout"""
+        wx.Frame.__init__(self, None, title = _('Error in the File!!!'), pos=(350, 100), size=(500, 550))
         self.parent = parent
         self.message = message
 
+        # Set a monospace font for error display
         font1 = wx.Font(10, wx.FONTFAMILY_TELETYPE, wx.NORMAL, wx.NORMAL, False, u'Courier')
 
         panel = wx.Panel(self)
@@ -1445,4 +1604,5 @@ class ErrorDispFrame(wx.Frame):
         panel.Layout()
 
     def on_confirm(self, event):
+        """Handles the event when confirm button is pressed"""
         self.Destroy()
