@@ -576,7 +576,10 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def draw_info_box(self, cycle, port, value):
         """Draw the MATLAB-like yellow info box which moves with mouse."""
-        self.draw_info_box_lang_cn(cycle, port, value)
+        if self.parent.language == 0:
+            self.draw_info_box_lang_en(cycle, port, value)
+        else:
+            self.draw_info_box_lang_cn(cycle, port, value)
 
     def draw_info_box_lang_en(self, cycle, port, value):
         """Draw the MATLAB-like yellow info box which moves with mouse.
@@ -691,13 +694,18 @@ class Gui(wx.Frame):
     on_text_box(self, event): Event handler for when the user enters text.
     """
 
-    def __init__(self, title, names, devices, network, monitors, language = 0):
+    def __init__(self, title, names, devices, network, monitors):
         """Initialise widgets and layout."""
         super().__init__(parent=None, title=title, size=(900, 700))
 
         basepath = os.path.abspath(os.path.dirname(sys.argv[0]))
         self.localedir = os.path.join(basepath, "locale")
         gettext.install('gui', self.localedir)
+        self.language = 0
+        if os.environ['LANG'] == 'en_GB.UTF-8':
+            self.langauge = 0
+        else:
+            self.language = 1
 
         # Make objects local
         self.devices = devices
@@ -726,7 +734,7 @@ class Gui(wx.Frame):
         self.menuBar = wx.MenuBar()
         fileMenu.Append(wx.ID_ABOUT, _("&About"))
         fileMenu.Append(wx.ID_OPEN, _("&Open"))
-        fileMenu.Append(wx.ID_PREFERENCES, _("&Language"))
+        fileMenu.Append(wx.ID_PREFERENCES, _("&Language\tCtrl+L"))
         fileMenu.Append(wx.ID_EXIT, _("&Exit"))
         helpMenu.Append(wx.ID_HELP, _("&Help"))
         self.menuBar.Append(fileMenu, _("&File"))
@@ -934,10 +942,12 @@ class Gui(wx.Frame):
             result = box.ShowModal()
             if result == wx.ID_YES:
                 mytranslation = gettext.translation('gui', self.localedir, ['zh_CN'])
+                self.language = 1
                 mytranslation.install()
                 self.reset_all_labels()
             else:
                 mytranslation = gettext.translation('en', self.localedir, fallback=True)
+                self.language = 0
                 mytranslation.install()
                 self.reset_all_labels()
 
