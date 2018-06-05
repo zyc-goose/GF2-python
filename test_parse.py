@@ -9,7 +9,12 @@ from network import Network
 from monitors import Monitors
 
 import os
+import gettext
 from collections import namedtuple
+
+# Install null translation for the _() patterns in parse.py
+nulltranslation = gettext.NullTranslations()
+nulltranslation.install()
 
 ###### ERROR CODE TESTS (INTEGRATION TESTS) ######
 
