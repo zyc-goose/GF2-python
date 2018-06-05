@@ -25,6 +25,7 @@ from monitors import Monitors
 from scanner import Scanner
 from parse import Parser
 
+# Global constants for canvas settings
 offset = 29
 zoom_upper = 10
 zoom_lower = 0.5
@@ -1689,7 +1690,7 @@ class ErrorDispFrame(wx.Frame):
         box.Add(text, 20, wx.EXPAND | wx.ALL, 5)
         confirm = wx.Button(panel, wx.ID_CLOSE, _("Confirm"))
         confirm.Bind(wx.EVT_BUTTON, self.on_confirm)
-        box.Add(confirm, 1, wx.RIGHT | wx.LEFT, 125)
+        box.Add(confirm, 1, wx.RIGHT | wx.LEFT, 200)
 
         panel.SetSizer(box)
         panel.Layout()
