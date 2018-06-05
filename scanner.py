@@ -8,6 +8,7 @@ Classes
 Scanner - reads definition file and translates characters into symbols.
 """
 
+
 class Scanner:
 
     """Read circuit definition file and translate the characters into symbols.
@@ -37,8 +38,8 @@ class Scanner:
 
     skip_comment(self): Skip comment until the next meaningful character
 
-    complete_current_line(self): Used for error handling, return the completed
-                                 line and a position indicating where error occurs
+    complete_current_line(self): Return the completed line and a
+                                 position indicating where error occurs
 
     get_symbol(self): Translates the next sequence of characters and
                       returns the symbol type and ID.
@@ -48,47 +49,42 @@ class Scanner:
         """Open specified file and initialise reserved words and IDs."""
         try:
             self.input_file = open(path)
-        except  FileNotFoundError:
+        except FileNotFoundError:
             print("can't find file under this name")
 
         self.names = names
 
-        symbol_type_list = [
-        self.KEYWORD,
-        self.NAME,
-        self.NUMBER,
-        self.PUNCTUATION,
-        self.SYNTAX_ERROR,
-        self.EOF] = range(6)
+        symbol_type_list = [self.KEYWORD, self.NAME, self.NUMBER,
+                            self.PUNCTUATION, self.SYNTAX_ERROR,
+                            self.EOF] = range(6)
 
         '''initialise preserved keywords and error messages'''
-
         self.keywords_list = [
-        'DEVICE',
-        'CONNECT',
-        'MONITOR',
-        'CLOCK',
-        'SWITCH',
-        'RC',
-        'AND',
-        'NAND',
-        'OR',
-        'NOR',
-        'DTYPE',
-        'XOR',
-        'NOT',
-        'is',
-        'are',
-        'to',
-        '(',
-        ')',
-        '.']
+            'DEVICE',
+            'CONNECT',
+            'MONITOR',
+            'CLOCK',
+            'SWITCH',
+            'RC',
+            'AND',
+            'NAND',
+            'OR',
+            'NOR',
+            'DTYPE',
+            'XOR',
+            'NOT',
+            'is',
+            'are',
+            'to',
+            '(',
+            ')',
+            '.']
         dummy = names.lookup(self.keywords_list)
 
         self.error_list = [
-        'Unrecogonized character',
-        'Number starting with 0',
-        'Unterminated comment']
+            'Unrecogonized character',
+            'Number starting with 0',
+            'Unterminated comment']
         dummy = names.lookup(self.error_list)
 
         self.previous_lines = []        # for errormsg display
@@ -96,7 +92,6 @@ class Scanner:
         self.current_line = ''
         self.current_character = ''
         self.advance()
-
 
     def advance(self):
         if self.current_character not in ('\n', ''):
@@ -108,33 +103,37 @@ class Scanner:
 
         self.current_character = self.input_file.read(1)
 
-
     def skip_spaces(self):
         '''move to the next non-whitespace character'''
         while self.current_character.isspace():
             self.advance()
 
     def complete_current_line(self):
-        current_cursor_position = self.input_file.tell()  #record cursor position
+        # record cursor position
+        current_cursor_position = self.input_file.tell()
         current_line = self.current_line
         error_position = len(current_line)
         current_character = self.current_character
-        while current_character not in('\n', ''):       #complete reading current_line
+        # complete reading current_line
+        while current_character not in('\n', ''):
             current_line += current_character
             current_character = self.input_file.read(1)
-        self.input_file.seek(current_cursor_position)   #move back to scan location
+        # move back to scan location
+        self.input_file.seek(current_cursor_position)
         return [current_line, error_position]
 
     def get_name(self):
         name = ''
-        while self.current_character.isalnum() and self.current_character != '':
+        while (self.current_character.isalnum() and
+               self.current_character != ''):
             name = name + self.current_character
             self.advance()
         return name
 
     def get_number(self):
         number = ''
-        while self.current_character.isdigit() and self.current_character != '':
+        while (self.current_character.isdigit() and
+               self.current_character != ''):
             number = number + self.current_character
             self.advance()
 
@@ -146,7 +145,7 @@ class Scanner:
     def skip_comment(self):
         '''comment symbol defined as '//' or '/*' and '*/',
            case 3: only '/' obtained, return unrecogonized character
-           case 2: '/*' read in but no '*/', return unterminated multiline comment
+           case 2: '/*' read in but no '*/', return unterminated comment
            case 1: correct comment skipped
         '''
         self.advance()
@@ -159,7 +158,8 @@ class Scanner:
         elif self.current_character == '*':
             previous_character = self.current_character
             self.advance()
-            while not (previous_character == '*' and self.current_character == '/'):
+            while not (previous_character == '*' and
+                       self.current_character == '/'):
                 previous_character = self.current_character
                 self.advance()
                 if self.current_character == '':
@@ -174,7 +174,7 @@ class Scanner:
         a comment or end of line.
         """
 
-        self.skip_spaces() # current character now not whitespace
+        self.skip_spaces()  # current character now not whitespace
         if self.current_character.isalpha():
             name_string = self.get_name()
             if name_string in self.keywords_list:
@@ -183,7 +183,7 @@ class Scanner:
             else:
                 symbol_type = self.NAME
                 symbol_id = self.names.lookup(name_string)
-        elif self.current_character.isdigit(): # a number cannot start with 0
+        elif self.current_character.isdigit():  # a number cannot start with 0
             symbol_type = self.NUMBER
             symbol_id = self.get_number()
             if symbol_id == -1:
@@ -195,10 +195,10 @@ class Scanner:
             self.advance()
         elif self.current_character == '':
             symbol_type = self.EOF
-            symbol_id = 3154
+            symbol_id = 1  # only symbol_type is checked in parser
         elif self.current_character == '/':
             skip_successful = self.skip_comment()
-            if  skip_successful == 1:
+            if skip_successful == 1:
                 [symbol_type, symbol_id] = self.get_symbol()
             elif skip_successful == 2:
                 symbol_type = self.SYNTAX_ERROR
@@ -206,12 +206,9 @@ class Scanner:
             elif skip_successful == 3:
                 symbol_type = self.SYNTAX_ERROR
                 symbol_id = self.names.query('Unrecogonized character')
-        else: # not a valid character
+        else:  # not a valid character
             symbol_type = self.SYNTAX_ERROR
             symbol_id = self.names.query('Unrecogonized character')
             self.advance()
 
-        #print(self.current_character)
-        #print(self.current_line)
         return [symbol_type, symbol_id]
-
