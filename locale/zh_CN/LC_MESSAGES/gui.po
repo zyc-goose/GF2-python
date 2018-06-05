@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2018-06-05 09:24+0100\n"
-"PO-Revision-Date: 2018-06-05 09:27+0100\n"
+"PO-Revision-Date: 2018-06-05 09:34+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: zh\n"
@@ -137,7 +137,7 @@ msgid ""
 " Errors Generated!!\n"
 "\n"
 msgstr ""
-" 有错误产生！！\n"
+" 个错误产生！！\n"
 "\n"
 
 #: gui.py:1037
@@ -328,8 +328,8 @@ msgstr "***语法错误: 空语句"
 msgid ""
 "***Syntax Error: Expected a device terminal name (device_name + port_name)"
 msgstr ""
-"***语法错误: 盼望着,盼望着,东风来了,春天脚步近了,你也不要忘记写端口名字哦么么"
-"哒 (devoce_name + port_name)"
+"***语法错误: 盼望着,盼望着,东风来了,春天脚步近了,你也不要忘记写端口名字哦么"
+"么哒 (devoce_name + port_name)"
 
 #: parse.py:194
 msgid "***Syntax Error: Expected keyword 'is'/'are'"
@@ -398,8 +398,8 @@ msgid ""
 "***Syntax Error: Invalid function '{symbol_name}', please specify 'DEVICE', "
 "'CONNECT' or 'MONITOR'"
 msgstr ""
-"***语法错误: 无效函数 '{symbol_name}'，只能是低外死，康奈科特和监视器这三个，"
-"不能用其他的"
+"***语法错误: 无效函数 '{symbol_name}'，只能是低外死，康奈科特和监视器这三"
+"个，不能用其他的"
 
 #: parse.py:228
 #, python-brace-format
@@ -458,7 +458,7 @@ msgstr ""
 
 #: parse.py:752 parse.py:758
 msgid "In File \""
-msgstr "在文件 \\"
+msgstr "在文件 \""
 
 #: parse.py:752 parse.py:758
 msgid "\", line "
