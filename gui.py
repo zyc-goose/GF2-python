@@ -1660,8 +1660,7 @@ class RunThread(threading.Thread):
 class ErrorDispFrame(wx.Frame):
     """Configure the Monitor Window and the widgets.
 
-    This class provides a promprt Frame for Monitor lists and
-    enables the user to change the monitors.
+    This class provides a promprt Frame for error display
 
     Parameters
     ----------
