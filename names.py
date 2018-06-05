@@ -45,7 +45,6 @@ class Names:
         self.error_code_count = 0  # how many error codes have been declared
         self.name_list = []
 
-
     def unique_error_codes(self, num_error_codes):
         """Return a list of unique integer error codes."""
         if not isinstance(num_error_codes, int):
@@ -74,11 +73,11 @@ class Names:
         if isinstance(name_string_list, list):
             name_id_list = []
             for name_string in name_string_list:
-                if name_string  not in self.name_list:
+                if name_string not in self.name_list:
                     self.name_list.append(name_string)
                 name_id_list.append(self.query(name_string))
             return name_id_list
-        elif name_string_list  not in self.name_list:
+        elif name_string_list not in self.name_list:
             self.name_list.append(name_string_list)
         return self.query(name_string_list)
 
@@ -93,17 +92,18 @@ class Names:
             return self.name_list[name_id]
         else:
             return None
-            
+
     def common_prefix_length(self, string1, string2):
-        """Return the length of the longest common prefix for the two input strings."""
+        """Return the length of the longest common
+           prefix for the two input strings."""
         min_len = min(len(string1), len(string2))
         for i in range(min_len):
             if string1[i] != string2[i]:
                 return i
         return min_len
-        
+
     def get_recommend_raw(self, target_string):
         """Return all the strings in this namespace which have non-zero common
            prefix length with the target string (may contain keywords)."""
-        return [x for x in self.name_list if self.common_prefix_length(x, target_string) > 0]
-
+        return [x for x in self.name_list
+                if self.common_prefix_length(x, target_string) > 0]
