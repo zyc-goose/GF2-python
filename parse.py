@@ -163,38 +163,84 @@ class Parser:
         }
 
         self.errormsg = {
-            self.NO_ERROR                      : "NO_ERROR",
-            self.BAD_CHARACTER                 : _("***Syntax Error: Invalid character"),
-            self.BAD_COMMENT                   : _("***Syntax Error: Unterminated /* comment"),
-            self.BAD_NUMBER                    : _("***Syntax Error: Number has too many leading zeros"),
-            self.DEVICE_REDEFINED              : _("***Semantic Error: Device '{symbol_name}' is already defined"),
-            self.DEVICE_TYPE_ABSENT            : _("***Syntax Error: Expected device type after 'is'/'are'"),
-            self.DEVICE_UNDEFINED              : _("***Semantic Error: Device '{symbol_name}' is not defined"),
-            self.EMPTY_DEVICE_LIST             : _("***Syntax Error: Device list is empty"),
-            self.EMPTY_FILE                    : _("***Semantic Error: File is empty"),
-            self.EMPTY_MONITOR_LIST            : _("***Syntax Error: Monitor list is empty"),
-            self.EMPTY_STATEMENT               : _("***Syntax Error: Statement is empty"),
-            self.EXPECT_DEVICE_TERMINAL_NAME   : _("***Syntax Error: Expected a device terminal name (device_name + port_name)"),
-            self.EXPECT_KEYWORD_IS_ARE         : _("***Syntax Error: Expected keyword 'is'/'are'"),
-            self.EXPECT_KEYWORD_TO             : _("***Syntax Error: Expected keyword 'to'"),
-            self.EXPECT_LEFT_PAREN             : _("***Syntax Error: Expected left parenthesis '('"),
-            self.EXPECT_NO_QUALIFIER           : _("***Syntax Error: Expected no qualifier for the device type '{device_type}'"),
-            self.EXPECT_PORT_NAME              : _("***Syntax Error: Expected a valid port name after '.'"),
-            self.EXPECT_PORT_NAME_DTYPE        : _("***Semantic Error: DTYPE device should have a port name"),
-            self.EXPECT_QUALIFIER              : _("***Syntax Error: Expected a qualifier for the device type '{device_type}'"),
-            self.EXPECT_RIGHT_PAREN            : _("***Syntax Error: Expected right parenthesis ')'"),
-            self.INPUT_CONNECTED               : _("***Semantic Error: Input '{input_name}' is already connected to output '{output_name}'"),
-            self.INPUT_TO_INPUT                : _("***Semantic Error: Attempt to connect two inputs"),
-            self.INPUT_UNCONNECTED             : _("***Semantic Error: Some input ports are not connected to any outputs"),
-            self.INVALID_DEVICE_NAME           : _("***Syntax Error: Invalid device name '{symbol_name}'"),
-            self.INVALID_DEVICE_TYPE           : _("***Syntax Error: Invalid device type '{device_type}'"),
-            self.INVALID_FUNCTION_NAME         : _("***Syntax Error: Invalid function '{symbol_name}', please specify 'DEVICE', 'CONNECT' or 'MONITOR'"),
-            self.INVALID_PORT_NAME             : _("***Semantic Error: Invalid port name '{port_name}' for the device '{device_name}' ({device_type_full})"),
-            self.INVALID_QUALIFIER             : _("***Semantic Error: Invalid qualifier for the device type '{device_type}'"),
-            self.KEYWORD_AS_DEVICE_NAME        : _("***Syntax Error: Can't use keyword '{symbol_name}' as device name"),
-            self.MONITOR_NOT_OUTPUT            : _("***Semantic Error: Attempt to monitor an input"),
-            self.MONITOR_PRESENT               : _("***Semantic Error: Monitor already exists for the signal '{terminal_name}'"),
-            self.OUTPUT_TO_OUTPUT              : _("***Semantic Error: Attempt to connect two outputs")
+            self.NO_ERROR
+                : "NO_ERROR",
+            self.BAD_CHARACTER
+                : _("***Syntax Error: Invalid character"),
+            self.BAD_COMMENT
+                : _("***Syntax Error: Unterminated /* comment"),
+            self.BAD_NUMBER
+                : _("***Syntax Error: Number has too many leading zeros"),
+            self.DEVICE_REDEFINED
+                : _("***Semantic Error: Device '{symbol_name}' "\
+                                        "is already defined"),
+            self.DEVICE_TYPE_ABSENT
+                : _("***Syntax Error: Expected device type after 'is'/'are'"),
+            self.DEVICE_UNDEFINED
+                : _("***Semantic Error: Device '{symbol_name}' is not "\
+                                        "defined"),
+            self.EMPTY_DEVICE_LIST
+                : _("***Syntax Error: Device list is empty"),
+            self.EMPTY_FILE
+                : _("***Semantic Error: File is empty"),
+            self.EMPTY_MONITOR_LIST
+                : _("***Syntax Error: Monitor list is empty"),
+            self.EMPTY_STATEMENT
+                : _("***Syntax Error: Statement is empty"),
+            self.EXPECT_DEVICE_TERMINAL_NAME
+                : _("***Syntax Error: Expected a device terminal name "\
+                                      "(device_name + port_name)"),
+            self.EXPECT_KEYWORD_IS_ARE
+                : _("***Syntax Error: Expected keyword 'is'/'are'"),
+            self.EXPECT_KEYWORD_TO
+                : _("***Syntax Error: Expected keyword 'to'"),
+            self.EXPECT_LEFT_PAREN
+                : _("***Syntax Error: Expected left parenthesis '('"),
+            self.EXPECT_NO_QUALIFIER
+                : _("***Syntax Error: Expected no qualifier for the device "\
+                                      "type '{device_type}'"),
+            self.EXPECT_PORT_NAME
+                : _("***Syntax Error: Expected a valid port name after '.'"),
+            self.EXPECT_PORT_NAME_DTYPE
+                : _("***Semantic Error: DTYPE device should have a port name"),
+            self.EXPECT_QUALIFIER
+                : _("***Syntax Error: Expected a qualifier for the device "\
+                                      "type '{device_type}'"),
+            self.EXPECT_RIGHT_PAREN
+                : _("***Syntax Error: Expected right parenthesis ')'"),
+            self.INPUT_CONNECTED
+                : _("***Semantic Error: Input '{input_name}' is already "\
+                                        "connected to output '{output_name}'"),
+            self.INPUT_TO_INPUT
+                : _("***Semantic Error: Attempt to connect two inputs"),
+            self.INPUT_UNCONNECTED
+                : _("***Semantic Error: Some input ports are not connected "\
+                                        "to any outputs"),
+            self.INVALID_DEVICE_NAME
+                : _("***Syntax Error: Invalid device name '{symbol_name}'"),
+            self.INVALID_DEVICE_TYPE
+                : _("***Syntax Error: Invalid device type '{device_type}'"),
+            self.INVALID_FUNCTION_NAME
+                : _("***Syntax Error: Invalid function '{symbol_name}', "\
+                                      "please specify 'DEVICE', 'CONNECT' "\
+                                      "or 'MONITOR'"),
+            self.INVALID_PORT_NAME
+                : _("***Semantic Error: Invalid port name '{port_name}' for "\
+                                        "the device '{device_name}' "\
+                                        "({device_type_full})"),
+            self.INVALID_QUALIFIER
+                : _("***Semantic Error: Invalid qualifier for the device "\
+                                        "type '{device_type}'"),
+            self.KEYWORD_AS_DEVICE_NAME
+                : _("***Syntax Error: Can't use keyword '{symbol_name}' as "\
+                                      "device name"),
+            self.MONITOR_NOT_OUTPUT
+                : _("***Semantic Error: Attempt to monitor an input"),
+            self.MONITOR_PRESENT
+                : _("***Semantic Error: Monitor already exists for the "\
+                                        "signal '{terminal_name}'"),
+            self.OUTPUT_TO_OUTPUT
+                : _("***Semantic Error: Attempt to connect two outputs")
         }
         self.errormsg_format_dict = {} # used for str.format(**dict)
         self.message = ''
@@ -268,11 +314,14 @@ class Parser:
         if self.error_count == 0: # only check network when no other errors
             unconnected_inputs = self.network.find_unconnected_inputs()
             if len(unconnected_inputs) > 0:
-                print('The following inputs are not connected to any outputs:')
+                print(_('The following inputs are not connected to any outputs:\n'))
+                self.message += _('The following inputs are not connected to any outputs:\n') + '\n'
                 for i, (device_id, input_id) in enumerate(unconnected_inputs):
                     terminal_name = self.get_terminal_name(device_id, input_id)
                     print('  [%d] %s' % (i + 1, terminal_name))
-                print('Please check your circuit connection before running the parser again.')
+                    self.message += ('  [%d] %s' % (i + 1, terminal_name)) + '\n'
+                print(_('\nPlease check your circuit connection before running the parser again.'))
+                self.message += _('\nPlease check your circuit connection before running the parser again.') + '\n'
                 self.error_count = 1
         if self.error_count > 0:
             print()
@@ -664,6 +713,25 @@ class Parser:
             if error_code != self.monitors.NO_ERROR:
                 raise ValueError('zao yii feng tai tm shuai le')
 
+    def get_recommend_final(self, target_string):
+        """Return the final valid recommendation names for the given target
+           string (most likely a device name)."""
+        recommend_raw = self.names.get_recommend_raw(target_string)
+        device_id_list = self.devices.find_devices()
+        filter_fun = lambda x: self.names.query(x) in device_id_list \
+                     and x != target_string
+        recommend_filtered = list(filter(filter_fun, recommend_raw))
+        if len(recommend_filtered) == 0:
+            return []
+        max_prefix_length = \
+            max(self.names.common_prefix_length(x, target_string)
+                for x in recommend_filtered)
+        recommend_final = \
+            [x for x in recommend_filtered
+               if self.names.common_prefix_length(x, target_string) ==
+                  max_prefix_length]
+        return sorted(recommend_final)
+
     def error_display(self, *args):
         """Display error messages on terminal."""
         self.error_count += 1  # increment error count
@@ -684,13 +752,13 @@ class Parser:
         print(_('In File "')+self.scanner.input_file.name+_('", line ')\
             + str(line_number))
         print(indent + current_line)
-        print(indent + _(' ')*(error_position-1) + '^')
+        print(indent + ' '*(error_position-1) + '^')
         print(self.errormsg[self.error_code].format(**self.errormsg_format_dict))
         message = _('\n[ERROR #%d]') % (self.error_count) + '\n'
         message = message + _('In File "')+self.scanner.input_file.name+_('", line ')\
             + str(line_number) + '\n'
         message = message + indent + current_line + '\n'
-        message = message + indent + _(' ')*(error_position-1) + '^' + '\n'
+        message = message + indent + ' '*(error_position-1) + '^' + '\n'
         message = message + self.errormsg[self.error_code].format(**self.errormsg_format_dict) + '\n'
         additional_info = self.error_additional_info()
         message = message + additional_info + '\n'
@@ -735,11 +803,9 @@ class Parser:
         elif self.error_code == self.DEVICE_UNDEFINED:
             print('-----------------------------------------')
             additional_info += '-----------------------------------------\n'
-            
-        
-        
-        
-        
-        
-        
+            recommend_list_str = ' '.join(self.get_recommend_final(self.get_name_string()))
+            if recommend_list_str == '':
+                recommend_list_str = _('None')
+            print(_('Possible suggestions: ') + recommend_list_str)
+            additional_info += _('Possible suggestions: ') + recommend_list_str + '\n'
         return additional_info

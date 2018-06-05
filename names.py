@@ -93,7 +93,7 @@ class Names:
             return self.name_list[name_id]
         else:
             return None
-            
+
     def common_prefix_length(self, string1, string2):
         """Return the length of the longest common prefix for the two input strings."""
         min_len = min(len(string1), len(string2))
@@ -101,7 +101,7 @@ class Names:
             if string1[i] != string2[i]:
                 return i
         return min_len
-        
+
     def get_recommend_raw(self, target_string):
         """Return all the strings in this namespace which have non-zero common
            prefix length with the target string (may contain keywords)."""
