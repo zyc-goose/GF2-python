@@ -9,7 +9,9 @@ Classes
 Parser - parses the definition file and builds the logic network.
 """
 
-from collections import namedtuple # For self.ErrorTuple
+
+from collections import namedtuple  # For self.ErrorTuple
+
 
 class Parser:
 
@@ -49,7 +51,8 @@ class Parser:
     get_terminal_name(self, device_id, port_id): Return the terminal name from
                                                  (device_id, port_id).
 
-    statement(self): Parse a statement, which starts with '(' and ends with ')'.
+    statement(self): Parse a statement, which starts with '('
+                     and ends with ')'.
 
     device(self): Parse a device definition.
 
@@ -83,7 +86,8 @@ class Parser:
                                  display.
     """
 
-    def __init__(self, names, devices, network, monitors, scanner, test_mode=False):
+    def __init__(self, names, devices, network, monitors, scanner,
+                 test_mode=False):
         """Initialise constants."""
         self.names = names
         self.devices = devices
@@ -128,75 +132,107 @@ class Parser:
 
         # FOR TEST
         self.error_names = {
-            self.NO_ERROR                      : "NO_ERROR",
-            self.BAD_CHARACTER                 : "BAD_CHARACTER",
-            self.BAD_COMMENT                   : "BAD_COMMENT",
-            self.BAD_NUMBER                    : "BAD_NUMBER",
-            self.DEVICE_REDEFINED              : "DEVICE_REDEFINED",
-            self.DEVICE_TYPE_ABSENT            : "DEVICE_TYPE_ABSENT",
-            self.DEVICE_UNDEFINED              : "DEVICE_UNDEFINED",
-            self.EMPTY_DEVICE_LIST             : "EMPTY_DEVICE_LIST",
-            self.EMPTY_FILE                    : "EMPTY_FILE",
-            self.EMPTY_MONITOR_LIST            : "EMPTY_MONITOR_LIST",
-            self.EMPTY_STATEMENT               : "EMPTY_STATEMENT",
-            self.EXPECT_DEVICE_TERMINAL_NAME   : "EXPECT_DEVICE_TERMINAL_NAME",
-            self.EXPECT_KEYWORD_IS_ARE         : "EXPECT_KEYWORD_IS_ARE",
-            self.EXPECT_KEYWORD_TO             : "EXPECT_KEYWORD_TO",
-            self.EXPECT_LEFT_PAREN             : "EXPECT_LEFT_PAREN",
-            self.EXPECT_NO_QUALIFIER           : "EXPECT_NO_QUALIFIER",
-            self.EXPECT_PORT_NAME              : "EXPECT_PORT_NAME",
-            self.EXPECT_PORT_NAME_DTYPE        : "EXPECT_PORT_NAME_DTYPE",
-            self.EXPECT_QUALIFIER              : "EXPECT_QUALIFIER",
-            self.EXPECT_RIGHT_PAREN            : "EXPECT_RIGHT_PAREN",
-            self.INPUT_CONNECTED               : "INPUT_CONNECTED",
-            self.INPUT_TO_INPUT                : "INPUT_TO_INPUT",
-            self.INPUT_UNCONNECTED             : "INPUT_UNCONNECTED",
-            self.INVALID_DEVICE_NAME           : "INVALID_DEVICE_NAME",
-            self.INVALID_DEVICE_TYPE           : "INVALID_DEVICE_TYPE",
-            self.INVALID_FUNCTION_NAME         : "INVALID_FUNCTION_NAME",
-            self.INVALID_PORT_NAME             : "INVALID_PORT_NAME",
-            self.INVALID_QUALIFIER             : "INVALID_QUALIFIER",
-            self.KEYWORD_AS_DEVICE_NAME        : "KEYWORD_AS_DEVICE_NAME",
-            self.MONITOR_NOT_OUTPUT            : "MONITOR_NOT_OUTPUT",
-            self.MONITOR_PRESENT               : "MONITOR_PRESENT",
-            self.OUTPUT_TO_OUTPUT              : "OUTPUT_TO_OUTPUT"
+            self.NO_ERROR:                    "NO_ERROR",
+            self.BAD_CHARACTER:               "BAD_CHARACTER",
+            self.BAD_COMMENT:                 "BAD_COMMENT",
+            self.BAD_NUMBER:                  "BAD_NUMBER",
+            self.DEVICE_REDEFINED:            "DEVICE_REDEFINED",
+            self.DEVICE_TYPE_ABSENT:          "DEVICE_TYPE_ABSENT",
+            self.DEVICE_UNDEFINED:            "DEVICE_UNDEFINED",
+            self.EMPTY_DEVICE_LIST:           "EMPTY_DEVICE_LIST",
+            self.EMPTY_FILE:                  "EMPTY_FILE",
+            self.EMPTY_MONITOR_LIST:          "EMPTY_MONITOR_LIST",
+            self.EMPTY_STATEMENT:             "EMPTY_STATEMENT",
+            self.EXPECT_DEVICE_TERMINAL_NAME: "EXPECT_DEVICE_TERMINAL_NAME",
+            self.EXPECT_KEYWORD_IS_ARE:       "EXPECT_KEYWORD_IS_ARE",
+            self.EXPECT_KEYWORD_TO:           "EXPECT_KEYWORD_TO",
+            self.EXPECT_LEFT_PAREN:           "EXPECT_LEFT_PAREN",
+            self.EXPECT_NO_QUALIFIER:         "EXPECT_NO_QUALIFIER",
+            self.EXPECT_PORT_NAME:            "EXPECT_PORT_NAME",
+            self.EXPECT_PORT_NAME_DTYPE:      "EXPECT_PORT_NAME_DTYPE",
+            self.EXPECT_QUALIFIER:            "EXPECT_QUALIFIER",
+            self.EXPECT_RIGHT_PAREN:          "EXPECT_RIGHT_PAREN",
+            self.INPUT_CONNECTED:             "INPUT_CONNECTED",
+            self.INPUT_TO_INPUT:              "INPUT_TO_INPUT",
+            self.INPUT_UNCONNECTED:           "INPUT_UNCONNECTED",
+            self.INVALID_DEVICE_NAME:         "INVALID_DEVICE_NAME",
+            self.INVALID_DEVICE_TYPE:         "INVALID_DEVICE_TYPE",
+            self.INVALID_FUNCTION_NAME:       "INVALID_FUNCTION_NAME",
+            self.INVALID_PORT_NAME:           "INVALID_PORT_NAME",
+            self.INVALID_QUALIFIER:           "INVALID_QUALIFIER",
+            self.KEYWORD_AS_DEVICE_NAME:      "KEYWORD_AS_DEVICE_NAME",
+            self.MONITOR_NOT_OUTPUT:          "MONITOR_NOT_OUTPUT",
+            self.MONITOR_PRESENT:             "MONITOR_PRESENT",
+            self.OUTPUT_TO_OUTPUT:            "OUTPUT_TO_OUTPUT"
         }
 
         self.errormsg = {
-            self.NO_ERROR                      : "NO_ERROR",
-            self.BAD_CHARACTER                 : _("***Syntax Error: Invalid character"),
-            self.BAD_COMMENT                   : _("***Syntax Error: Unterminated /* comment"),
-            self.BAD_NUMBER                    : _("***Syntax Error: Number has too many leading zeros"),
-            self.DEVICE_REDEFINED              : _("***Semantic Error: Device '{symbol_name}' is already defined"),
-            self.DEVICE_TYPE_ABSENT            : _("***Syntax Error: Expected device type after 'is'/'are'"),
-            self.DEVICE_UNDEFINED              : _("***Semantic Error: Device '{symbol_name}' is not defined"),
-            self.EMPTY_DEVICE_LIST             : _("***Syntax Error: Device list is empty"),
-            self.EMPTY_FILE                    : _("***Semantic Error: File is empty"),
-            self.EMPTY_MONITOR_LIST            : _("***Syntax Error: Monitor list is empty"),
-            self.EMPTY_STATEMENT               : _("***Syntax Error: Statement is empty"),
-            self.EXPECT_DEVICE_TERMINAL_NAME   : _("***Syntax Error: Expected a device terminal name (device_name + port_name)"),
-            self.EXPECT_KEYWORD_IS_ARE         : _("***Syntax Error: Expected keyword 'is'/'are'"),
-            self.EXPECT_KEYWORD_TO             : _("***Syntax Error: Expected keyword 'to'"),
-            self.EXPECT_LEFT_PAREN             : _("***Syntax Error: Expected left parenthesis '('"),
-            self.EXPECT_NO_QUALIFIER           : _("***Syntax Error: Expected no qualifier for the device type '{device_type}'"),
-            self.EXPECT_PORT_NAME              : _("***Syntax Error: Expected a valid port name after '.'"),
-            self.EXPECT_PORT_NAME_DTYPE        : _("***Semantic Error: DTYPE device should have a port name"),
-            self.EXPECT_QUALIFIER              : _("***Syntax Error: Expected a qualifier for the device type '{device_type}'"),
-            self.EXPECT_RIGHT_PAREN            : _("***Syntax Error: Expected right parenthesis ')'"),
-            self.INPUT_CONNECTED               : _("***Semantic Error: Input '{input_name}' is already connected to output '{output_name}'"),
-            self.INPUT_TO_INPUT                : _("***Semantic Error: Attempt to connect two inputs"),
-            self.INPUT_UNCONNECTED             : _("***Semantic Error: Some input ports are not connected to any outputs"),
-            self.INVALID_DEVICE_NAME           : _("***Syntax Error: Invalid device name '{symbol_name}'"),
-            self.INVALID_DEVICE_TYPE           : _("***Syntax Error: Invalid device type '{device_type}'"),
-            self.INVALID_FUNCTION_NAME         : _("***Syntax Error: Invalid function '{symbol_name}', please specify 'DEVICE', 'CONNECT' or 'MONITOR'"),
-            self.INVALID_PORT_NAME             : _("***Semantic Error: Invalid port name '{port_name}' for the device '{device_name}' ({device_type_full})"),
-            self.INVALID_QUALIFIER             : _("***Semantic Error: Invalid qualifier for the device type '{device_type}'"),
-            self.KEYWORD_AS_DEVICE_NAME        : _("***Syntax Error: Can't use keyword '{symbol_name}' as device name"),
-            self.MONITOR_NOT_OUTPUT            : _("***Semantic Error: Attempt to monitor an input"),
-            self.MONITOR_PRESENT               : _("***Semantic Error: Monitor already exists for the signal '{terminal_name}'"),
-            self.OUTPUT_TO_OUTPUT              : _("***Semantic Error: Attempt to connect two outputs")
+            self.NO_ERROR: "NO_ERROR",
+            self.BAD_CHARACTER: _("***Syntax Error: Invalid character"),
+            self.BAD_COMMENT: _("***Syntax Error: Unterminated /* comment"),
+            self.BAD_NUMBER: _("***Syntax Error: Number has too many leading "
+                               "zeros"),
+            self.DEVICE_REDEFINED: _("***Semantic Error: Device "
+                                     "'{symbol_name}' is already defined"),
+            self.DEVICE_TYPE_ABSENT: _("***Syntax Error: Expected device "
+                                       "type after 'is'/'are'"),
+            self.DEVICE_UNDEFINED: _("***Semantic Error: Device "
+                                     "'{symbol_name}' is not defined"),
+            self.EMPTY_DEVICE_LIST: _("***Syntax Error: Device list is empty"),
+            self.EMPTY_FILE: _("***Semantic Error: File is empty"),
+            self.EMPTY_MONITOR_LIST: _("***Syntax Error: Monitor list is "
+                                       "empty"),
+            self.EMPTY_STATEMENT: _("***Syntax Error: Statement is empty"),
+            self.EXPECT_DEVICE_TERMINAL_NAME: _("***Syntax Error: Expected a "
+                                                "device terminal name "
+                                                "(device_name + port_name)"),
+            self.EXPECT_KEYWORD_IS_ARE: _("***Syntax Error: Expected keyword "
+                                          "'is'/'are'"),
+            self.EXPECT_KEYWORD_TO: _("***Syntax Error: Expected keyword "
+                                      "'to'"),
+            self.EXPECT_LEFT_PAREN: _("***Syntax Error: Expected left "
+                                      "parenthesis '('"),
+            self.EXPECT_NO_QUALIFIER: _("***Syntax Error: Expected no "
+                                        "qualifier for the device type "
+                                        "'{device_type}'"),
+            self.EXPECT_PORT_NAME: _("***Syntax Error: Expected a valid "
+                                     "port name after '.'"),
+            self.EXPECT_PORT_NAME_DTYPE: _("***Semantic Error: DTYPE device "
+                                           "should have a port name"),
+            self.EXPECT_QUALIFIER: _("***Syntax Error: Expected a qualifier "
+                                     "for the device type '{device_type}'"),
+            self.EXPECT_RIGHT_PAREN: _("***Syntax Error: Expected right "
+                                       "parenthesis ')'"),
+            self.INPUT_CONNECTED: _("***Semantic Error: Input '{input_name}' "
+                                    "is already connected to output "
+                                    "'{output_name}'"),
+            self.INPUT_TO_INPUT: _("***Semantic Error: Attempt to connect "
+                                   "two inputs"),
+            self.INPUT_UNCONNECTED: _("***Semantic Error: Some input ports "
+                                      "are not connected to any outputs"),
+            self.INVALID_DEVICE_NAME: _("***Syntax Error: Invalid device "
+                                        "name '{symbol_name}'"),
+            self.INVALID_DEVICE_TYPE: _("***Syntax Error: Invalid device "
+                                        "type '{device_type}'"),
+            self.INVALID_FUNCTION_NAME: _("***Syntax Error: Invalid function "
+                                          "'{symbol_name}', please specify "
+                                          "'DEVICE', 'CONNECT' or 'MONITOR'"),
+            self.INVALID_PORT_NAME: _("***Semantic Error: Invalid port name "
+                                      "'{port_name}' for the device "
+                                      "'{device_name}' ({device_type_full})"),
+            self.INVALID_QUALIFIER: _("***Semantic Error: Invalid qualifier "
+                                      "for the device type '{device_type}'"),
+            self.KEYWORD_AS_DEVICE_NAME: _("***Syntax Error: Can't use "
+                                           "keyword '{symbol_name}' as "
+                                           "device name"),
+            self.MONITOR_NOT_OUTPUT: _("***Semantic Error: Attempt to "
+                                       "monitor an input"),
+            self.MONITOR_PRESENT: _("***Semantic Error: Monitor already "
+                                    "exists for the signal '{terminal_name}'"),
+            self.OUTPUT_TO_OUTPUT: _("***Semantic Error: Attempt to connect "
+                                     "two outputs")
         }
-        self.errormsg_format_dict = {} # used for str.format(**dict)
+        self.errormsg_format_dict = {}  # used for str.format(**dict)
         self.message = ''
 
         self.error_code = self.NO_ERROR
@@ -204,7 +240,7 @@ class Parser:
 
         # For errormsg display
         self.Location = namedtuple('Location', 'linum, pos')
-        self.device_locations = {} # id -> location
+        self.device_locations = {}  # id -> location
         self.connect_locations = {}
         self.monitor_locations = {}
 
@@ -219,18 +255,18 @@ class Parser:
         self.error_tuple_list = []
 
         self.device_with_qualifier = {
-            'CLOCK'  : devices.CLOCK,
-            'SWITCH' : devices.SWITCH,
-            'AND'    : devices.AND,
-            'NAND'   : devices.NAND,
-            'OR'     : devices.OR,
-            'NOR'    : devices.NOR,
-            'RC'     : devices.RC
+            'CLOCK':   devices.CLOCK,
+            'SWITCH':  devices.SWITCH,
+            'AND':     devices.AND,
+            'NAND':    devices.NAND,
+            'OR':      devices.OR,
+            'NOR':     devices.NOR,
+            'RC':      devices.RC
         }
         self.device_no_qualifier = {
-            'DTYPE'  : devices.D_TYPE,
-            'XOR'    : devices.XOR,
-            'NOT'    : devices.NOT
+            'DTYPE':   devices.D_TYPE,
+            'XOR':     devices.XOR,
+            'NOT':     devices.NOT
         }
 
     def move_to_next_symbol(self):
@@ -253,7 +289,8 @@ class Parser:
             if not self.statement():
                 # First check syntax error from scanner
                 if self.symbol_type == self.scanner.SYNTAX_ERROR:
-                    self.last_error_pos_overwrite = False # cannot use previous pos
+                    # cannot use previous pos
+                    self.last_error_pos_overwrite = False
                     if self.is_target_name('Unrecogonized character'):
                         self.error_code = self.BAD_CHARACTER
                     elif self.is_target_name('Number starting with 0'):
@@ -265,14 +302,21 @@ class Parser:
                 # move to next '(' to resume parsing
                 while (not self.is_left_paren()) and (not self.is_EOF()):
                     self.move_to_next_symbol()
-        if self.error_count == 0: # only check network when no other errors
+        if self.error_count == 0:  # only check network when no other errors
             unconnected_inputs = self.network.find_unconnected_inputs()
             if len(unconnected_inputs) > 0:
-                print('The following inputs are not connected to any outputs:')
+                print(_('The following inputs are not connected to any '
+                        'outputs:\n'))
+                self.message += _('The following inputs are not connected '
+                                  'to any outputs:\n') + '\n'
                 for i, (device_id, input_id) in enumerate(unconnected_inputs):
                     terminal_name = self.get_terminal_name(device_id, input_id)
                     print('  [%d] %s' % (i + 1, terminal_name))
-                print('Please check your circuit connection before running the parser again.')
+                    self.message += '  [%d] %s' % (i + 1, terminal_name) + '\n'
+                print(_('\nPlease check your circuit connection before '
+                        'running the parser again.'))
+                self.message += _('\nPlease check your circuit connection '
+                                  'before running the parser again.') + '\n'
                 self.error_count = 1
         if self.error_count > 0:
             print()
@@ -364,7 +408,7 @@ class Parser:
 
     def device(self):
         """Parse a device definition."""
-        if self.error_code != self.NO_ERROR: # make sure no error has occured
+        if self.error_code != self.NO_ERROR:  # make sure no error has occured
             return False
         if not (self.is_keyword() and self.is_target_name('DEVICE')):
             return False  # not a device, pass on to connect
@@ -372,7 +416,7 @@ class Parser:
         # The first symbol must be a device name
         new_device_ids = set()
         device_id = self.get_first_device_id(new_device_ids)
-        if device_id is None: # parse failed
+        if device_id is None:  # parse failed
             return False
         # Record all other device names
         while True:
@@ -388,10 +432,11 @@ class Parser:
         self.move_to_next_symbol()
         # Expecting device type (and possibly a qualifier)
         device_kind, qualifier = self.get_device_type()
-        if device_kind is None: # error occured
+        if device_kind is None:  # error occured
             return False
         for device_id in new_device_ids:
-            error_code = self.devices.make_device(device_id, device_kind, qualifier)
+            error_code = self.devices.make_device(device_id, device_kind,
+                                                  qualifier)
             if error_code == self.devices.INVALID_QUALIFIER:
                 self.error_code = self.INVALID_QUALIFIER
                 self.last_error_pos_overwrite = True
@@ -401,7 +446,8 @@ class Parser:
     def add_device_location(self):
         """Add current (linum, pos) to the dict of device locations."""
         self.device_locations[self.symbol_id] = \
-        self.Location(self.scanner.line_number, len(self.scanner.current_line))
+            self.Location(self.scanner.line_number,
+                          len(self.scanner.current_line))
 
     def get_first_device_id(self, new_device_ids):
         """Parse the first device name by force.
@@ -433,7 +479,7 @@ class Parser:
         If successful, return device_id.
         If failed, return None and (may) generate error code."""
         if not self.is_name():
-            return None # no error code since it's optional
+            return None  # no error code since it's optional
         # current symbol is name
         device_id = self.symbol_id
         if self.devices.get_device(device_id) is not None \
@@ -509,21 +555,23 @@ class Parser:
             return None
         device_kind = device.device_kind
         device_type_str = self.names.get_name_string(device_kind)
-        if device_kind in self.devices.gate_types and device_kind != self.devices.XOR:
+        if device_kind in self.devices.gate_types \
+           and device_kind != self.devices.XOR:
             device_type_str += ' ' + str(len(device.inputs))
         elif device_kind == self.devices.CLOCK:
             device_type_str += ' ' + str(device.clock_half_period)
         return device_type_str
 
-    def device_terminal(self, monitor_mode = False):
+    def device_terminal(self, monitor_mode=False):
         """Parse a device terminal and return (devicd_id, port_id).
         Return (None, None) if error occurs."""
         if not self.is_name():
-            return None, None  # no error code at this point
+            return None, None   # no error code at this point
         device_id = self.device_id = self.symbol_id
         device = self.devices.get_device(device_id)
         self.errormsg_format_dict['device_name'] = self.get_name_string()
-        self.errormsg_format_dict['device_type_full'] = self.get_device_type_string(device)
+        self.errormsg_format_dict['device_type_full'] = \
+            self.get_device_type_string(device)
         if device is None:
             self.error_code = self.DEVICE_UNDEFINED
             return None, None
@@ -551,7 +599,8 @@ class Parser:
                     return None, None
                 else:
                     self.monitor_locations[(device_id, port_id)] = \
-                    self.Location(self.scanner.line_number, len(self.scanner.current_line))
+                        self.Location(self.scanner.line_number,
+                                      len(self.scanner.current_line))
             self.move_to_next_symbol()
         else:
             port_id = self.port_id = None
@@ -569,12 +618,13 @@ class Parser:
                     return None, None
                 else:
                     self.monitor_locations[(device_id, port_id)] = \
-                    self.Location(self.last_error_linum, self.last_error_pos)
+                        self.Location(self.last_error_linum,
+                                      self.last_error_pos)
         return device_id, port_id
 
     def connect(self):
         """Parse a connection."""
-        if self.error_code != self.NO_ERROR: # make sure no error has occured
+        if self.error_code != self.NO_ERROR:  # make sure no error has occured
             return False
         if not (self.is_keyword() and self.is_target_name('CONNECT')):
             return False  # not a connect, pass on to monitor
@@ -585,7 +635,8 @@ class Parser:
             if self.error_code == self.NO_ERROR:
                 self.error_code = self.EXPECT_DEVICE_TERMINAL_NAME
             return False
-        first_location = self.Location(self.last_error_linum, self.last_error_pos)
+        first_location = self.Location(self.last_error_linum,
+                                       self.last_error_pos)
         # Check keyword 'to'
         if not (self.is_keyword() and self.is_target_name('to')):
             self.error_code = self.EXPECT_KEYWORD_TO
@@ -597,10 +648,13 @@ class Parser:
             if self.error_code == self.NO_ERROR:
                 self.error_code = self.EXPECT_DEVICE_TERMINAL_NAME
             return False
-        second_location = self.Location(self.last_error_linum, self.last_error_pos)
+        second_location = self.Location(self.last_error_linum,
+                                        self.last_error_pos)
         # Make connection now (use network module)
-        error_code = self.network.make_connection(first_device_id, first_port_id,
-                                                 second_device_id, second_port_id)
+        error_code = self.network.make_connection(first_device_id,
+                                                  first_port_id,
+                                                  second_device_id,
+                                                  second_port_id)
         if error_code != self.network.NO_ERROR:
             if error_code == self.network.INPUT_CONNECTED:
                 self.error_code = self.INPUT_CONNECTED
@@ -617,7 +671,8 @@ class Parser:
                 self.errormsg_format_dict['input_name'] = \
                     self.get_terminal_name(input_device_id, input_port_id)
                 output_device_id, output_port_id = \
-                    self.network.get_connected_output(input_device_id, input_port_id)
+                    self.network.get_connected_output(input_device_id,
+                                                      input_port_id)
                 self.errormsg_format_dict['output_name'] = \
                     self.get_terminal_name(output_device_id, output_port_id)
                 self.device_id, self.port_id = input_device_id, input_port_id
@@ -630,19 +685,21 @@ class Parser:
                 raise ValueError('zao yu feng')
             self.last_error_pos_overwrite = True
             return False
-        self.connect_locations[(first_device_id, first_port_id)] = first_location
-        self.connect_locations[(second_device_id, second_port_id)] = second_location
+        self.connect_locations[(first_device_id,
+                                first_port_id)] = first_location
+        self.connect_locations[(second_device_id,
+                                second_port_id)] = second_location
         return True
 
     def monitor(self):
         """Parse a series of monitors."""
-        if self.error_code != self.NO_ERROR: # make sure no error has occured
+        if self.error_code != self.NO_ERROR:  # make sure no error has occured
             return False
         if not (self.is_keyword() and self.is_target_name('MONITOR')):
             return False  # not a monitor, pass back to statement
         self.move_to_next_symbol()
         # Check first device port
-        device_id, port_id = self.device_terminal(monitor_mode = True)
+        device_id, port_id = self.device_terminal(monitor_mode=True)
         if device_id is None:  # error occurs
             if self.error_code == self.NO_ERROR:
                 if self.is_right_paren():
@@ -655,7 +712,7 @@ class Parser:
             raise ValueError('zao yii feng tai tm shuai le')
         # Check all the other device ports
         while True:
-            device_id, port_id = self.device_terminal(monitor_mode = True)
+            device_id, port_id = self.device_terminal(monitor_mode=True)
             if device_id is None:
                 if self.error_code == self.NO_ERROR:
                     return True
@@ -663,6 +720,25 @@ class Parser:
             error_code = self.monitors.make_monitor(device_id, port_id)
             if error_code != self.monitors.NO_ERROR:
                 raise ValueError('zao yii feng tai tm shuai le')
+
+    def get_recommend_final(self, target_string):
+        """Return the final valid recommendation names for the given target
+           string (most likely a device name)."""
+        recommend_raw = self.names.get_recommend_raw(target_string)
+        device_id_list = self.devices.find_devices()
+        recommend_filtered = [x for x in recommend_raw
+                              if self.names.query(x) in device_id_list and
+                              x != target_string]
+        if len(recommend_filtered) == 0:
+            return []
+        max_prefix_length = \
+            max(self.names.common_prefix_length(x, target_string)
+                for x in recommend_filtered)
+        recommend_final = \
+            [x for x in recommend_filtered
+             if self.names.common_prefix_length(x, target_string) ==
+             max_prefix_length]
+        return sorted(recommend_final)
 
     def error_display(self, *args):
         """Display error messages on terminal."""
@@ -673,25 +749,28 @@ class Parser:
             error_position = self.last_error_pos
             line_number = self.last_error_linum
             self.last_error_pos_overwrite = False
-        ###TEST BEGIN###
+        # TEST BEGIN #
         if self.test_mode:
-            error_tuple = self.ErrorTuple(self.error_names[self.error_code], line_number, error_position)
+            error_tuple = self.ErrorTuple(self.error_names[self.error_code],
+                                          line_number, error_position)
             self.error_tuple_list.append(error_tuple)
             return True
-        ###TEST END###
+        # TEST END #
         indent = ' '*2
         print(_('\n[ERROR #%d]') % (self.error_count))
-        print(_('In File "')+self.scanner.input_file.name+_('", line ')\
-            + str(line_number))
+        print(_('In File "')+self.scanner.input_file.name+_('", line ') +
+              str(line_number))
         print(indent + current_line)
-        print(indent + _(' ')*(error_position-1) + '^')
-        print(self.errormsg[self.error_code].format(**self.errormsg_format_dict))
+        print(indent + ' '*(error_position-1) + '^')
+        print(self.errormsg[self.error_code].
+              format(**self.errormsg_format_dict))
         message = _('\n[ERROR #%d]') % (self.error_count) + '\n'
-        message = message + _('In File "')+self.scanner.input_file.name+_('", line ')\
-            + str(line_number) + '\n'
+        message = message + _('In File "') + self.scanner.input_file.name \
+            + _('", line ') + str(line_number) + '\n'
         message = message + indent + current_line + '\n'
-        message = message + indent + _(' ')*(error_position-1) + '^' + '\n'
-        message = message + self.errormsg[self.error_code].format(**self.errormsg_format_dict) + '\n'
+        message = message + indent + ' '*(error_position-1) + '^' + '\n'
+        message = message + self.errormsg[self.error_code].\
+            format(**self.errormsg_format_dict) + '\n'
         additional_info = self.error_additional_info()
         message = message + additional_info + '\n'
         self.message += message
@@ -705,11 +784,14 @@ class Parser:
             if self.error_code == self.DEVICE_REDEFINED:
                 location = self.device_locations[self.symbol_id]
             else:
-                location = self.monitor_locations[(self.device_id, self.port_id)]
+                location = self.monitor_locations[(self.device_id,
+                                                   self.port_id)]
             print('-----------------------------------------')
             additional_info += '-----------------------------------------\n'
             print(_('Previous definition here, in line'), location.linum)
-            additional_info = additional_info + _('Previous definition here, in line') + str(location.linum) + '\n'
+            additional_info = additional_info + \
+                _('Previous definition here, in line') + \
+                str(location.linum) + '\n'
             if location.linum < self.scanner.line_number:
                 line = self.scanner.previous_lines[location.linum]
             else:
@@ -717,13 +799,16 @@ class Parser:
             print(indent + line)
             additional_info = additional_info + indent + line + '\n'
             print(indent + ' '*(location.pos-1) + '^')
-            additional_info = additional_info + indent + ' '*(location.pos-1) + '^' + '\n'
+            additional_info = additional_info + indent + \
+                ' '*(location.pos-1) + '^' + '\n'
         elif self.error_code == self.INPUT_CONNECTED:
             location = self.connect_locations[(self.device_id, self.port_id)]
             print('-----------------------------------------')
             additional_info += '-----------------------------------------\n'
             print(_('Previous connection here, in line'), location.linum)
-            additional_info = additional_info + _('Previous connection here, in line') + str(location.linum) + '\n'
+            additional_info = additional_info + \
+                _('Previous connection here, in line') + \
+                str(location.linum) + '\n'
             if location.linum < self.scanner.line_number:
                 line = self.scanner.previous_lines[location.linum]
             else:
@@ -731,15 +816,16 @@ class Parser:
             print(indent + line)
             additional_info = additional_info + indent + line + '\n'
             print(indent + ' '*(location.pos-1) + '^')
-            additional_info = additional_info + indent + ' '*(location.pos-1) + '^' + '\n'
+            additional_info = additional_info + indent + \
+                ' '*(location.pos-1) + '^' + '\n'
         elif self.error_code == self.DEVICE_UNDEFINED:
             print('-----------------------------------------')
             additional_info += '-----------------------------------------\n'
-            
-        
-        
-        
-        
-        
-        
+            recommend_list_str = \
+                ' '.join(self.get_recommend_final(self.get_name_string()))
+            if recommend_list_str == '':
+                recommend_list_str = _('None')
+            print(_('Possible suggestions: ') + recommend_list_str)
+            additional_info += _('Possible suggestions: ') + \
+                recommend_list_str + '\n'
         return additional_info

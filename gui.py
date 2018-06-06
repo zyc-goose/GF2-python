@@ -122,6 +122,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.Bind(wx.EVT_SIZE, self.on_size)
         self.Bind(wx.EVT_MOUSE_EVENTS, self.on_mouse)
         self.Bind(wx.EVT_KEY_DOWN, self.on_key)
+        self.initTexture()
 
     def init_parameters(self):
         """Initialise variables for panning"""
@@ -191,7 +192,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def init_gl(self):
         """Configure and initialise the OpenGL context."""
-        self.initTexture()
+        # self.initTexture()
         size = self.GetClientSize()
         self.SetCurrent(self.context)
         GL.glDrawBuffer(GL.GL_BACK)
@@ -1661,8 +1662,7 @@ class RunThread(threading.Thread):
 class ErrorDispFrame(wx.Frame):
     """Configure the Monitor Window and the widgets.
 
-    This class provides a promprt Frame for Monitor lists and
-    enables the user to change the monitors.
+    This class provides a promprt Frame for error display
 
     Parameters
     ----------

@@ -9,7 +9,12 @@ from network import Network
 from monitors import Monitors
 
 import os
+import gettext
 from collections import namedtuple
+
+# Install null translation for the _() patterns in parse.py
+nulltranslation = gettext.NullTranslations()
+nulltranslation.install()
 
 ###### ERROR CODE TESTS (INTEGRATION TESTS) ######
 
@@ -532,7 +537,8 @@ def test_get_first_device_id_error(new_parser):
 
 def test_get_first_device_id(new_parser):
     # get_first_device_id all pass
-    assert new_parser.get_first_device_id(set()) is not None
+    name_set = new_parser.get_first_device_id(set())
+    assert new_parser.names.get_name_string(name_set) == 'and1'
 
 
 def test_get_optional_device_id_error(new_parser):
@@ -544,7 +550,8 @@ def test_get_optional_device_id_error(new_parser):
 
 def test_get_optional_device_id(new_parser):
     # get_optional_device_id all pass
-    assert new_parser.get_optional_device_id(set()) is 37
+    name_set = new_parser.get_optional_device_id(set())
+    assert new_parser.names.get_name_string(name_set) == 'and3'
 
 
 def test_check_keyword_is_are_error(new_parser):
@@ -663,7 +670,11 @@ def test_device_terminal(new_parser):
     # device_terminal all pass
     new_parser.move_to_next_symbol()
     new_parser.statement()
-    assert new_parser.device_terminal() == (42, 31)
+    terminal_set = new_parser.device_terminal()
+    device = new_parser.names.get_name_string(terminal_set[0])
+    terminal = new_parser.names.get_name_string(terminal_set[1])
+    assert device == 'or'
+    assert terminal == 'I1'
 
 
 def test_connect(new_parser):
