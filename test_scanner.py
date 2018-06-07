@@ -14,7 +14,7 @@ def new_names():
 def new_scanner():
     '''returns an instance of class Scanner'''
     new_names = Names()
-    new_scanner = Scanner('ripple_counter.txt', new_names)
+    new_scanner = Scanner('test_files/ripple_counter.txt', new_names)
     return new_scanner
 
 
@@ -22,7 +22,7 @@ def new_scanner():
 def new_scanner_names():
     '''returns an instance of class Scanner'''
     new_names = Names()
-    new_scanner = Scanner('test_names.txt', new_names)
+    new_scanner = Scanner('test_files/test_names.txt', new_names)
     return new_scanner_names
 
 
@@ -30,7 +30,7 @@ def new_scanner_names():
 def new_scanner_numbers():
     '''returns an instance of class Scanner'''
     new_names = Names()
-    new_scanner = Scanner('test_numbers.txt', new_names)
+    new_scanner = Scanner('test_files/test_numbers.txt', new_names)
     return new_scanner_numbers
 
 
