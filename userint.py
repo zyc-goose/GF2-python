@@ -8,6 +8,10 @@ Classes:
 UserInterface - reads and parses user commands.
 """
 
+import sys
+import gettext
+import os
+
 
 class UserInterface:
 
@@ -79,10 +83,14 @@ class UserInterface:
         self.line = ""  # current string entered by the user
         self.cursor = 0  # cursor position
 
+        basepath = os.path.abspath(os.path.dirname(sys.argv[0]))
+        localedir = os.path.join(basepath, "locale")
+        gettext.install('gui', localedir)
+
     def command_interface(self):
         """Read the command entered and call the corresponding function."""
-        print("Logic Simulator: interactive command line user interface.\n"
-              "Enter 'h' for help.")
+        print(_("Logic Simulator: interactive command line user interface.\n"),
+              _("Enter 'h' for help."))
         self.get_line()  # get the user entry
         command = self.read_command()  # read the first character
         while command != "q":
@@ -99,7 +107,7 @@ class UserInterface:
             elif command == "c":
                 self.continue_command()
             else:
-                print("Invalid command. Enter 'h' for help.")
+                print(_("Invalid command. Enter 'h' for help."))
             self.get_line()  # get the user entry
             command = self.read_command()  # read the first character
 
@@ -134,7 +142,7 @@ class UserInterface:
         self.skip_spaces()
         name_string = ""
         if not self.character.isalpha():  # the string must start with a letter
-            print("Error! Expected a name.")
+            print(_("Error! Expected a name."))
             return None
         while self.character.isalnum():
             name_string = "".join([name_string, self.character])
@@ -152,7 +160,7 @@ class UserInterface:
         else:
             name_id = self.names.query(name_string)
         if name_id is None:
-            print("Error! Unknown name.")
+            print(_("Error! Unknown name."))
         return name_id
 
     def read_signal_name(self):
@@ -180,7 +188,7 @@ class UserInterface:
         self.skip_spaces()
         number_string = ""
         if not self.character.isdigit():
-            print("Error! Expected a number.")
+            print(_("Error! Expected a number."))
             return None
         while self.character.isdigit():
             number_string = "".join([number_string, self.character])
@@ -189,26 +197,26 @@ class UserInterface:
 
         if upper_bound is not None:
             if number > upper_bound:
-                print("Number out of range.")
+                print(_("Number out of range."))
                 return None
 
         if lower_bound is not None:
             if number < lower_bound:
-                print("Number out of range.")
+                print(_("Number out of range."))
                 return None
 
         return number
 
     def help_command(self):
         """Print a list of valid commands."""
-        print("User commands:")
-        print("r N       - run the simulation for N cycles")
-        print("c N       - continue the simulation for N cycles")
-        print("s X N     - set switch X to N (0 or 1)")
-        print("m X       - set a monitor on signal X")
-        print("z X       - zap the monitor on signal X")
-        print("h         - help (this command)")
-        print("q         - quit the program")
+        print(_("User commands:"))
+        print(_("r N       - run the simulation for N cycles"))
+        print(_("c N       - continue the simulation for N cycles"))
+        print(_("s X N     - set switch X to N (0 or 1)"))
+        print(_("m X       - set a monitor on signal X"))
+        print(_("z X       - zap the monitor on signal X"))
+        print(_("h         - help (this command)"))
+        print(_("q         - quit the program"))
 
     def switch_command(self):
         """Set the specified switch to the specified signal level."""
@@ -217,9 +225,9 @@ class UserInterface:
             switch_state = self.read_number(0, 1)
             if switch_state is not None:
                 if self.devices.set_switch(switch_id, switch_state):
-                    print("Successfully set switch.")
+                    print(_("Successfully set switch."))
                 else:
-                    print("Error! Invalid switch.")
+                    print(_("Error! Invalid switch."))
 
     def monitor_command(self):
         """Set the specified monitor."""
@@ -229,9 +237,9 @@ class UserInterface:
             monitor_error = self.monitors.make_monitor(device, port,
                                                        self.cycles_completed)
             if monitor_error == self.monitors.NO_ERROR:
-                print("Successfully made monitor.")
+                print(_("Successfully made monitor."))
             else:
-                print("Error! Could not make monitor.")
+                print(_("Error! Could not make monitor."))
 
     def zap_command(self):
         """Remove the specified monitor."""
@@ -239,9 +247,9 @@ class UserInterface:
         if monitor is not None:
             [device, port] = monitor
             if self.monitors.remove_monitor(device, port):
-                print("Successfully zapped monitor")
+                print(_("Successfully zapped monitor"))
             else:
-                print("Error! Could not zap monitor.")
+                print(_("Error! Could not zap monitor."))
 
     def run_network(self, cycles):
         """Run the network for the specified number of simulation cycles.
@@ -252,7 +260,7 @@ class UserInterface:
             if self.network.execute_network():
                 self.monitors.record_signals()
             else:
-                print("Error! Network oscillating.")
+                print(_("Error! Network oscillating."))
                 return False
         self.monitors.display_signals()
         return True
@@ -264,7 +272,7 @@ class UserInterface:
 
         if cycles is not None:  # if the number of cycles provided is valid
             self.monitors.reset_monitors()
-            print("".join(["Running for ", str(cycles), " cycles"]))
+            print("".join([_("Running for "), str(cycles), _(" cycles")]))
             self.devices.cold_startup()
             if self.run_network(cycles):
                 self.cycles_completed += cycles
@@ -274,8 +282,8 @@ class UserInterface:
         cycles = self.read_number(0, None)
         if cycles is not None:  # if the number of cycles provided is valid
             if self.cycles_completed == 0:
-                print("Error! Nothing to continue. Run first.")
+                print(_("Error! Nothing to continue. Run first."))
             elif self.run_network(cycles):
                 self.cycles_completed += cycles
-                print(" ".join(["Continuing for", str(cycles), "cycles.",
-                                "Total:", str(self.cycles_completed)]))
+                print(" ".join([_("Continuing for"), str(cycles), _("cycles."),
+                                _("Total:"), str(self.cycles_completed)]))
