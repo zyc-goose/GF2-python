@@ -33,14 +33,14 @@ def main(arg_list):
     Run either the command line user interface, the graphical user interface,
     or display the usage message.
     """
-    usage_message = ("Usage:\n"
+    usage_message = _("Usage:\n"
                      "Show help: logsim.py -h\n"
                      "Command line user interface: logsim.py -c <file path>\n"
-                     "Graphical user interface: logsim.py <file path>")
+                     "Graphical user interface: logsim.py")
     try:
         options, arguments = getopt.getopt(arg_list, "hc:")
     except getopt.GetoptError:
-        print("Error: invalid command line arguments\n")
+        print(_("Error: invalid command line arguments\n"))
         print(usage_message)
         sys.exit()
 
