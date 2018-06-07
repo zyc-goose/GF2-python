@@ -16,15 +16,17 @@ from collections import namedtuple
 nulltranslation = gettext.NullTranslations()
 nulltranslation.install()
 
-###### ERROR CODE TESTS (INTEGRATION TESTS) ######
+# ERROR CODE TESTS (INTEGRATION TESTS) #
 
 """This section of test intends to check whether the parser is able to generate
 the correct error messages when given a poorly defined input file. The class
 ParserTestCase acts as a virtual machine to handle the input and output and
 check whether the output is as desired."""
 
+
 class ParserTestCase:
-    """Receive an input file (as strings), run the parser and check the error code."""
+    """Receive an input file (as strings), run the parser and check the
+       error code."""
 
     def __init__(self):
         self.testfile_name = 'testfile.txt'
@@ -62,7 +64,8 @@ class ParserTestCase:
         devices = Devices(names)
         network = Network(names, devices)
         monitors = Monitors(names, devices, network)
-        self.parser = Parser(names, devices, network, monitors, scanner, test_mode=True)
+        self.parser = Parser(names, devices, network, monitors, scanner,
+                             test_mode=True)
 
     def execute(self):
         """Run parser to produce the output."""
@@ -84,6 +87,7 @@ class ParserTestCase:
         print(("\n" + " "*9).join(map(str, self.expected_output)), end=']\n')
         return False
 
+
 @pytest.fixture
 def testcase():
     """An empty TestCase instance."""
@@ -94,57 +98,64 @@ def test_error_bad_character(testcase):
     """BAD_CHARACTER"""
     testcase.add_input_line('(DEVICE A B are XOR)')
     testcase.add_input_line('(DEVICE C D ?)')
-    testcase.add_expected_error('BAD_CHARACTER', line_number=2, cursor_pos=13)
+    testcase.add_expected_error('BAD_CHARACTER', 2, 13)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_bad_comment(testcase):
     """BAD_COMMENT"""
     testcase.add_input_line('/* foo bar pig dog')
-    testcase.add_expected_error('BAD_COMMENT', line_number=1, cursor_pos=18)
+    testcase.add_expected_error('BAD_COMMENT', 1, 18)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_bad_number(testcase):
     """BAD_NUMBER"""
     testcase.add_input_line('(DEVICE A B are NAND 007)')
-    testcase.add_expected_error('BAD_NUMBER', line_number=1, cursor_pos=24)
+    testcase.add_expected_error('BAD_NUMBER', 1, 24)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_device_redefined(testcase):
     """DEVICE_REDEFINED"""
     testcase.add_input_line('(DEVICE A B are NAND 2)')
     testcase.add_input_line('(DEVICE A ??!!@@##')
-    testcase.add_expected_error('DEVICE_REDEFINED', line_number=2, cursor_pos=9)
+    testcase.add_expected_error('DEVICE_REDEFINED', 2, 9)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_device_type_absent(testcase):
     """DEVICE_TYPE_ABSENT"""
     testcase.add_input_line('(DEVICE A1 A2 are  ')
     testcase.add_input_line('')
     testcase.add_input_line('   )')
-    testcase.add_expected_error('DEVICE_TYPE_ABSENT', line_number=1, cursor_pos=17)
+    testcase.add_expected_error('DEVICE_TYPE_ABSENT', 1, 17)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_device_undefined(testcase):
     """DEVICE_UNDEFINED"""
     testcase.add_input_line('(DEVICE A1 A2 are OR 3)')
     testcase.add_input_line('(MONITOR A3 )')
-    testcase.add_expected_error('DEVICE_UNDEFINED', line_number=2, cursor_pos=11)
+    testcase.add_expected_error('DEVICE_UNDEFINED', 2, 11)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_empty_device_list(testcase):
     """EMPTY_DEVICE_LIST"""
     testcase.add_input_line('(DEVICE   are DTYPE)')
     testcase.add_input_line('(DEVICE  )')
-    testcase.add_expected_error('EMPTY_DEVICE_LIST', line_number=1, cursor_pos=13)
-    testcase.add_expected_error('EMPTY_DEVICE_LIST', line_number=2, cursor_pos=10)
+    testcase.add_expected_error('EMPTY_DEVICE_LIST', 1, 13)
+    testcase.add_expected_error('EMPTY_DEVICE_LIST', 2, 10)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_empty_file(testcase):
     """EMPTY_FILE"""
@@ -152,25 +163,28 @@ def test_error_empty_file(testcase):
     testcase.add_input_line('/* Lorem Ipsum Cappucino Latte')
     testcase.add_input_line('bagels cereal chocolate pig elephant')
     testcase.add_input_line('zheye jidangwei */')
-    testcase.add_expected_error('EMPTY_FILE', line_number=4, cursor_pos=18)
+    testcase.add_expected_error('EMPTY_FILE', 4, 18)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_empty_monitor_list(testcase):
     """EMPTY_MONITOR_LIST"""
     testcase.add_input_line('(DEVICE A is NAND 1)')
     testcase.add_input_line('(MONITOR          )')
-    testcase.add_expected_error('EMPTY_MONITOR_LIST', line_number=2, cursor_pos=19)
+    testcase.add_expected_error('EMPTY_MONITOR_LIST', 2, 19)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_empty_statement(testcase):
     """EMPTY_STATEMENT"""
     testcase.add_input_line('(DEVICE dog cat bulldog are DTYPE)')
     testcase.add_input_line('()')
-    testcase.add_expected_error('EMPTY_STATEMENT', line_number=2, cursor_pos=2)
+    testcase.add_expected_error('EMPTY_STATEMENT', 2, 2)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_expect_device_terminal_name(testcase):
     """EXPECT_DEVICE_TERMINAL_NAME"""
@@ -178,75 +192,83 @@ def test_error_expect_device_terminal_name(testcase):
     testcase.add_input_line('(CONNECT)')
     testcase.add_input_line('(DEVICE A is DTYPE)')
     testcase.add_input_line('(CONNECT A.DATA to )')
-    testcase.add_expected_error('EXPECT_DEVICE_TERMINAL_NAME', line_number=1, cursor_pos=11)
-    testcase.add_expected_error('EXPECT_DEVICE_TERMINAL_NAME', line_number=2, cursor_pos=9)
-    testcase.add_expected_error('EXPECT_DEVICE_TERMINAL_NAME', line_number=4, cursor_pos=20)
+    testcase.add_expected_error('EXPECT_DEVICE_TERMINAL_NAME', 1, 11)
+    testcase.add_expected_error('EXPECT_DEVICE_TERMINAL_NAME', 2, 9)
+    testcase.add_expected_error('EXPECT_DEVICE_TERMINAL_NAME', 4, 20)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_expect_keyword_is_are(testcase):
     """EXPECT_KEYWORD_IS_ARE"""
     testcase.add_input_line('(DEVICE A B C)')
     testcase.add_input_line('(DEVICE D E F CLOCK)')
-    testcase.add_expected_error('EXPECT_KEYWORD_IS_ARE', line_number=1, cursor_pos=14)
-    testcase.add_expected_error('EXPECT_KEYWORD_IS_ARE', line_number=2, cursor_pos=19)
+    testcase.add_expected_error('EXPECT_KEYWORD_IS_ARE', 1, 14)
+    testcase.add_expected_error('EXPECT_KEYWORD_IS_ARE', 2, 19)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_expect_keyword_to(testcase):
     """EXPECT_KEYWORD_TO"""
     testcase.add_input_line('(DEVICE A is XOR)')
     testcase.add_input_line('(CONNECT A)')
     testcase.add_input_line('(CONNECT A dog)')
-    testcase.add_expected_error('EXPECT_KEYWORD_TO', line_number=2, cursor_pos=11)
-    testcase.add_expected_error('EXPECT_KEYWORD_TO', line_number=3, cursor_pos=14)
+    testcase.add_expected_error('EXPECT_KEYWORD_TO', 2, 11)
+    testcase.add_expected_error('EXPECT_KEYWORD_TO', 3, 14)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_expect_left_paren(testcase):
     """EXPECT_LEFT_PAREN"""
     testcase.add_input_line('(DEVICE A is XOR)')
     testcase.add_input_line('  cat (DEVICE B is NOR 16)')
-    testcase.add_expected_error('EXPECT_LEFT_PAREN', line_number=2, cursor_pos=5)
+    testcase.add_expected_error('EXPECT_LEFT_PAREN', 2, 5)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_expect_left_paren(testcase):
     """EXPECT_NO_QUALIFIER"""
     testcase.add_input_line('(DEVICE A is XOR 0)')
     testcase.add_input_line('(DEVICE B is DTYPE 3154)')
-    testcase.add_expected_error('EXPECT_NO_QUALIFIER', line_number=1, cursor_pos=18)
-    testcase.add_expected_error('EXPECT_NO_QUALIFIER', line_number=2, cursor_pos=23)
+    testcase.add_expected_error('EXPECT_NO_QUALIFIER', 1, 18)
+    testcase.add_expected_error('EXPECT_NO_QUALIFIER', 2, 23)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_expect_port_name(testcase):
     """EXPECT_PORT_NAME"""
     testcase.add_input_line('(DEVICE A B is NAND 2)')
     testcase.add_input_line('(CONNECT A. to )')
     testcase.add_input_line('(CONNECT A to B.)')
-    testcase.add_expected_error('EXPECT_PORT_NAME', line_number=2, cursor_pos=11)
-    testcase.add_expected_error('EXPECT_PORT_NAME', line_number=3, cursor_pos=16)
+    testcase.add_expected_error('EXPECT_PORT_NAME', 2, 11)
+    testcase.add_expected_error('EXPECT_PORT_NAME', 3, 16)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_expect_port_name_dtype(testcase):
     """EXPECT_PORT_NAME_DTYPE"""
     testcase.add_input_line('(DEVICE A B is DTYPE)')
     testcase.add_input_line('(CONNECT A to )')
     testcase.add_input_line('(CONNECT A.QBAR to B)')
-    testcase.add_expected_error('EXPECT_PORT_NAME_DTYPE', line_number=2, cursor_pos=10)
-    testcase.add_expected_error('EXPECT_PORT_NAME_DTYPE', line_number=3, cursor_pos=20)
+    testcase.add_expected_error('EXPECT_PORT_NAME_DTYPE', 2, 10)
+    testcase.add_expected_error('EXPECT_PORT_NAME_DTYPE', 3, 20)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_expect_qualifier(testcase):
     """EXPECT_QUALIFIER"""
     testcase.add_input_line('(DEVICE A B is NAND 3 )')
     testcase.add_input_line('(DEVICE C D is NAND   )')
-    testcase.add_expected_error('EXPECT_QUALIFIER', line_number=2, cursor_pos=19)
+    testcase.add_expected_error('EXPECT_QUALIFIER', 2, 19)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_expect_right_paren(testcase):
     """EXPECT_RIGHT_PAREN"""
@@ -254,9 +276,10 @@ def test_error_expect_right_paren(testcase):
     testcase.add_input_line('  /* some useless comment')
     testcase.add_input_line(' anothe sb sb sb sb csbg */')
     testcase.add_input_line('(CONNECT foo.I1 to bar)')
-    testcase.add_expected_error('EXPECT_RIGHT_PAREN', line_number=1, cursor_pos=27)
+    testcase.add_expected_error('EXPECT_RIGHT_PAREN', 1, 27)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_input_connected(testcase):
     """INPUT_CONNECTED"""
@@ -266,26 +289,29 @@ def test_error_input_connected(testcase):
     testcase.add_input_line('')
     testcase.add_input_line('(CONNECT A to C.I1)')
     testcase.add_input_line('(CONNECT B to C.I1)')
-    testcase.add_expected_error('INPUT_CONNECTED', line_number=6, cursor_pos=18)
+    testcase.add_expected_error('INPUT_CONNECTED', 6, 18)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_input_connected(testcase):
     """INPUT_TO_INPUT"""
     testcase.add_input_line('(DEVICE A B are AND 2)')
     testcase.add_input_line('(CONNECT A.I2 to B.I1)')
-    testcase.add_expected_error('INPUT_TO_INPUT', line_number=2, cursor_pos=21)
+    testcase.add_expected_error('INPUT_TO_INPUT', 2, 21)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_invalid_device_name(testcase):
     """INVALID_DEVICE_NAME"""
     testcase.add_input_line('(DEVICE A B C1234 1234)')
     testcase.add_input_line('(DEVICE DDD .)')
-    testcase.add_expected_error('INVALID_DEVICE_NAME', line_number=1, cursor_pos=22)
-    testcase.add_expected_error('INVALID_DEVICE_NAME', line_number=2, cursor_pos=13)
+    testcase.add_expected_error('INVALID_DEVICE_NAME', 1, 22)
+    testcase.add_expected_error('INVALID_DEVICE_NAME', 2, 13)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_invalid_device_type(testcase):
     """INVALID_DEVICE_TYPE"""
@@ -293,23 +319,25 @@ def test_error_invalid_device_type(testcase):
     testcase.add_input_line('(DEVICE B1 B2 B3 are csbg)')
     testcase.add_input_line('(DEVICE C1 C2 C3 are .)')
     testcase.add_input_line('(DEVICE D1 D2 D3 are MONITOR)')
-    testcase.add_expected_error('INVALID_DEVICE_TYPE', line_number=1, cursor_pos=29)
-    testcase.add_expected_error('INVALID_DEVICE_TYPE', line_number=2, cursor_pos=25)
-    testcase.add_expected_error('INVALID_DEVICE_TYPE', line_number=3, cursor_pos=22)
-    testcase.add_expected_error('INVALID_DEVICE_TYPE', line_number=4, cursor_pos=28)
+    testcase.add_expected_error('INVALID_DEVICE_TYPE', 1, 29)
+    testcase.add_expected_error('INVALID_DEVICE_TYPE', 2, 25)
+    testcase.add_expected_error('INVALID_DEVICE_TYPE', 3, 22)
+    testcase.add_expected_error('INVALID_DEVICE_TYPE', 4, 28)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_invalid_function_name(testcase):
     """INVALID_FUNCTION_NAME"""
     testcase.add_input_line('(DEVICES )')
     testcase.add_input_line('(CONNECTION C1 C2 C3 are .)')
     testcase.add_input_line('(MONICA D1 )')
-    testcase.add_expected_error('INVALID_FUNCTION_NAME', line_number=1, cursor_pos=8)
-    testcase.add_expected_error('INVALID_FUNCTION_NAME', line_number=2, cursor_pos=11)
-    testcase.add_expected_error('INVALID_FUNCTION_NAME', line_number=3, cursor_pos=7)
+    testcase.add_expected_error('INVALID_FUNCTION_NAME', 1, 8)
+    testcase.add_expected_error('INVALID_FUNCTION_NAME', 2, 11)
+    testcase.add_expected_error('INVALID_FUNCTION_NAME', 3, 7)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_invalid_port_name(testcase):
     """INVALID_PORT_NAME"""
@@ -317,32 +345,35 @@ def test_error_invalid_port_name(testcase):
     testcase.add_input_line('(DEVICE B is DTYPE)')
     testcase.add_input_line('(CONNECT A.I5 to sb)')
     testcase.add_input_line('(MONITOR B.QQQ)')
-    testcase.add_expected_error('INVALID_PORT_NAME', line_number=3, cursor_pos=13)
-    testcase.add_expected_error('INVALID_PORT_NAME', line_number=4, cursor_pos=14)
+    testcase.add_expected_error('INVALID_PORT_NAME', 3, 13)
+    testcase.add_expected_error('INVALID_PORT_NAME', 4, 14)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_invalid_qualifier(testcase):
     """INVALID_QUALIFIER"""
     testcase.add_input_line('(DEVICE A is NAND 0)')
     testcase.add_input_line('(DEVICE B is NOR 17)')
     testcase.add_input_line('(DEVICE C is SWITCH 2)')
-    testcase.add_expected_error('INVALID_QUALIFIER', line_number=1, cursor_pos=19)
-    testcase.add_expected_error('INVALID_QUALIFIER', line_number=2, cursor_pos=19)
-    testcase.add_expected_error('INVALID_QUALIFIER', line_number=3, cursor_pos=21)
+    testcase.add_expected_error('INVALID_QUALIFIER', 1, 19)
+    testcase.add_expected_error('INVALID_QUALIFIER', 2, 19)
+    testcase.add_expected_error('INVALID_QUALIFIER', 3, 21)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_keyword_as_device_name(testcase):
     """KEYWORD_AS_DEVICE_NAME"""
     testcase.add_input_line('(DEVICE DEVICE)')
     testcase.add_input_line('(DEVICE csbg CONNECT)')
     testcase.add_input_line('(DEVICE A B to)')
-    testcase.add_expected_error('KEYWORD_AS_DEVICE_NAME', line_number=1, cursor_pos=14)
-    testcase.add_expected_error('KEYWORD_AS_DEVICE_NAME', line_number=2, cursor_pos=20)
-    testcase.add_expected_error('KEYWORD_AS_DEVICE_NAME', line_number=3, cursor_pos=14)
+    testcase.add_expected_error('KEYWORD_AS_DEVICE_NAME', 1, 14)
+    testcase.add_expected_error('KEYWORD_AS_DEVICE_NAME', 2, 20)
+    testcase.add_expected_error('KEYWORD_AS_DEVICE_NAME', 3, 14)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_monitor_not_output(testcase):
     """MONITOR_NOT_OUTPUT"""
@@ -350,10 +381,11 @@ def test_error_monitor_not_output(testcase):
     testcase.add_input_line('(DEVICE zyf is NAND 2)')
     testcase.add_input_line('(MONITOR csbg.CLK)')
     testcase.add_input_line('(MONITOR zyf.I1)')
-    testcase.add_expected_error('MONITOR_NOT_OUTPUT', line_number=3, cursor_pos=17)
-    testcase.add_expected_error('MONITOR_NOT_OUTPUT', line_number=4, cursor_pos=15)
+    testcase.add_expected_error('MONITOR_NOT_OUTPUT', 3, 17)
+    testcase.add_expected_error('MONITOR_NOT_OUTPUT', 4, 15)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_monitor_present(testcase):
     """MONITOR_PRESENT"""
@@ -361,10 +393,11 @@ def test_error_monitor_present(testcase):
     testcase.add_input_line('(MONITOR A B C)')
     testcase.add_input_line('(MONITOR C)')
     testcase.add_input_line('(MONITOR A)')
-    testcase.add_expected_error('MONITOR_PRESENT', line_number=3, cursor_pos=10)
-    testcase.add_expected_error('MONITOR_PRESENT', line_number=4, cursor_pos=10)
+    testcase.add_expected_error('MONITOR_PRESENT', 3, 10)
+    testcase.add_expected_error('MONITOR_PRESENT', 4, 10)
     testcase.execute()
     assert testcase.passed()
+
 
 def test_error_output_to_output(testcase):
     """OUTPUT_TO_OUTPUT"""
@@ -372,8 +405,8 @@ def test_error_output_to_output(testcase):
     testcase.add_input_line('(DEVICE D is DTYPE)')
     testcase.add_input_line('(CONNECT A to B)')
     testcase.add_input_line('(CONNECT D.Q to D.QBAR)')
-    testcase.add_expected_error('OUTPUT_TO_OUTPUT', line_number=3, cursor_pos=15)
-    testcase.add_expected_error('OUTPUT_TO_OUTPUT', line_number=4, cursor_pos=22)
+    testcase.add_expected_error('OUTPUT_TO_OUTPUT', 3, 15)
+    testcase.add_expected_error('OUTPUT_TO_OUTPUT', 4, 22)
     testcase.execute()
     assert testcase.passed()
 
