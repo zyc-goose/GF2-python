@@ -116,8 +116,9 @@ class Devices:
 
         self.signal_types = [self.LOW, self.HIGH, self.RISING,
                              self.FALLING, self.BLANK] = range(5)
-        self.gate_types = [self.AND, self.OR, self.NAND, self.NOR,
-                           self.XOR, self.NOT] = self.names.lookup(gate_strings)
+        self.gate_types = \
+            [self.AND, self.OR, self.NAND, self.NOR,
+             self.XOR, self.NOT] = self.names.lookup(gate_strings)
         self.device_types = [self.CLOCK, self.SWITCH, self.D_TYPE,
                              self.RC] = self.names.lookup(device_strings)
         self.dtype_input_ids = [self.CLK_ID, self.SET_ID, self.CLEAR_ID,
@@ -161,10 +162,10 @@ class Devices:
         """
         device = self.get_device(device_id)
         if device is not None:
-            device.inputs.setdefault(input_id) # {input_id : None} -> dict
+            device.inputs.setdefault(input_id)  # {input_id : None} -> dict
             return True
         else:
-            return False # device not found
+            return False  # device not found
 
     def add_output(self, device_id, output_id, signal=0):
         """Add the specified output to the specified device.
@@ -176,7 +177,7 @@ class Devices:
             device.outputs[output_id] = signal
             return True
         else:
-            return False # device not found
+            return False  # device not found
 
     def get_signal_name(self, device_id, port_id):
         """Return the name string of the specified signal.
@@ -312,7 +313,8 @@ class Devices:
         elif device_kind == self.RC:
             if device_property is None:
                 error__type = self.NO_QUALIFIER
-            elif (device_property <= 0) or not isinstance(device_property, int):
+            elif (device_property <= 0) or \
+                    not isinstance(device_property, int):
                 error_type = self.INVALID_QUALIFIER
             else:
                 self.make_RC(device_id, device_property)

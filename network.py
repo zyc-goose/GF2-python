@@ -76,7 +76,7 @@ class Network:
          self.DEVICE_ABSENT] = self.names.unique_error_codes(6)
         self.steady_state = True  # for checking if signals have settled
         self.device_no_input = -1
-        self.cycle_count = 0;
+        self.cycle_count = 0
 
     def get_connected_output(self, device_id, input_id):
         """Return the output connected to the given input.
@@ -171,7 +171,7 @@ class Network:
                     return False
         return True
 
-    ######################## NEWLY ADDED METHOD ############################
+    # NEWLY ADDED METHOD #
     def find_unconnected_inputs(self):
         """Return the list of the unconnected inputs."""
         unconnected_inputs = []
@@ -181,7 +181,7 @@ class Network:
                 if self.get_connected_output(device_id, input_id) is None:
                     unconnected_inputs.append((device_id, input_id))
         return unconnected_inputs
-    ######################## NEWLY ADDED METHOD ############################
+    # NEWLY ADDED METHOD #
 
     def update_signal(self, signal, target):
         """Update the signal in the direction of the target.
@@ -234,7 +234,7 @@ class Network:
             device.outputs[None] = updated_signal
             return True
 
-    def execute_RC(self,device_id):
+    def execute_RC(self, device_id):
         device = self.devices.get_device(device_id)
         signal = self.get_output_signal(device_id, output_id=None)
         settling_time = device.RC_settling_time
@@ -242,13 +242,12 @@ class Network:
             target = self.devices.HIGH
         else:
             target = self.devices.LOW
-        updated_signal = self.update_signal(signal,target)
+        updated_signal = self.update_signal(signal, target)
         if updated_signal is None:  # signal update is unsuccessful
             return False
         else:
             device.outputs[None] = updated_signal
             return True
-
 
     def execute_gate(self, device_id, x=None, y=None):
         """Simulate a logic gate and update its output signal value.

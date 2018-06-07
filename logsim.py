@@ -34,9 +34,9 @@ def main(arg_list):
     or display the usage message.
     """
     usage_message = _("Usage:\n"
-                     "Show help: logsim.py -h\n"
-                     "Command line user interface: logsim.py -c <file path>\n"
-                     "Graphical user interface: logsim.py")
+                      "Show help: logsim.py -h\n"
+                      "Command line user interface: logsim.py -c <file path>\n"
+                      "Graphical user interface: logsim.py")
     try:
         options, arguments = getopt.getopt(arg_list, "hc:")
     except getopt.GetoptError:
